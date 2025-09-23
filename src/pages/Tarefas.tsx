@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, Filter, Download, Calendar, User, Clock } from "lucide-react"
+import { Plus, Search, Filter, Download, Calendar, User } from "lucide-react"
 import { getDateStatus } from "@/utils/date-utils"
 
 const tasks = [
@@ -18,8 +18,7 @@ const tasks = [
     dueDate: "2025-01-20",
     assignee: "Sergio Ricardo",
     team: "Vendas",
-    teamColor: "bg-blue-500",
-    category: "Vendas"
+    teamColor: "bg-blue-500"
   },
   {
     id: "2", 
@@ -30,8 +29,7 @@ const tasks = [
     dueDate: "2025-01-25",
     assignee: "Sergio Ricardo",
     team: "Comercial",
-    teamColor: "bg-green-500",
-    category: "Comercial"
+    teamColor: "bg-green-500"
   },
   {
     id: "3",
@@ -42,8 +40,7 @@ const tasks = [
     dueDate: "2025-01-23",
     assignee: "Sergio Ricardo",
     team: "Marketing",
-    teamColor: "bg-purple-500",
-    category: "CRM"
+    teamColor: "bg-purple-500"
   },
   {
     id: "4",
@@ -54,8 +51,7 @@ const tasks = [
     dueDate: "2025-01-22",
     assignee: "Sergio Ricardo",
     team: "Vendas",
-    teamColor: "bg-blue-500",
-    category: "Relatórios"
+    teamColor: "bg-blue-500"
   }
 ]
 
@@ -100,9 +96,8 @@ const Tarefas = () => {
 
       <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
         <Tabs defaultValue="tarefas" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-card">
+          <TabsList className="grid w-full grid-cols-3 bg-card">
             <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
-            <TabsTrigger value="categorias">Categorias</TabsTrigger>
             <TabsTrigger value="tags">Tags</TabsTrigger>
             <TabsTrigger value="arquivadas">Tarefas Arquivadas</TabsTrigger>
           </TabsList>
@@ -198,10 +193,6 @@ const Tarefas = () => {
                             <Calendar className="w-3 h-3" />
                             <span>{new Date(task.dueDate).toLocaleDateString("pt-BR")}</span>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            <span>{task.category}</span>
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -211,16 +202,6 @@ const Tarefas = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="categorias">
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle>Categorias</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Gerencie as categorias das suas tarefas.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="tags">
             <Card className="border-border bg-card">
