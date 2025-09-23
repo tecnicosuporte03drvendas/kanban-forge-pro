@@ -80,8 +80,8 @@ export function KanbanBoard() {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [filters, setFilters] = useState<FilterState>({
     search: '',
-    assignee: '',
-    team: '',
+    assignee: 'all',
+    team: 'all',
     dateFrom: '',
     dateTo: '',
     showOverdueOnly: false
@@ -118,12 +118,12 @@ export function KanbanBoard() {
       }
 
       // Assignee filter
-      if (filters.assignee && task.assignee !== filters.assignee) {
+      if (filters.assignee && filters.assignee !== 'all' && task.assignee !== filters.assignee) {
         return false
       }
 
       // Team filter
-      if (filters.team && task.team !== filters.team) {
+      if (filters.team && filters.team !== 'all' && task.team !== filters.team) {
         return false
       }
 

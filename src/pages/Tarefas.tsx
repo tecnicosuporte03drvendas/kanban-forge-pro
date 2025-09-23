@@ -124,24 +124,24 @@ const Tarefas = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Select defaultValue="todos">
+                    <Select defaultValue="all">
                       <SelectTrigger className="w-32">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="todos">Todos</SelectItem>
+                        <SelectItem value="all">Todos</SelectItem>
                         <SelectItem value="criada">Criada</SelectItem>
                         <SelectItem value="executando">Executando</SelectItem>
                         <SelectItem value="concluida">Concluída</SelectItem>
                         <SelectItem value="validada">Validada</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Select defaultValue="todas">
+                    <Select defaultValue="all">
                       <SelectTrigger className="w-32">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="todas">Todas</SelectItem>
+                        <SelectItem value="all">Todas</SelectItem>
                         <SelectItem value="alta">Alta</SelectItem>
                         <SelectItem value="media">Média</SelectItem>
                         <SelectItem value="baixa">Baixa</SelectItem>

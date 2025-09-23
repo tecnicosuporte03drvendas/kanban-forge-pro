@@ -22,8 +22,8 @@ export interface FilterState {
 export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
   const [filters, setFilters] = useState<FilterState>({
     search: '',
-    assignee: '',
-    team: '',
+    assignee: 'all',
+    team: 'all',
     dateFrom: '',
     dateTo: '',
     showOverdueOnly: false
@@ -38,8 +38,8 @@ export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
   const clearFilters = () => {
     const clearedFilters: FilterState = {
       search: '',
-      assignee: '',
-      team: '',
+      assignee: 'all',
+      team: 'all',
       dateFrom: '',
       dateTo: '',
       showOverdueOnly: false
@@ -48,9 +48,12 @@ export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
     onFiltersChange(clearedFilters)
   }
 
-  const hasActiveFilters = Object.values(filters).some(value => 
-    typeof value === 'boolean' ? value : value !== ''
-  )
+  const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
+    if (key === 'assignee' || key === 'team') {
+      return value !== 'all' && value !== ''
+    }
+    return typeof value === 'boolean' ? value : value !== ''
+  })
 
   return (
     <Card className="mb-6 border-border bg-card">
@@ -74,7 +77,7 @@ export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
                 <SelectValue placeholder="Responsável" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="Sergio Ricardo">Sergio Ricardo</SelectItem>
                 <SelectItem value="Ana Silva">Ana Silva</SelectItem>
                 <SelectItem value="João Santos">João Santos</SelectItem>
@@ -86,7 +89,7 @@ export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
                 <SelectValue placeholder="Equipe" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 <SelectItem value="Vendas">Vendas</SelectItem>
                 <SelectItem value="Comercial">Comercial</SelectItem>
                 <SelectItem value="Marketing">Marketing</SelectItem>
