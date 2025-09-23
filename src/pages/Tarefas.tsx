@@ -5,8 +5,10 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, Filter, Download, Calendar, User, BarChart3, Tag, Archive, RefreshCw, TrendingUp, Clock, Users } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Plus, Search, Filter, Download, Calendar, User, BarChart3, Tag, Archive, RefreshCw, TrendingUp, Clock, Users, MoreHorizontal, CheckSquare, PlayCircle, Trash2, X } from "lucide-react"
 import { getDateStatus } from "@/utils/date-utils"
+import { useState } from "react"
 
 const tasks = [
   {
@@ -56,6 +58,8 @@ const tasks = [
 ]
 
 const Tarefas = () => {
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([])
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "criada": return "bg-kanban-created text-white"
@@ -74,6 +78,33 @@ const Tarefas = () => {
       case "baixa": return "bg-priority-low text-white"
       default: return "bg-muted text-muted-foreground"
     }
+  }
+
+  const toggleTaskSelection = (taskId: string) => {
+    setSelectedTasks(prev => 
+      prev.includes(taskId) 
+        ? prev.filter(id => id !== taskId)
+        : [...prev, taskId]
+    )
+  }
+
+  const selectAllTasks = () => {
+    if (selectedTasks.length === tasks.length) {
+      setSelectedTasks([])
+    } else {
+      setSelectedTasks(tasks.map(task => task.id))
+    }
+  }
+
+  const handleBulkAction = (action: string) => {
+    console.log(`Executing ${action} on tasks:`, selectedTasks)
+    // Implementar as ações aqui
+    setSelectedTasks([])
+  }
+
+  const handleTaskAction = (taskId: string, action: string) => {
+    console.log(`Executing ${action} on task:`, taskId)
+    // Implementar as ações individuais aqui
   }
 
   return (
@@ -153,12 +184,88 @@ const Tarefas = () => {
             </Card>
 
             <div className="grid gap-4">
+              {selectedTasks.length > 0 && (
+                <Card className="border-primary bg-primary/5">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-foreground">
+                            {selectedTasks.length} tarefas selecionadas
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedTasks([])}
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleBulkAction('archive')}
+                            className="h-8"
+                          >
+                            <Archive className="w-4 h-4 mr-1" />
+                            Arquivar
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleBulkAction('pending')}
+                            className="h-8"
+                          >
+                            <Clock className="w-4 h-4 mr-1" />
+                            Pendente
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleBulkAction('executing')}
+                            className="h-8"
+                          >
+                            <PlayCircle className="w-4 h-4 mr-1" />
+                            Em Execução
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleBulkAction('completed')}
+                            className="h-8"
+                          >
+                            <CheckSquare className="w-4 h-4 mr-1" />
+                            Concluída
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleBulkAction('delete')}
+                            className="h-8 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Excluir
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-foreground">
                   {tasks.length} de {tasks.length} tarefas encontradas
                 </h3>
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
-                  Selecionar todas
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-muted-foreground"
+                  onClick={selectAllTasks}
+                >
+                  {selectedTasks.length === tasks.length ? "Desselecionar todas" : "Selecionar todas"}
                 </Button>
               </div>
 
@@ -168,13 +275,18 @@ const Tarefas = () => {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 space-y-3">
                         <div className="flex items-center gap-3">
-                          <input type="checkbox" className="w-4 h-4 rounded border-border" />
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-border" 
+                            checked={selectedTasks.includes(task.id)}
+                            onChange={() => toggleTaskSelection(task.id)}
+                          />
                           <h4 className="font-medium text-card-foreground">{task.title}</h4>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
                           <Badge className={`text-xs ${task.teamColor} text-white border-0 px-2 py-1`}>
                             {task.team}
-                          </Badge>
-                          <Badge className={getStatusColor(task.status)}>
-                            {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
                           </Badge>
                           <Badge className={getPriorityColor(task.priority)}>
                             {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
@@ -196,6 +308,41 @@ const Tarefas = () => {
                           </div>
                         </div>
                       </div>
+                      
+                      {selectedTasks.length === 0 && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => handleTaskAction(task.id, 'archive')}>
+                              <Archive className="w-4 h-4 mr-2" />
+                              Arquivar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleTaskAction(task.id, 'pending')}>
+                              <Clock className="w-4 h-4 mr-2" />
+                              Marcar como Pendente
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleTaskAction(task.id, 'executing')}>
+                              <PlayCircle className="w-4 h-4 mr-2" />
+                              Marcar como Em Execução
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleTaskAction(task.id, 'completed')}>
+                              <CheckSquare className="w-4 h-4 mr-2" />
+                              Marcar como Concluída
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleTaskAction(task.id, 'delete')}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
