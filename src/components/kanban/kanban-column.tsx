@@ -22,7 +22,7 @@ export function KanbanColumn({ id, title, tasks, color }: KanbanColumnProps) {
   }
 
   const getColumnClass = () => {
-    const baseClass = "flex flex-col w-80 min-h-[600px] rounded-lg border transition-all duration-200"
+    const baseClass = "flex flex-col w-80 rounded-lg border transition-all duration-200"
     if (isOver) {
       return `${baseClass} border-primary/50 bg-accent/30 scale-[1.02]`
     }
@@ -51,7 +51,7 @@ export function KanbanColumn({ id, title, tasks, color }: KanbanColumnProps) {
 
       <div
         ref={setNodeRef}
-        className="flex-1 p-4 space-y-3 overflow-y-auto"
+        className="flex-1 p-4 space-y-3"
       >
         {tasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-center">

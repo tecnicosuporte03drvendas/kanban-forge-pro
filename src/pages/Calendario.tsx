@@ -2,7 +2,8 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react"
+import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users } from "lucide-react"
+import { getDateStatus } from "@/utils/date-utils"
 
 const Calendario = () => {
   const currentDate = new Date()
@@ -22,21 +23,33 @@ const Calendario = () => {
       title: "Reunião de Vendas",
       time: "09:00",
       type: "meeting",
-      priority: "alta"
+      priority: "alta",
+      dueDate: "2025-01-20",
+      team: "Vendas",
+      teamColor: "bg-blue-500",
+      assignee: "Sergio Ricardo"
     },
     {
       id: "2",
       title: "Apresentação Proposta ABC",
       time: "14:30",
       type: "presentation",
-      priority: "alta"
+      priority: "alta",
+      dueDate: "2025-01-22",
+      team: "Comercial",
+      teamColor: "bg-green-500",
+      assignee: "Ana Silva"
     },
     {
       id: "3",
       title: "Follow-up Clientes",
       time: "16:00", 
       type: "task",
-      priority: "media"
+      priority: "media",
+      dueDate: "2025-01-25",
+      team: "Marketing",
+      teamColor: "bg-purple-500",
+      assignee: "João Santos"
     }
   ]
 
@@ -155,8 +168,25 @@ const Calendario = () => {
                   <div key={event.id} className="p-3 border border-border rounded-lg bg-background/50">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
-                        <h4 className="font-medium text-sm text-card-foreground">{event.title}</h4>
-                        <p className="text-xs text-muted-foreground mt-1">{event.time}</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium text-sm text-card-foreground">{event.title}</h4>
+                          <Badge className={`text-xs ${event.teamColor} text-white border-0 px-2 py-1`}>
+                            {event.team}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-xs">
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            {event.time}
+                          </span>
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <Users className="w-3 h-3" />
+                            {event.assignee}
+                          </span>
+                          <span className={`${getDateStatus(event.dueDate).className}`}>
+                            {new Date(event.dueDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+                          </span>
+                        </div>
                       </div>
                       <Badge className={`text-xs ${getEventColor(event.priority)}`}>
                         {event.priority.charAt(0).toUpperCase() + event.priority.slice(1)}

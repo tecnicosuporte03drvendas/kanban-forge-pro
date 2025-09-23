@@ -1,10 +1,12 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { KanbanColumn } from "./kanban-column"
 import { KanbanCard } from "./kanban-card"
+import { KanbanFilters, FilterState } from "./kanban-filters"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
+import { isOverdue } from "@/utils/date-utils"
 
 export interface Task {
   id: string
@@ -13,6 +15,8 @@ export interface Task {
   priority: "alta" | "media" | "baixa"
   dueDate: string
   assignee: string
+  team: string
+  teamColor: string
   status: "criada" | "assumida" | "executando" | "concluida" | "validada"
 }
 
@@ -22,8 +26,10 @@ const initialTasks: Task[] = [
     title: "Organizar reunião de vendas",
     description: "Preparar agenda e convidar equipe para reunião semanal de vendas",
     priority: "alta",
-    dueDate: "2025-09-25",
+    dueDate: "2025-01-20",
     assignee: "Sergio Ricardo",
+    team: "Vendas",
+    teamColor: "bg-blue-500",
     status: "criada"
   },
   {
@@ -31,8 +37,10 @@ const initialTasks: Task[] = [
     title: "Revisar proposta comercial",
     description: "Analisar e revisar proposta para o cliente ABC Ltda",
     priority: "media",
-    dueDate: "2025-09-27",
+    dueDate: "2025-01-25",
     assignee: "Sergio Ricardo",
+    team: "Comercial",
+    teamColor: "bg-green-500",
     status: "executando"
   },
   {
@@ -40,8 +48,10 @@ const initialTasks: Task[] = [
     title: "Atualizar CRM com novos leads",
     description: "Inserir os leads capturados na campanha de marketing no sistema CRM",
     priority: "media",
-    dueDate: "2025-09-24",
+    dueDate: "2025-01-23",
     assignee: "Sergio Ricardo",
+    team: "Marketing",
+    teamColor: "bg-purple-500",
     status: "criada"
   },
   {
@@ -49,8 +59,10 @@ const initialTasks: Task[] = [
     title: "Preparar relatório mensal de vendas",
     description: "Compilar dados de vendas do mês e preparar apresentação para diretoria",
     priority: "alta",
-    dueDate: "2025-09-21",
+    dueDate: "2025-01-22",
     assignee: "Sergio Ricardo",
+    team: "Vendas",
+    teamColor: "bg-blue-500",
     status: "validada"
   }
 ]
@@ -66,6 +78,14 @@ const columns = [
 export function KanbanBoard() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const [filters, setFilters] = useState<FilterState>({
+    search: '',
+    assignee: '',
+    team: '',
+    dateFrom: '',
+    dateTo: '',
+    showOverdueOnly: false
+  })
 
   const handleDragStart = (event: DragStartEvent) => {
     const task = tasks.find(t => t.id === event.active.id)
@@ -89,8 +109,46 @@ export function KanbanBoard() {
     setActiveTask(null)
   }
 
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task => {
+      // Search filter
+      if (filters.search && !task.title.toLowerCase().includes(filters.search.toLowerCase()) && 
+          !task.description.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false
+      }
+
+      // Assignee filter
+      if (filters.assignee && task.assignee !== filters.assignee) {
+        return false
+      }
+
+      // Team filter
+      if (filters.team && task.team !== filters.team) {
+        return false
+      }
+
+      // Date range filter
+      if (filters.dateFrom || filters.dateTo) {
+        const taskDate = new Date(task.dueDate)
+        if (filters.dateFrom && taskDate < new Date(filters.dateFrom)) {
+          return false
+        }
+        if (filters.dateTo && taskDate > new Date(filters.dateTo)) {
+          return false
+        }
+      }
+
+      // Overdue filter
+      if (filters.showOverdueOnly && !isOverdue(task.dueDate)) {
+        return false
+      }
+
+      return true
+    })
+  }, [tasks, filters])
+
   const getTasksByStatus = (status: Task["status"]) =>
-    tasks.filter(task => task.status === status)
+    filteredTasks.filter(task => task.status === status)
 
   return (
     <div className="flex flex-col h-full">
@@ -105,12 +163,14 @@ export function KanbanBoard() {
         </Button>
       </div>
 
+      <KanbanFilters onFiltersChange={setFilters} />
+
       <DndContext
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-6 overflow-x-auto pb-4">
+        <div className="flex gap-6 overflow-x-auto pb-4 min-h-[calc(100vh-400px)]">
           {columns.map((column) => {
             const columnTasks = getTasksByStatus(column.id as Task["status"])
             return (

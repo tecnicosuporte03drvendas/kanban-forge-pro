@@ -3,6 +3,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { Task } from "./kanban-board"
 import { Calendar, User, AlertCircle, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { getDateStatus, formatDate } from "@/utils/date-utils"
 
 interface KanbanCardProps {
   task: Task
@@ -52,19 +53,7 @@ export function KanbanCard({ task, isDragging = false }: KanbanCardProps) {
     }
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-    })
-  }
-
-  const isOverdue = (dateString: string) => {
-    const dueDate = new Date(dateString)
-    const today = new Date()
-    return dueDate < today
-  }
+  const dateStatus = getDateStatus(task.dueDate)
 
   const cardClass = `
     p-4 bg-card border border-card-border rounded-lg shadow-sm cursor-grab 
@@ -86,13 +75,21 @@ export function KanbanCard({ task, isDragging = false }: KanbanCardProps) {
           <h4 className="font-medium text-card-foreground text-sm leading-tight">
             {task.title}
           </h4>
-          <Badge 
-            variant="secondary" 
-            className={`text-xs ${getPriorityColor(task.priority)} border-0 flex items-center gap-1`}
-          >
-            {getPriorityIcon(task.priority)}
-            {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-          </Badge>
+          <div className="flex items-center gap-1">
+            <Badge 
+              variant="secondary" 
+              className={`text-xs ${task.teamColor} text-white border-0 px-2 py-1`}
+            >
+              {task.team}
+            </Badge>
+            <Badge 
+              variant="secondary" 
+              className={`text-xs ${getPriorityColor(task.priority)} border-0 flex items-center gap-1`}
+            >
+              {getPriorityIcon(task.priority)}
+              {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+            </Badge>
+          </div>
         </div>
 
         <p className="text-xs text-muted-foreground leading-relaxed">
@@ -105,9 +102,7 @@ export function KanbanCard({ task, isDragging = false }: KanbanCardProps) {
             <span className="truncate max-w-[100px]">{task.assignee}</span>
           </div>
           
-          <div className={`flex items-center gap-1 text-xs ${
-            isOverdue(task.dueDate) ? 'text-destructive' : 'text-muted-foreground'
-          }`}>
+          <div className={`flex items-center gap-1 text-xs ${dateStatus.className}`}>
             <Calendar className="w-3 h-3" />
             <span>{formatDate(task.dueDate)}</span>
           </div>

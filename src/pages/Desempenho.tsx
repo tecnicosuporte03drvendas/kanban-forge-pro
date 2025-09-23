@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { RefreshCw, Download, TrendingUp, Clock, Target, CheckSquare } from "lucide-react"
+import { RefreshCw, Download, TrendingUp, Clock, Target, CheckSquare, CheckCircle } from "lucide-react"
+import { getDateStatus } from "@/utils/date-utils"
 
 const Desempenho = () => {
   const performanceData = {
@@ -41,6 +42,36 @@ const Desempenho = () => {
     { day: "Sexta", tasks: 0, goal: 1 },
     { day: "Sábado", tasks: 0, goal: 0 },
     { day: "Domingo", tasks: 0, goal: 0 }
+  ]
+
+  const recentActivities = [
+    {
+      id: 1,
+      action: "Tarefa concluída",
+      task: "Análise de vendas Q4",
+      time: "2 horas atrás",
+      team: "Vendas",
+      teamColor: "bg-blue-500",
+      dueDate: "2025-01-20"
+    },
+    {
+      id: 2,
+      action: "Nova tarefa criada",
+      task: "Reunião com cliente ABC",
+      time: "4 horas atrás",
+      team: "Comercial",
+      teamColor: "bg-green-500",
+      dueDate: "2025-01-22"
+    },
+    {
+      id: 3,
+      action: "Tarefa atualizada",
+      task: "Campanha de marketing",
+      time: "1 dia atrás",
+      team: "Marketing",
+      teamColor: "bg-purple-500",
+      dueDate: "2025-01-25"
+    }
   ]
 
   return (
@@ -247,6 +278,35 @@ const Desempenho = () => {
                       </div>
                     )
                   })}
+                </CardContent>
+              </Card>
+
+              <Card className="border-border bg-card">
+                <CardHeader>
+                  <CardTitle>Atividades Recentes</CardTitle>
+                  <p className="text-sm text-muted-foreground">Suas últimas ações no sistema</p>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {recentActivities.map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-3 p-3 border-l-2 border-primary/20 bg-accent/30 rounded-r-lg">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium text-sm">{activity.action}</p>
+                          <Badge className={`text-xs ${activity.teamColor} text-white border-0 px-2 py-1`}>
+                            {activity.team}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-foreground mb-1">{activity.task}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>{activity.time}</span>
+                          <span className={getDateStatus(activity.dueDate).className}>
+                            • Vencimento: {new Date(activity.dueDate).toLocaleDateString("pt-BR")}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
             </div>

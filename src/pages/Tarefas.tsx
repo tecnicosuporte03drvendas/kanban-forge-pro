@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Search, Filter, Download, Calendar, User, Clock } from "lucide-react"
+import { getDateStatus } from "@/utils/date-utils"
 
 const tasks = [
   {
@@ -14,8 +15,10 @@ const tasks = [
     description: "Preparar agenda e convidar equipe para reunião semanal de vendas",
     status: "criada",
     priority: "alta",
-    dueDate: "2025-09-25",
+    dueDate: "2025-01-20",
     assignee: "Sergio Ricardo",
+    team: "Vendas",
+    teamColor: "bg-blue-500",
     category: "Vendas"
   },
   {
@@ -24,8 +27,10 @@ const tasks = [
     description: "Analisar e revisar proposta para o cliente ABC Ltda",
     status: "executando",
     priority: "media",
-    dueDate: "2025-09-27",
+    dueDate: "2025-01-25",
     assignee: "Sergio Ricardo",
+    team: "Comercial",
+    teamColor: "bg-green-500",
     category: "Comercial"
   },
   {
@@ -34,8 +39,10 @@ const tasks = [
     description: "Inserir os leads capturados na campanha de marketing no sistema CRM",
     status: "criada",
     priority: "media",
-    dueDate: "2025-09-24",
+    dueDate: "2025-01-23",
     assignee: "Sergio Ricardo",
+    team: "Marketing",
+    teamColor: "bg-purple-500",
     category: "CRM"
   },
   {
@@ -44,8 +51,10 @@ const tasks = [
     description: "Compilar dados de vendas do mês e preparar apresentação para diretoria",
     status: "validada",
     priority: "alta",
-    dueDate: "2025-09-21",
+    dueDate: "2025-01-22",
     assignee: "Sergio Ricardo",
+    team: "Vendas",
+    teamColor: "bg-blue-500",
     category: "Relatórios"
   }
 ]
@@ -165,6 +174,9 @@ const Tarefas = () => {
                         <div className="flex items-center gap-3">
                           <input type="checkbox" className="w-4 h-4 rounded border-border" />
                           <h4 className="font-medium text-card-foreground">{task.title}</h4>
+                          <Badge className={`text-xs ${task.teamColor} text-white border-0 px-2 py-1`}>
+                            {task.team}
+                          </Badge>
                           <Badge className={getStatusColor(task.status)}>
                             {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
                           </Badge>
@@ -182,7 +194,7 @@ const Tarefas = () => {
                             <User className="w-3 h-3" />
                             <span>{task.assignee}</span>
                           </div>
-                          <div className="flex items-center gap-1">
+                          <div className={`flex items-center gap-1 ${getDateStatus(task.dueDate).className}`}>
                             <Calendar className="w-3 h-3" />
                             <span>{new Date(task.dueDate).toLocaleDateString("pt-BR")}</span>
                           </div>

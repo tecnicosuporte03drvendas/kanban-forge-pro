@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BarChart3, TrendingUp, Clock, Users, Download, RefreshCw } from "lucide-react"
+import { getDateStatus } from "@/utils/date-utils"
 
 const Relatorios = () => {
   const stats = [
@@ -40,6 +41,42 @@ const Relatorios = () => {
       bgColor: "bg-green-500/10"
     }
   ]
+
+  const recentTasks = [
+    { 
+      id: 1, 
+      title: "Análise de vendas Q4", 
+      status: "concluida", 
+      dueDate: "2025-01-20",
+      team: "Vendas",
+      teamColor: "bg-blue-500"
+    },
+    { 
+      id: 2, 
+      title: "Reunião com cliente ABC", 
+      status: "executando", 
+      dueDate: "2025-01-22",
+      team: "Comercial",
+      teamColor: "bg-green-500"
+    },
+    { 
+      id: 3, 
+      title: "Campanha de marketing", 
+      status: "criada", 
+      dueDate: "2025-01-25",
+      team: "Marketing",
+      teamColor: "bg-purple-500"
+    }
+  ]
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "concluida": return "bg-kanban-completed"
+      case "executando": return "bg-kanban-executing"
+      case "criada": return "bg-kanban-created"
+      default: return "bg-muted"
+    }
+  }
 
   const weeklyData = [
     { day: "Seg", value: 0 },
@@ -157,6 +194,36 @@ const Relatorios = () => {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="border-border bg-card">
+            <CardHeader>
+              <CardTitle>Tarefas Recentes</CardTitle>
+              <p className="text-sm text-muted-foreground">Últimas atividades da equipe</p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {recentTasks.map((task) => (
+                <div key={task.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${getStatusColor(task.status)}`}></div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm">{task.title}</p>
+                        <Badge className={`text-xs ${task.teamColor} text-white border-0 px-2 py-1`}>
+                          {task.team}
+                        </Badge>
+                      </div>
+                      <p className={`text-xs ${getDateStatus(task.dueDate).className}`}>
+                        Vencimento: {new Date(task.dueDate).toLocaleDateString("pt-BR")}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {task.status}
+                  </Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
 
           <Card className="border-border bg-card">
             <CardHeader>
