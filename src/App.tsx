@@ -24,11 +24,11 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <SidebarProvider defaultOpen={true}>
-          <div className="min-h-screen flex w-full bg-background">
-            <AppSidebar />
-            <main className="flex-1 overflow-hidden">
-              <BrowserRouter>
+        <BrowserRouter>
+          <SidebarProvider defaultOpen={true}>
+            <div className="min-h-screen flex w-full bg-background">
+              <AppSidebar />
+              <main className="flex-1 overflow-hidden">
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/tarefas" element={<Tarefas />} />
@@ -41,10 +41,10 @@ const App = () => (
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </BrowserRouter>
-            </main>
-          </div>
-        </SidebarProvider>
+              </main>
+            </div>
+          </SidebarProvider>
+        </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
