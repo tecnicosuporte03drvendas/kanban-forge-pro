@@ -2,95 +2,155 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* Tezeus Agenda Design System - Corporate Sales Environment
+All colors MUST be HSL. Based on the blue theme from the reference images.
 */
 
 @layer base {
   :root {
+    /* Base Colors - Light Mode */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 225 25% 20%;
+    
+    /* Tezeus Brand Colors */
+    --tezeus-blue: 217 91% 60%;
+    --tezeus-blue-dark: 217 91% 45%;
+    --tezeus-blue-light: 217 91% 80%;
+    
+    /* Kanban Column Colors */
+    --kanban-created: 220 9% 46%;          /* Criada - Cinza */
+    --kanban-assigned: 217 91% 70%;        /* Assumida - Azul claro */  
+    --kanban-executing: 45 93% 58%;        /* Executando - Amarelo */
+    --kanban-completed: 145 63% 49%;       /* Concluída - Verde */
+    --kanban-validated: 262 83% 58%;       /* Validada - Roxo */
+    
+    /* Priority Colors */
+    --priority-high: 0 84% 60%;
+    --priority-medium: 35 91% 65%;
+    --priority-low: 145 63% 49%;
 
+    /* Card and UI Elements */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 225 25% 20%;
+    --card-border: 220 13% 91%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 225 25% 20%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary (Tezeus Blue) */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 217 91% 45%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 225 25% 20%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 217 91% 95%;
+    --accent-foreground: 217 91% 60%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 217 91% 60%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Sidebar Colors */
+    --sidebar-background: 217 91% 60%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 217 91% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 91% 65%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217 91% 45%;
+    --sidebar-ring: 217 91% 80%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 45%));
+    --gradient-secondary: linear-gradient(135deg, hsl(220 14% 96%), hsl(0 0% 100%));
+    --gradient-kanban: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14% 98%));
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(217 91% 60% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(217 91% 60% / 0.1), 0 2px 4px -1px hsl(217 91% 60% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(217 91% 60% / 0.1), 0 4px 6px -2px hsl(217 91% 60% / 0.05);
+    --shadow-kanban: 0 4px 12px hsl(217 91% 60% / 0.08);
 
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s ease-out;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Base Colors - Dark Mode */
+    --background: 225 25% 8%;
+    --foreground: 0 0% 95%;
+    
+    /* Tezeus Brand Colors - Dark Mode */
+    --tezeus-blue: 217 91% 65%;
+    --tezeus-blue-dark: 217 91% 50%;
+    --tezeus-blue-light: 217 91% 85%;
+    
+    /* Kanban Column Colors - Dark Mode */
+    --kanban-created: 220 9% 56%;          
+    --kanban-assigned: 217 91% 75%;         
+    --kanban-executing: 45 93% 68%;        
+    --kanban-completed: 145 63% 59%;       
+    --kanban-validated: 262 83% 68%;       
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    /* Card and UI Elements - Dark Mode */
+    --card: 225 25% 12%;
+    --card-foreground: 0 0% 95%;
+    --card-border: 225 25% 20%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 225 25% 12%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 217 91% 65%;
+    --primary-foreground: 225 25% 8%;
+    --primary-hover: 217 91% 70%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 225 25% 16%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 225 25% 16%;
+    --muted-foreground: 220 9% 56%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 225 25% 16%;
+    --accent-foreground: 217 91% 65%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 65%;
+    --destructive-foreground: 0 0% 95%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 225 25% 20%;
+    --input: 225 25% 20%;
+    --ring: 217 91% 65%;
+
+    /* Sidebar Colors - Dark Mode */
+    --sidebar-background: 225 25% 10%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 217 91% 65%;
+    --sidebar-primary-foreground: 225 25% 8%;
+    --sidebar-accent: 225 25% 16%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 225 25% 20%;
+    --sidebar-ring: 217 91% 65%;
+
+    /* Gradients - Dark Mode */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 65%), hsl(217 91% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(225 25% 16%), hsl(225 25% 12%));
+    --gradient-kanban: linear-gradient(180deg, hsl(225 25% 12%), hsl(225 25% 10%));
+
+    /* Shadows - Dark Mode */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -2px hsl(0 0% 0% / 0.05);
+    --shadow-kanban: 0 4px 12px hsl(0 0% 0% / 0.15);
   }
 }
 

@@ -1,11 +1,27 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { DashboardStats } from "@/components/dashboard-stats"
+import { KanbanBoard } from "@/components/kanban/kanban-board"
+import { SidebarTrigger } from "@/components/ui/sidebar"
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="flex flex-col h-screen">
+      <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center justify-between h-full px-6">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger className="lg:hidden" />
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">
+                Seja bem-vindo à UNIVERSIDADE DR VENDAS! 👋
+              </h1>
+              <p className="text-muted-foreground">Olá, Sergio Ricardo</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
+        <DashboardStats />
+        <KanbanBoard />
       </div>
     </div>
   );

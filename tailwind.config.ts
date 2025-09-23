@@ -19,9 +19,28 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        
+        /* Tezeus Brand Colors */
+        "tezeus-blue": "hsl(var(--tezeus-blue))",
+        "tezeus-blue-dark": "hsl(var(--tezeus-blue-dark))",
+        "tezeus-blue-light": "hsl(var(--tezeus-blue-light))",
+        
+        /* Kanban Column Colors */
+        "kanban-created": "hsl(var(--kanban-created))",
+        "kanban-assigned": "hsl(var(--kanban-assigned))",
+        "kanban-executing": "hsl(var(--kanban-executing))",
+        "kanban-completed": "hsl(var(--kanban-completed))",
+        "kanban-validated": "hsl(var(--kanban-validated))",
+        
+        /* Priority Colors */
+        "priority-high": "hsl(var(--priority-high))",
+        "priority-medium": "hsl(var(--priority-medium))",
+        "priority-low": "hsl(var(--priority-low))",
+        
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(var(--primary-hover))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -46,6 +65,7 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+          border: "hsl(var(--card-border))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -57,6 +77,21 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+      },
+      backgroundImage: {
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-secondary": "var(--gradient-secondary)",
+        "gradient-kanban": "var(--gradient-kanban)",
+      },
+      boxShadow: {
+        "sm": "var(--shadow-sm)",
+        "md": "var(--shadow-md)",
+        "lg": "var(--shadow-lg)",
+        "kanban": "var(--shadow-kanban)",
+      },
+      transitionProperty: {
+        "smooth": "var(--transition-smooth)",
+        "fast": "var(--transition-fast)",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -80,10 +115,43 @@ export default {
             height: "0",
           },
         },
+        "fade-in": {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(10px)"
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0)"
+          }
+        },
+        "slide-up": {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(20px)"
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0)"
+          }
+        },
+        "kanban-drag": {
+          "0%": {
+            transform: "rotate(0deg) scale(1)",
+            boxShadow: "var(--shadow-md)"
+          },
+          "100%": {
+            transform: "rotate(2deg) scale(1.02)",
+            boxShadow: "var(--shadow-lg)"
+          }
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.3s ease-out",
+        "slide-up": "slide-up 0.4s ease-out",
+        "kanban-drag": "kanban-drag 0.2s ease-out forwards",
       },
     },
   },

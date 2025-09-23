@@ -1,0 +1,144 @@
+import { useState } from "react"
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners } from "@dnd-kit/core"
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { KanbanColumn } from "./kanban-column"
+import { KanbanCard } from "./kanban-card"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
+
+export interface Task {
+  id: string
+  title: string
+  description: string
+  priority: "alta" | "media" | "baixa"
+  dueDate: string
+  assignee: string
+  status: "criada" | "assumida" | "executando" | "concluida" | "validada"
+}
+
+const initialTasks: Task[] = [
+  {
+    id: "1",
+    title: "Organizar reunião de vendas",
+    description: "Preparar agenda e convidar equipe para reunião semanal de vendas",
+    priority: "alta",
+    dueDate: "2025-09-25",
+    assignee: "Sergio Ricardo",
+    status: "criada"
+  },
+  {
+    id: "2",
+    title: "Revisar proposta comercial",
+    description: "Analisar e revisar proposta para o cliente ABC Ltda",
+    priority: "media",
+    dueDate: "2025-09-27",
+    assignee: "Sergio Ricardo",
+    status: "executando"
+  },
+  {
+    id: "3",
+    title: "Atualizar CRM com novos leads",
+    description: "Inserir os leads capturados na campanha de marketing no sistema CRM",
+    priority: "media",
+    dueDate: "2025-09-24",
+    assignee: "Sergio Ricardo",
+    status: "criada"
+  },
+  {
+    id: "4",
+    title: "Preparar relatório mensal de vendas",
+    description: "Compilar dados de vendas do mês e preparar apresentação para diretoria",
+    priority: "alta",
+    dueDate: "2025-09-21",
+    assignee: "Sergio Ricardo",
+    status: "validada"
+  }
+]
+
+const columns = [
+  { id: "criada", title: "Criada", tasks: 2, color: "kanban-created" },
+  { id: "assumida", title: "Assumida", tasks: 0, color: "kanban-assigned" },
+  { id: "executando", title: "Executando", tasks: 1, color: "kanban-executing" },
+  { id: "concluida", title: "Concluída", tasks: 0, color: "kanban-completed" },
+  { id: "validada", title: "Validada", tasks: 1, color: "kanban-validated" }
+]
+
+export function KanbanBoard() {
+  const [tasks, setTasks] = useState<Task[]>(initialTasks)
+  const [activeTask, setActiveTask] = useState<Task | null>(null)
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = tasks.find(t => t.id === event.active.id)
+    setActiveTask(task || null)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    
+    if (!over) return
+
+    const taskId = active.id as string
+    const newStatus = over.id as Task["status"]
+
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === taskId ? { ...task, status: newStatus } : task
+      )
+    )
+    
+    setActiveTask(null)
+  }
+
+  const getTasksByStatus = (status: Task["status"]) =>
+    tasks.filter(task => task.status === status)
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Minhas Tarefas e da Equipe</h2>
+          <p className="text-muted-foreground">Visualize e gerencie suas tarefas e da sua equipe</p>
+        </div>
+        <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Tarefa
+        </Button>
+      </div>
+
+      <DndContext
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex gap-6 overflow-x-auto pb-4">
+          {columns.map((column) => {
+            const columnTasks = getTasksByStatus(column.id as Task["status"])
+            return (
+              <SortableContext
+                key={column.id}
+                items={columnTasks.map(task => task.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <KanbanColumn
+                  id={column.id}
+                  title={column.title}
+                  tasks={columnTasks}
+                  color={column.color}
+                />
+              </SortableContext>
+            )
+          })}
+        </div>
+
+        <DragOverlay>
+          {activeTask ? (
+            <KanbanCard
+              task={activeTask}
+              isDragging={true}
+            />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </div>
+  )
+}
