@@ -11,8 +11,10 @@ export const getDateStatus = (dateString: string) => {
   
   if (dueDate < today) {
     return { status: 'overdue', className: 'text-destructive', label: 'Atrasada' }
-  } else if (dueDate.getTime() === today.getTime() || dueDate.getTime() === tomorrow.getTime()) {
+  } else if (dueDate.getTime() === today.getTime()) {
     return { status: 'urgent', className: 'text-yellow-600', label: 'Urgente' }
+  } else if (dueDate.getTime() === tomorrow.getTime()) {
+    return { status: 'normal', className: 'text-muted-foreground', label: 'Normal' }
   } else {
     return { status: 'normal', className: 'text-muted-foreground', label: 'Normal' }
   }
