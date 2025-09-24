@@ -283,6 +283,31 @@ const Desempenho = () => {
 
               <Card className="border-border bg-card">
                 <CardHeader>
+                  <CardTitle>Métricas de Engajamento</CardTitle>
+                  <p className="text-sm text-muted-foreground">Indicadores de atividade do workspace</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span>Tarefas criadas hoje</span>
+                    <Badge>142</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Tarefas concluídas hoje</span>
+                    <Badge>98</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Novos usuários (semana)</span>
+                    <Badge>27</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Taxa de conclusão</span>
+                    <Badge>73.2%</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border bg-card">
+                <CardHeader>
                   <CardTitle>Atividades Recentes</CardTitle>
                   <p className="text-sm text-muted-foreground">Suas últimas ações no sistema</p>
                 </CardHeader>

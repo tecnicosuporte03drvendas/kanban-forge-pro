@@ -90,7 +90,7 @@ const AdminMasterAuth = () => {
           </div>
 
           {/* Estatísticas Gerais */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Empresas</CardTitle>
@@ -112,46 +112,7 @@ const AdminMasterAuth = () => {
               <CardContent>
                 <div className="text-2xl font-bold">{estatisticas.totalUsuarios.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  {estatisticas.usuariosAtivos} ativos
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tarefas Concluídas</CardTitle>
-                <CheckSquare className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{estatisticas.tarefasConcluidas.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">
-                  Total na plataforma
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Crescimento</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{estatisticas.crescimentoMensal}%</div>
-                <p className="text-xs text-muted-foreground">
-                  Último mês
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Usuários Ativos</CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{estatisticas.usuariosAtivos.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">
-                  Últimos 30 dias
+                  Plataforma completa
                 </p>
               </CardContent>
             </Card>
@@ -170,115 +131,30 @@ const AdminMasterAuth = () => {
             </Card>
           </div>
 
-          {/* Tabela de Empresas */}
+          {/* Estatísticas Detalhadas */}
           <Card>
             <CardHeader>
-              <CardTitle>Empresas Registradas</CardTitle>
-              <CardDescription>
-                Visão geral de todas as empresas na plataforma
-              </CardDescription>
+              <CardTitle>Distribuição por Planos</CardTitle>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Empresa</TableHead>
-                    <TableHead>Funcionários</TableHead>
-                    <TableHead>Tarefas</TableHead>
-                    <TableHead>Grupos</TableHead>
-                    <TableHead>Plano</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {empresas.map((empresa) => (
-                    <TableRow key={empresa.id}>
-                      <TableCell className="font-medium">{empresa.nome}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          {empresa.funcionarios}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <CheckSquare className="h-4 w-4 text-muted-foreground" />
-                          {empresa.tarefas}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Users2 className="h-4 w-4 text-muted-foreground" />
-                          {empresa.grupos}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={empresa.plano === 'Enterprise' ? 'default' : empresa.plano === 'Premium' ? 'secondary' : 'outline'}>
-                          {empresa.plano}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={empresa.status === 'Ativo' ? 'default' : 'secondary'}>
-                          {empresa.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span>Enterprise</span>
+                <Badge>12 empresas</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Premium</span>
+                <Badge>18 empresas</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Business</span>
+                <Badge>14 empresas</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Basic</span>
+                <Badge>3 empresas</Badge>
+              </div>
             </CardContent>
           </Card>
-
-          {/* Estatísticas Detalhadas */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Distribuição por Planos</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span>Enterprise</span>
-                  <Badge>12 empresas</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Premium</span>
-                  <Badge>18 empresas</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Business</span>
-                  <Badge>14 empresas</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Basic</span>
-                  <Badge>3 empresas</Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Métricas de Engajamento</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span>Tarefas criadas hoje</span>
-                  <Badge>142</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Tarefas concluídas hoje</span>
-                  <Badge>98</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Novos usuários (semana)</span>
-                  <Badge>27</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Taxa de conclusão</span>
-                  <Badge>73.2%</Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     );
