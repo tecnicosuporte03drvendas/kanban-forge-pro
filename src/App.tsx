@@ -15,6 +15,7 @@ import Desempenho from "./pages/Desempenho";
 import Integracoes from "./pages/Integracoes";
 import Ajuda from "./pages/Ajuda";
 import NotFound from "./pages/NotFound";
+import AdminMasterAuth from "./pages/AdminMasterAuth";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
                   <Route path="/desempenho" element={<Desempenho />} />
                   <Route path="/integracoes" element={<Integracoes />} />
                   <Route path="/ajuda" element={<Ajuda />} />
+                  <Route path="/adminmasterauth" element={<AdminMasterAuth />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
