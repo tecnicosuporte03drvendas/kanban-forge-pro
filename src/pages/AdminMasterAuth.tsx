@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Building2, Users, CheckSquare, Users2, BarChart3, TrendingUp, Activity, Shield } from 'lucide-react';
+import { Building2, Users, CheckSquare, Users2, BarChart3, TrendingUp, Activity, Shield, MoreHorizontal, Edit, Archive } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const AdminMasterAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -130,6 +131,71 @@ const AdminMasterAuth = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Lista de Empresas */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Empresas Registradas</CardTitle>
+              <CardDescription>
+                Visão geral de todas as empresas na plataforma
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Empresa</TableHead>
+                    <TableHead>Funcionários</TableHead>
+                    <TableHead>Plano</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="w-[50px]">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {empresas.map((empresa) => (
+                    <TableRow key={empresa.id}>
+                      <TableCell className="font-medium">{empresa.nome}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          {empresa.funcionarios}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={empresa.plano === 'Enterprise' ? 'default' : empresa.plano === 'Premium' ? 'secondary' : 'outline'}>
+                          {empresa.plano}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={empresa.status === 'Ativo' ? 'default' : 'secondary'}>
+                          {empresa.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Ver Perfil
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              <Archive className="w-4 h-4 mr-2" />
+                              Arquivar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
 
           {/* Estatísticas Detalhadas */}
           <Card>
