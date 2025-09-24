@@ -6,12 +6,15 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Building2, Users, CheckSquare, Users2, BarChart3, TrendingUp, Activity, Shield, MoreHorizontal, Edit, Archive } from 'lucide-react';
+import { Building2, Users, CheckSquare, Users2, BarChart3, TrendingUp, Activity, Shield, MoreHorizontal, Edit, Archive, Search } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const AdminMasterAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState('all');
 
   // Dados mockados para o dashboard
   const empresas = [
@@ -61,6 +64,13 @@ const AdminMasterAuth = () => {
     usuariosAtivos: 1567,
     novasEmpresasMes: 8
   };
+
+  // Filtrar empresas baseado na pesquisa e plano selecionado
+  const filteredEmpresas = empresas.filter((empresa) => {
+    const matchesSearch = empresa.nome.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesPlan = selectedPlan === 'all' || empresa.plano === selectedPlan;
+    return matchesSearch && matchesPlan;
+  });
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,6 +151,31 @@ const AdminMasterAuth = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Controles de Pesquisa e Filtro */}
+              <div className="flex gap-4 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Pesquisar empresas..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={selectedPlan} onValueChange={setSelectedPlan}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filtrar por plano" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os planos</SelectItem>
+                    <SelectItem value="Basic">Basic</SelectItem>
+                    <SelectItem value="Business">Business</SelectItem>
+                    <SelectItem value="Premium">Premium</SelectItem>
+                    <SelectItem value="Enterprise">Enterprise</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -152,7 +187,7 @@ const AdminMasterAuth = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {empresas.map((empresa) => (
+                  {filteredEmpresas.map((empresa) => (
                     <TableRow key={empresa.id}>
                       <TableCell className="font-medium">{empresa.nome}</TableCell>
                       <TableCell>
