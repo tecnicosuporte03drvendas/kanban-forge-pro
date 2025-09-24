@@ -22,6 +22,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 
 const teamMembers = [
   {
@@ -109,8 +114,43 @@ const teams = [
   }
 ]
 
+const collaboratorSchema = z.object({
+  name: z.string().trim().min(1, "Nome é obrigatório").max(100, "Nome deve ter menos de 100 caracteres"),
+  role: z.string().trim().min(1, "Função é obrigatória").max(100, "Função deve ter menos de 100 caracteres"),
+  whatsapp: z.string().trim().min(1, "WhatsApp é obrigatório").regex(/^\+?[1-9]\d{1,14}$/, "Formato de WhatsApp inválido"),
+  email: z.string().trim().email("Email inválido").max(255, "Email deve ter menos de 255 caracteres"),
+  location: z.string().trim().max(100, "Localização deve ter menos de 100 caracteres").optional(),
+  team: z.string().min(1, "Equipe é obrigatória"),
+  level: z.enum(["gestor", "colaborador"], {
+    required_error: "Nível é obrigatório",
+  }),
+})
+
+type CollaboratorFormData = z.infer<typeof collaboratorSchema>
+
 const Equipe = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [isAddCollaboratorOpen, setIsAddCollaboratorOpen] = useState(false);
+
+  const form = useForm<CollaboratorFormData>({
+    resolver: zodResolver(collaboratorSchema),
+    defaultValues: {
+      name: "",
+      role: "",
+      whatsapp: "",
+      email: "",
+      location: "",
+      team: "",
+      level: "colaborador",
+    },
+  });
+
+  const onSubmit = (data: CollaboratorFormData) => {
+    console.log("Novo colaborador:", data);
+    // Aqui você processaria os dados do formulário
+    setIsAddCollaboratorOpen(false);
+    form.reset();
+  };
 
   return (
     <div className="flex flex-col h-screen">
@@ -147,10 +187,160 @@ const Equipe = () => {
             </Card>
 
             <div className="flex justify-between items-center">
-              <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar Colaborador
-              </Button>
+              <Dialog open={isAddCollaboratorOpen} onOpenChange={setIsAddCollaboratorOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Colaborador
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Adicionar Colaborador</DialogTitle>
+                    <DialogDescription>
+                      Preencha as informações do novo colaborador
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Digite o nome completo" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="role"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Função na Empresa *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: Gerente de Vendas" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="whatsapp"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>WhatsApp *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="+55 11 99999-9999" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="email@exemplo.com" type="email" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="location"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Localização (Opcional)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Ex: São Paulo, SP" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="team"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Equipe *</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione uma equipe" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {teams.map((team) => (
+                                  <SelectItem key={team.id} value={team.name}>
+                                    {team.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="level"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nível *</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o nível" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="colaborador">Colaborador</SelectItem>
+                                <SelectItem value="gestor">Gestor</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="flex gap-3 pt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => setIsAddCollaboratorOpen(false)}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          type="submit"
+                          className="flex-1 bg-primary hover:bg-primary-hover text-primary-foreground"
+                        >
+                          Adicionar Colaborador
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
               
               <div className="flex items-center gap-2">
                 <Button
