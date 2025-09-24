@@ -212,7 +212,24 @@ const Equipe = () => {
               </CardContent>
             </Card>
 
-            <div className="flex justify-between items-center">
+            <div className="flex justify-end items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="w-4 h-4" />
+                </Button>
+              </div>
+              
               <Dialog open={isAddCollaboratorOpen} onOpenChange={setIsAddCollaboratorOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
@@ -367,23 +384,6 @@ const Equipe = () => {
                   </Form>
                 </DialogContent>
               </Dialog>
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                >
-                  <Grid3X3 className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                >
-                  <List className="w-4 h-4" />
-                </Button>
-              </div>
             </div>
 
             {viewMode === 'grid' ? (
