@@ -3,13 +3,20 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
-import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users, Video, CheckSquare } from "lucide-react"
 import { getDateStatus } from "@/utils/date-utils"
 import { useState } from "react"
 
 const Calendario = () => {
   const [viewMode, setViewMode] = useState<'dia' | 'semana' | 'mes'>('semana')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const currentDate = new Date()
   const currentMonth = currentDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
   
@@ -75,7 +82,7 @@ const Calendario = () => {
       <div className="space-y-4">
         <div className="text-center border-b border-border pb-4">
           <h3 className="text-2xl font-bold text-card-foreground capitalize mb-2">{dayName}</h3>
-          <p className="text-muted-foreground">Clique em um horário para adicionar um evento</p>
+          <p className="text-muted-foreground">Clique em um horário para adicionar um agendamento</p>
         </div>
         
         <div className="max-h-[600px] overflow-y-auto">
@@ -125,7 +132,7 @@ const Calendario = () => {
                   {![9, 14, 16].includes(hour) && (
                     <button className="w-full h-full text-left opacity-0 hover:opacity-100 transition-opacity">
                       <div className="text-xs text-muted-foreground hover:text-primary">
-                        + Adicionar evento às {hour.toString().padStart(2, '0')}:00
+                        + Adicionar agendamento às {hour.toString().padStart(2, '0')}:00
                       </div>
                     </button>
                   )}
@@ -275,7 +282,7 @@ const Calendario = () => {
                       )}
                     </div>
                     
-                    {/* Eventos do dia */}
+                    {/* Agendamentos do dia */}
                     <div className="space-y-1">
                       {dayEvents.slice(0, 2).map((event, eventIndex) => (
                         <div
@@ -305,11 +312,11 @@ const Calendario = () => {
           ))}
         </div>
         
-        {/* Eventos do dia selecionado */}
+        {/* Agendamentos do dia selecionado */}
         {selectedDate && (
           <div className="bg-card border border-border rounded-lg p-4">
             <h4 className="font-bold text-lg text-card-foreground mb-4">
-              Eventos para {selectedDate.toLocaleDateString("pt-BR", { 
+              Agendamentos para {selectedDate.toLocaleDateString("pt-BR", { 
                 weekday: "long",
                 day: "numeric", 
                 month: "long", 
@@ -343,10 +350,10 @@ const Calendario = () => {
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <CalendarIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Nenhum evento agendado para este dia</p>
-                  <Button variant="outline" size="sm" className="mt-3">
+                  <p>Nenhum agendamento para este dia</p>
+                  <Button variant="outline" size="sm" className="mt-3" onClick={() => setIsModalOpen(true)}>
                     <Plus className="w-4 h-4 mr-2" />
-                    Adicionar evento
+                    Adicionar agendamento
                   </Button>
                 </div>
               )}
@@ -368,10 +375,124 @@ const Calendario = () => {
               <p className="text-muted-foreground">Visualize suas tarefas, reuniões e lembretes</p>
             </div>
           </div>
-          <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
-            <Plus className="w-4 h-4 mr-2" />
-            Criar Evento
-          </Button>
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
+                <Plus className="w-4 h-4 mr-2" />
+                Criar Agendamento
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Novo Agendamento</DialogTitle>
+              </DialogHeader>
+              <Tabs defaultValue="reuniao" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="reuniao" className="flex items-center gap-2">
+                    <Video className="w-4 h-4" />
+                    Reunião
+                  </TabsTrigger>
+                  <TabsTrigger value="tarefa" className="flex items-center gap-2">
+                    <CheckSquare className="w-4 h-4" />
+                    Tarefa
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="reuniao" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reuniao-titulo">Título da Reunião</Label>
+                    <Input id="reuniao-titulo" placeholder="Ex: Reunião de vendas" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="reuniao-data">Data</Label>
+                      <Input id="reuniao-data" type="date" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reuniao-hora">Horário</Label>
+                      <Input id="reuniao-hora" type="time" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reuniao-participantes">Participantes</Label>
+                    <Input id="reuniao-participantes" placeholder="Digite os nomes dos participantes" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reuniao-local">Local/Link</Label>
+                    <Input id="reuniao-local" placeholder="Sala de reuniões ou link da videoconferência" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reuniao-descricao">Descrição</Label>
+                    <Textarea id="reuniao-descricao" placeholder="Descrição da reunião..." />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button onClick={() => setIsModalOpen(false)}>
+                      Criar Reunião
+                    </Button>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="tarefa" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tarefa-titulo">Título da Tarefa</Label>
+                    <Input id="tarefa-titulo" placeholder="Ex: Preparar relatório mensal" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="tarefa-data">Data de Vencimento</Label>
+                      <Input id="tarefa-data" type="date" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="tarefa-prioridade">Prioridade</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a prioridade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="baixa">Baixa</SelectItem>
+                          <SelectItem value="media">Média</SelectItem>
+                          <SelectItem value="alta">Alta</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tarefa-responsavel">Responsável</Label>
+                    <Input id="tarefa-responsavel" placeholder="Nome do responsável" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tarefa-equipe">Equipe</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a equipe" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="vendas">Vendas</SelectItem>
+                        <SelectItem value="marketing">Marketing</SelectItem>
+                        <SelectItem value="comercial">Comercial</SelectItem>
+                        <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tarefa-descricao">Descrição</Label>
+                    <Textarea id="tarefa-descricao" placeholder="Descrição da tarefa..." />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button onClick={() => setIsModalOpen(false)}>
+                      Criar Tarefa
+                    </Button>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </DialogContent>
+          </Dialog>
         </div>
       </header>
 
@@ -433,7 +554,7 @@ const Calendario = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CalendarIcon className="w-5 h-5" />
-                  Próximos Eventos
+                  Próximos Agendamentos
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
