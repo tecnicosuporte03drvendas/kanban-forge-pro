@@ -125,7 +125,7 @@ const Tarefas = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
+      <div className="flex-1 overflow-auto px-6 pt-12 pb-6 bg-gradient-kanban">
         <Tabs defaultValue="tarefas" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 bg-card">
             <TabsTrigger value="tarefas">Tarefas</TabsTrigger>

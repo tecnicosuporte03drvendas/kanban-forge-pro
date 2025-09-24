@@ -19,7 +19,7 @@ const Index = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
+      <div className="flex-1 overflow-auto px-6 pt-12 pb-6 bg-gradient-kanban">
         <DashboardStats />
         <KanbanBoard />
       </div>
