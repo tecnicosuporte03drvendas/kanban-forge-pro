@@ -185,9 +185,9 @@ const Desempenho = () => {
             <div className="xl:col-span-2 space-y-6">
               <Tabs defaultValue="performance" className="space-y-4">
                 <TabsList className="grid w-full grid-cols-4 bg-card">
-                  <TabsTrigger value="performance">Performance</TabsTrigger>
+                  <TabsTrigger value="performance">Minha Performance</TabsTrigger>
                   <TabsTrigger value="equipe">Equipe</TabsTrigger>
-                  <TabsTrigger value="workspaces">Workspaces</TabsTrigger>
+                  <TabsTrigger value="empresa">Empresa</TabsTrigger>
                   <TabsTrigger value="metas">Metas</TabsTrigger>
                 </TabsList>
 
@@ -231,13 +231,13 @@ const Desempenho = () => {
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="workspaces">
+                <TabsContent value="empresa">
                   <Card className="border-border bg-card">
                     <CardHeader>
-                      <CardTitle>Meus Workspaces</CardTitle>
+                      <CardTitle>Performance da Empresa</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-muted-foreground">Histórico de performance em diferentes workspaces.</p>
+                      <p className="text-muted-foreground">Métricas e indicadores da empresa.</p>
                     </CardContent>
                   </Card>
                 </TabsContent>
