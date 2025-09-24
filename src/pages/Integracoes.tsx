@@ -92,7 +92,7 @@ const Integracoes = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto px-6 pt-12 pb-6 bg-gradient-kanban">
+      <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
         <div className="space-y-6">
           <Card className="border-border bg-card">
             <CardHeader>
