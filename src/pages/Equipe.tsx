@@ -7,6 +7,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Search, Mail, Phone, MapPin, MoreHorizontal, Users, UserPlus, Grid3X3, List } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Textarea } from "@/components/ui/textarea"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -126,13 +128,21 @@ const collaboratorSchema = z.object({
   }),
 })
 
+const teamSchema = z.object({
+  name: z.string().trim().min(1, "Nome é obrigatório").max(100, "Nome deve ter menos de 100 caracteres"),
+  description: z.string().trim().min(1, "Descrição é obrigatória").max(500, "Descrição deve ter menos de 500 caracteres"),
+  collaborators: z.array(z.string()).min(0, "Selecione pelo menos um colaborador").optional(),
+})
+
 type CollaboratorFormData = z.infer<typeof collaboratorSchema>
+type TeamFormData = z.infer<typeof teamSchema>
 
 const Equipe = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isAddCollaboratorOpen, setIsAddCollaboratorOpen] = useState(false);
+  const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
 
-  const form = useForm<CollaboratorFormData>({
+  const collaboratorForm = useForm<CollaboratorFormData>({
     resolver: zodResolver(collaboratorSchema),
     defaultValues: {
       name: "",
@@ -145,11 +155,27 @@ const Equipe = () => {
     },
   });
 
-  const onSubmit = (data: CollaboratorFormData) => {
+  const teamForm = useForm<TeamFormData>({
+    resolver: zodResolver(teamSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      collaborators: [],
+    },
+  });
+
+  const onSubmitCollaborator = (data: CollaboratorFormData) => {
     console.log("Novo colaborador:", data);
     // Aqui você processaria os dados do formulário
     setIsAddCollaboratorOpen(false);
-    form.reset();
+    collaboratorForm.reset();
+  };
+
+  const onSubmitTeam = (data: TeamFormData) => {
+    console.log("Nova equipe:", data);
+    // Aqui você processaria os dados do formulário
+    setIsCreateTeamOpen(false);
+    teamForm.reset();
   };
 
   return (
@@ -202,10 +228,10 @@ const Equipe = () => {
                     </DialogDescription>
                   </DialogHeader>
                   
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <Form {...collaboratorForm}>
+                    <form onSubmit={collaboratorForm.handleSubmit(onSubmitCollaborator)} className="space-y-4">
                       <FormField
-                        control={form.control}
+                        control={collaboratorForm.control}
                         name="name"
                         render={({ field }) => (
                           <FormItem>
@@ -219,7 +245,7 @@ const Equipe = () => {
                       />
 
                       <FormField
-                        control={form.control}
+                        control={collaboratorForm.control}
                         name="role"
                         render={({ field }) => (
                           <FormItem>
@@ -233,7 +259,7 @@ const Equipe = () => {
                       />
 
                       <FormField
-                        control={form.control}
+                        control={collaboratorForm.control}
                         name="whatsapp"
                         render={({ field }) => (
                           <FormItem>
@@ -247,7 +273,7 @@ const Equipe = () => {
                       />
 
                       <FormField
-                        control={form.control}
+                        control={collaboratorForm.control}
                         name="email"
                         render={({ field }) => (
                           <FormItem>
@@ -261,7 +287,7 @@ const Equipe = () => {
                       />
 
                       <FormField
-                        control={form.control}
+                        control={collaboratorForm.control}
                         name="location"
                         render={({ field }) => (
                           <FormItem>
@@ -275,7 +301,7 @@ const Equipe = () => {
                       />
 
                       <FormField
-                        control={form.control}
+                        control={collaboratorForm.control}
                         name="team"
                         render={({ field }) => (
                           <FormItem>
@@ -300,7 +326,7 @@ const Equipe = () => {
                       />
 
                       <FormField
-                        control={form.control}
+                        control={collaboratorForm.control}
                         name="level"
                         render={({ field }) => (
                           <FormItem>
@@ -519,10 +545,115 @@ const Equipe = () => {
             </Card>
 
             <div className="flex justify-end">
-              <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
-                <Plus className="w-4 h-4 mr-2" />
-                Cadastrar Equipe
-              </Button>
+              <Dialog open={isCreateTeamOpen} onOpenChange={setIsCreateTeamOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Cadastrar Equipe
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px]">
+                  <DialogHeader>
+                    <DialogTitle>Criar Nova Equipe</DialogTitle>
+                    <DialogDescription>
+                      Preencha as informações da nova equipe e selecione os colaboradores
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <Form {...teamForm}>
+                    <form onSubmit={teamForm.handleSubmit(onSubmitTeam)} className="space-y-6">
+                      <FormField
+                        control={teamForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome da Equipe *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Digite o nome da equipe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={teamForm.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Descrição *</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="Descreva as responsabilidades e objetivos da equipe"
+                                className="min-h-[100px]"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={teamForm.control}
+                        name="collaborators"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Colaboradores (Opcional)</FormLabel>
+                            <div className="space-y-3 max-h-[200px] overflow-y-auto border border-border rounded-md p-4">
+                              {teamMembers.map((member) => (
+                                <div key={member.id} className="flex items-center space-x-3">
+                                  <Checkbox
+                                    id={`member-${member.id}`}
+                                    checked={field.value?.includes(member.id) || false}
+                                    onCheckedChange={(checked) => {
+                                      const current = field.value || [];
+                                      if (checked) {
+                                        field.onChange([...current, member.id]);
+                                      } else {
+                                        field.onChange(current.filter(id => id !== member.id));
+                                      }
+                                    }}
+                                  />
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <Avatar className="w-8 h-8">
+                                      <AvatarFallback className="text-xs bg-sidebar-accent text-sidebar-accent-foreground">
+                                        {member.avatar}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <p className="text-sm font-medium">{member.name}</p>
+                                      <p className="text-xs text-muted-foreground">{member.role}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="flex gap-3 pt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => setIsCreateTeamOpen(false)}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          type="submit"
+                          className="flex-1 bg-primary hover:bg-primary-hover text-primary-foreground"
+                        >
+                          Criar Equipe
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
