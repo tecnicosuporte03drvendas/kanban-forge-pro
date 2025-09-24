@@ -2,10 +2,14 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Calendar } from "@/components/ui/calendar"
 import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users } from "lucide-react"
 import { getDateStatus } from "@/utils/date-utils"
+import { useState } from "react"
 
 const Calendario = () => {
+  const [viewMode, setViewMode] = useState<'dia' | 'semana' | 'mes'>('semana')
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const currentDate = new Date()
   const currentMonth = currentDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
   
@@ -62,6 +66,169 @@ const Calendario = () => {
     }
   }
 
+  // Função para renderizar visualização do dia
+  const renderDayView = () => {
+    const today = selectedDate || currentDate
+    const dayName = today.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })
+    
+    return (
+      <div className="space-y-4">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-card-foreground capitalize mb-4">{dayName}</h3>
+        </div>
+        <div className="space-y-2" style={{ minHeight: "400px" }}>
+          {Array.from({ length: 24 }, (_, hour) => (
+            <div key={hour} className="border-b border-border/20 py-2">
+              <div className="flex">
+                <div className="w-16 text-xs text-muted-foreground">
+                  {hour.toString().padStart(2, '0')}:00
+                </div>
+                <div className="flex-1">
+                  {hour === 9 && (
+                    <div className="bg-primary/10 border border-primary/20 rounded p-2 mb-1">
+                      <div className="text-sm font-medium text-primary">09:00 - Reunião de Vendas</div>
+                      <div className="text-xs text-muted-foreground">Equipe de Vendas</div>
+                    </div>
+                  )}
+                  {hour === 14 && (
+                    <div className="bg-priority-high/10 border border-priority-high/20 rounded p-2 mb-1">
+                      <div className="text-sm font-medium text-priority-high">14:30 - Apresentação Proposta ABC</div>
+                      <div className="text-xs text-muted-foreground">Comercial</div>
+                    </div>
+                  )}
+                  {hour === 16 && (
+                    <div className="bg-priority-medium/10 border border-priority-medium/20 rounded p-2 mb-1">
+                      <div className="text-sm font-medium text-priority-medium">16:00 - Follow-up Clientes</div>
+                      <div className="text-xs text-muted-foreground">Marketing</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Função para renderizar visualização da semana
+  const renderWeekView = () => {
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-7 gap-4 mb-4">
+          {weekDays.map((day, index) => (
+            <div key={day} className="text-center">
+              <div className="text-sm font-medium text-muted-foreground mb-2">{day}</div>
+              <div className={`text-lg font-semibold p-2 rounded-lg ${
+                index === new Date().getDay() 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'text-card-foreground'
+              }`}>
+                {dates[index].getDate()}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-7 gap-4 mt-8" style={{ minHeight: "400px" }}>
+          {Array.from({ length: 24 }, (_, hour) => (
+            <div key={hour} className="col-span-7 border-b border-border/20 py-2">
+              <div className="flex">
+                <div className="w-16 text-xs text-muted-foreground">
+                  {hour.toString().padStart(2, '0')}:00
+                </div>
+                <div className="flex-1 grid grid-cols-7 gap-1">
+                  {hour === 9 && (
+                    <div className="col-span-2 bg-primary/10 border border-primary/20 rounded p-1">
+                      <div className="text-xs font-medium text-primary">09:00 - Reunião de Vendas</div>
+                    </div>
+                  )}
+                  {hour === 14 && (
+                    <div className="col-span-3 col-start-4 bg-priority-high/10 border border-priority-high/20 rounded p-1">
+                      <div className="text-xs font-medium text-priority-high">14:30 - Apresentação Proposta ABC</div>
+                    </div>
+                  )}
+                  {hour === 16 && (
+                    <div className="col-span-2 col-start-6 bg-priority-medium/10 border border-priority-medium/20 rounded p-1">
+                      <div className="text-xs font-medium text-priority-medium">16:00 - Follow-up Clientes</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Função para renderizar visualização do mês
+  const renderMonthView = () => {
+    return (
+      <div className="space-y-4">
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={setSelectedDate}
+          className="rounded-md border-0 p-3 pointer-events-auto"
+          classNames={{
+            months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
+            month: "space-y-4 w-full",
+            caption: "flex justify-center pt-1 relative items-center mb-4",
+            caption_label: "text-lg font-semibold",
+            nav: "space-x-1 flex items-center",
+            nav_button: "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100 border border-border rounded-md hover:bg-accent",
+            nav_button_previous: "absolute left-1",
+            nav_button_next: "absolute right-1",
+            table: "w-full border-collapse space-y-1",
+            head_row: "flex w-full",
+            head_cell: "text-muted-foreground rounded-md w-full font-normal text-sm text-center py-2",
+            row: "flex w-full mt-2",
+            cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:rounded-md",
+            day: "h-12 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:rounded-md transition-colors",
+            day_range_end: "day-range-end",
+            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-md",
+            day_today: "bg-accent text-accent-foreground font-semibold rounded-md",
+            day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+            day_disabled: "text-muted-foreground opacity-50",
+            day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+            day_hidden: "invisible",
+          }}
+        />
+        
+        {/* Eventos do dia selecionado */}
+        {selectedDate && (
+          <div className="mt-6 space-y-3">
+            <h4 className="font-semibold text-card-foreground">
+              Eventos para {selectedDate.toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}
+            </h4>
+            <div className="space-y-2">
+              {events.map((event) => (
+                <div key={event.id} className="p-3 border border-border rounded-lg bg-background/50">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Clock className="w-4 h-4" />
+                        {event.time}
+                      </div>
+                      <h5 className="font-medium text-sm text-card-foreground">{event.title}</h5>
+                      <Badge className={`text-xs ${event.teamColor} text-white border-0`}>
+                        {event.team}
+                      </Badge>
+                    </div>
+                    <Badge className={`text-xs ${getEventColor(event.priority)}`}>
+                      {event.priority.charAt(0).toUpperCase() + event.priority.slice(1)}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col h-screen">
       <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -98,59 +265,37 @@ const Calendario = () => {
                     </Button>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="bg-primary text-primary-foreground">
+                    <Button 
+                      variant={viewMode === 'dia' ? 'default' : 'outline'} 
+                      size="sm" 
+                      onClick={() => setViewMode('dia')}
+                      className={viewMode === 'dia' ? 'bg-primary text-primary-foreground' : ''}
+                    >
+                      Dia
+                    </Button>
+                    <Button 
+                      variant={viewMode === 'semana' ? 'default' : 'outline'} 
+                      size="sm" 
+                      onClick={() => setViewMode('semana')}
+                      className={viewMode === 'semana' ? 'bg-primary text-primary-foreground' : ''}
+                    >
                       Semana
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant={viewMode === 'mes' ? 'default' : 'outline'} 
+                      size="sm" 
+                      onClick={() => setViewMode('mes')}
+                      className={viewMode === 'mes' ? 'bg-primary text-primary-foreground' : ''}
+                    >
                       Mês
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-7 gap-4 mb-4">
-                  {weekDays.map((day, index) => (
-                    <div key={day} className="text-center">
-                      <div className="text-sm font-medium text-muted-foreground mb-2">{day}</div>
-                      <div className={`text-lg font-semibold p-2 rounded-lg ${
-                        index === new Date().getDay() 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'text-card-foreground'
-                      }`}>
-                        {dates[index].getDate()}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-7 gap-4 mt-8" style={{ minHeight: "400px" }}>
-                  {Array.from({ length: 24 }, (_, hour) => (
-                    <div key={hour} className="col-span-7 border-b border-border/20 py-2">
-                      <div className="flex">
-                        <div className="w-16 text-xs text-muted-foreground">
-                          {hour.toString().padStart(2, '0')}:00
-                        </div>
-                        <div className="flex-1 grid grid-cols-7 gap-1">
-                          {hour === 9 && (
-                            <div className="col-span-2 bg-primary/10 border border-primary/20 rounded p-1">
-                              <div className="text-xs font-medium text-primary">09:00 - Reunião de Vendas</div>
-                            </div>
-                          )}
-                          {hour === 14 && (
-                            <div className="col-span-3 col-start-4 bg-priority-high/10 border border-priority-high/20 rounded p-1">
-                              <div className="text-xs font-medium text-priority-high">14:30 - Apresentação Proposta ABC</div>
-                            </div>
-                          )}
-                          {hour === 16 && (
-                            <div className="col-span-2 col-start-6 bg-priority-medium/10 border border-priority-medium/20 rounded p-1">
-                              <div className="text-xs font-medium text-priority-medium">16:00 - Follow-up Clientes</div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {viewMode === 'dia' && renderDayView()}
+                {viewMode === 'semana' && renderWeekView()}
+                {viewMode === 'mes' && renderMonthView()}
               </CardContent>
             </Card>
           </div>
