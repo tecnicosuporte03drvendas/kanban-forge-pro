@@ -260,30 +260,29 @@ const Equipe = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
                           <Dialog>
                             <DialogTrigger asChild>
                               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                Gerenciar Equipe
+                                Editar Equipe
                               </DropdownMenuItem>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[500px]">
                               <DialogHeader>
-                                <DialogTitle>Gerenciar Equipe - {team.name}</DialogTitle>
+                                <DialogTitle>Editar Equipe</DialogTitle>
                                 <DialogDescription>
-                                  {team.description}
+                                  Altere o nome da equipe e adicione colaboradores
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div className="text-center p-3 bg-muted rounded-lg">
-                                    <div className="text-2xl font-bold text-primary">{team.collaborators}</div>
-                                    <div className="text-sm text-muted-foreground">Colaboradores</div>
-                                  </div>
-                                  <div className="text-center p-3 bg-muted rounded-lg">
-                                    <div className="text-2xl font-bold text-kanban-executing">{team.tasksActive}</div>
-                                    <div className="text-sm text-muted-foreground">Tarefas Ativas</div>
-                                  </div>
+                                <div className="space-y-2">
+                                  <label htmlFor="team-name" className="text-sm font-medium">
+                                    Nome da Equipe
+                                  </label>
+                                  <Input 
+                                    id="team-name"
+                                    defaultValue={team.name}
+                                    placeholder="Digite o nome da equipe"
+                                  />
                                 </div>
                                 
                                 <div className="space-y-3">
@@ -328,10 +327,14 @@ const Equipe = () => {
                                       ))}
                                   </div>
                                 </div>
+                                
+                                <div className="flex justify-end gap-2 pt-4">
+                                  <Button variant="outline">Cancelar</Button>
+                                  <Button>Salvar Alterações</Button>
+                                </div>
                               </div>
                             </DialogContent>
                           </Dialog>
-                          <DropdownMenuItem>Editar Equipe</DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive">Remover Equipe</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
