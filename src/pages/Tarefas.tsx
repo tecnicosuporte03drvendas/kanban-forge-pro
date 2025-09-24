@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Plus, Search, Filter, Download, Calendar, User, BarChart3, Tag, Archive, RefreshCw, TrendingUp, Clock, Users, MoreHorizontal, CheckSquare, PlayCircle, Trash2, X, FileText } from "lucide-react"
+import { Plus, Search, Filter, Download, Calendar, User, BarChart3, Tag, Archive, RefreshCw, TrendingUp, Clock, Users, MoreHorizontal, CheckSquare, PlayCircle, Trash2, X } from "lucide-react"
 import { getDateStatus } from "@/utils/date-utils"
 import { useState } from "react"
 
@@ -54,36 +54,6 @@ const tasks = [
     assignee: "Sergio Ricardo",
     team: "Vendas",
     teamColor: "bg-blue-500"
-  }
-]
-
-const relatos = [
-  {
-    id: "1",
-    title: "Reunião semanal de vendas",
-    description: "Discutimos as metas do mês e revisamos os leads em andamento. A equipe está motivada e com bons resultados.",
-    tags: ["vendas", "reunião", "metas"],
-    relator: "Sergio Ricardo",
-    date: "2025-01-20",
-    status: "ativo"
-  },
-  {
-    id: "2",
-    title: "Feedback do cliente ABC Ltda",
-    description: "Cliente expressou satisfação com o produto, mas sugeriu melhorias na interface do usuário e no tempo de resposta.",
-    tags: ["feedback", "cliente", "produto"],
-    relator: "Maria Silva",
-    date: "2025-01-19",
-    status: "ativo"
-  },
-  {
-    id: "3",
-    title: "Problemas técnicos identificados",
-    description: "Sistema apresentou instabilidade durante o pico de acesso. Equipe técnica está investigando as causas.",
-    tags: ["técnico", "sistema", "problema"],
-    relator: "João Santos",
-    date: "2025-01-18",
-    status: "ativo"
   }
 ]
 
@@ -157,10 +127,9 @@ const Tarefas = () => {
 
       <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
         <Tabs defaultValue="tarefas" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-card">
+          <TabsList className="grid w-full grid-cols-4 bg-card">
             <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
             <TabsTrigger value="analise">Análise Temporal</TabsTrigger>
-            <TabsTrigger value="relatos">Relatos</TabsTrigger>
             <TabsTrigger value="tags">Tags</TabsTrigger>
             <TabsTrigger value="arquivadas">Tarefas Arquivadas</TabsTrigger>
           </TabsList>
@@ -563,122 +532,6 @@ const Tarefas = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="relatos" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-foreground">Gestão de Relatos</h2>
-                <p className="text-muted-foreground">Visualize e gerencie relatos de atividades e feedback</p>
-              </div>
-              <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Relato
-              </Button>
-            </div>
-
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Filter className="w-5 h-5" />
-                  Filtros e Busca
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col lg:flex-row gap-4">
-                  <div className="flex-1">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input placeholder="Buscar relatos..." className="pl-10" />
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Select defaultValue="todos">
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todos">Todos</SelectItem>
-                        <SelectItem value="ativo">Ativo</SelectItem>
-                        <SelectItem value="arquivado">Arquivado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button variant="outline" size="sm">
-                      <Download className="w-4 h-4 mr-2" />
-                      Exportar
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-foreground">
-                {relatos.length} relatos encontrados
-              </h3>
-            </div>
-
-            <div className="grid gap-4">
-              {relatos.map((relato) => (
-                <Card key={relato.id} className="border-border bg-card hover:shadow-md transition-all duration-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-center gap-3">
-                          <FileText className="w-5 h-5 text-primary" />
-                          <h4 className="font-medium text-card-foreground text-lg">{relato.title}</h4>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {relato.description}
-                        </p>
-                        
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {relato.tags.map((tag, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              #{tag}
-                            </Badge>
-                          ))}
-                        </div>
-                        
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <User className="w-3 h-3" />
-                            <span>{relato.relator}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>{new Date(relato.date).toLocaleDateString("pt-BR")}</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem>
-                            <FileText className="w-4 h-4 mr-2" />
-                            Editar Relato
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Archive className="w-4 h-4 mr-2" />
-                            Arquivar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive focus:text-destructive">
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
           </TabsContent>
 
           <TabsContent value="tags" className="space-y-6">
