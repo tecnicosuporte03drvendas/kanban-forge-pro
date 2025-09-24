@@ -5,13 +5,22 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Search, Mail, Phone, MapPin, MoreHorizontal, Users } from "lucide-react"
+import { Plus, Search, Mail, Phone, MapPin, MoreHorizontal, Users, UserPlus } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const teamMembers = [
   {
@@ -69,37 +78,33 @@ const teams = [
     id: "1",
     name: "Vendas RJ",
     description: "Equipe de vendas do Rio de Janeiro",
-    members: 3,
+    collaborators: 3,
     tasksActive: 12,
-    tasksCompleted: 28,
-    leader: "Sergio Ricardo"
+    tasksCompleted: 28
   },
   {
     id: "2",
     name: "Vendas SP",
     description: "Equipe de vendas de São Paulo",
-    members: 5,
+    collaborators: 5,
     tasksActive: 18,
-    tasksCompleted: 45,
-    leader: "Ana Silva"
+    tasksCompleted: 45
   },
   {
     id: "3",
     name: "Vendas MG",
     description: "Equipe de vendas de Minas Gerais",
-    members: 2,
+    collaborators: 2,
     tasksActive: 8,
-    tasksCompleted: 22,
-    leader: "Carlos Santos"
+    tasksCompleted: 22
   },
   {
     id: "4",
     name: "Vendas NE",
     description: "Equipe de vendas do Nordeste",
-    members: 4,
+    collaborators: 4,
     tasksActive: 15,
-    tasksCompleted: 35,
-    leader: "Marina Costa"
+    tasksCompleted: 35
   }
 ]
 
@@ -126,7 +131,7 @@ const Equipe = () => {
         <Tabs defaultValue="colaboradores" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="colaboradores">Colaboradores</TabsTrigger>
-            <TabsTrigger value="grupos">Grupos</TabsTrigger>
+            <TabsTrigger value="equipes">Equipes</TabsTrigger>
           </TabsList>
 
           <TabsContent value="colaboradores" className="space-y-6">
@@ -215,18 +220,24 @@ const Equipe = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="grupos" className="space-y-6">
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle>Buscar Grupos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input placeholder="Buscar por nome ou descrição..." className="pl-10" />
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="equipes" className="space-y-6">
+            <div className="flex justify-between items-center mb-6">
+              <Card className="border-border bg-card flex-1 mr-4">
+                <CardHeader>
+                  <CardTitle>Buscar Equipes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input placeholder="Buscar por nome ou descrição..." className="pl-10" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
+                <Plus className="w-4 h-4 mr-2" />
+                Cadastrar Equipe
+              </Button>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {teams.map((team) => (
@@ -250,26 +261,88 @@ const Equipe = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
-                          <DropdownMenuItem>Gerenciar Membros</DropdownMenuItem>
-                          <DropdownMenuItem>Editar Grupo</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">Remover Grupo</DropdownMenuItem>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                Gerenciar Equipe
+                              </DropdownMenuItem>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[500px]">
+                              <DialogHeader>
+                                <DialogTitle>Gerenciar Equipe - {team.name}</DialogTitle>
+                                <DialogDescription>
+                                  {team.description}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="text-center p-3 bg-muted rounded-lg">
+                                    <div className="text-2xl font-bold text-primary">{team.collaborators}</div>
+                                    <div className="text-sm text-muted-foreground">Colaboradores</div>
+                                  </div>
+                                  <div className="text-center p-3 bg-muted rounded-lg">
+                                    <div className="text-2xl font-bold text-kanban-executing">{team.tasksActive}</div>
+                                    <div className="text-sm text-muted-foreground">Tarefas Ativas</div>
+                                  </div>
+                                </div>
+                                
+                                <div className="space-y-3">
+                                  <h4 className="font-medium">Adicionar Colaborador à Equipe</h4>
+                                  <div className="flex gap-2">
+                                    <Select>
+                                      <SelectTrigger className="flex-1">
+                                        <SelectValue placeholder="Selecionar colaborador" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {teamMembers.map((member) => (
+                                          <SelectItem key={member.id} value={member.id}>
+                                            {member.name} - {member.role}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <Button>
+                                      <UserPlus className="w-4 h-4 mr-2" />
+                                      Adicionar
+                                    </Button>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                  <h4 className="font-medium">Colaboradores da Equipe</h4>
+                                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                                    {teamMembers
+                                      .filter(member => member.team === team.name)
+                                      .map((member) => (
+                                        <div key={member.id} className="flex items-center justify-between p-2 bg-muted rounded">
+                                          <div className="flex items-center gap-2">
+                                            <Avatar className="w-6 h-6">
+                                              <AvatarFallback className="text-xs">{member.avatar}</AvatarFallback>
+                                            </Avatar>
+                                            <span className="text-sm">{member.name}</span>
+                                          </div>
+                                          <Button variant="ghost" size="sm" className="text-destructive">
+                                            Remover
+                                          </Button>
+                                        </div>
+                                      ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                          <DropdownMenuItem>Editar Equipe</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive">Remover Equipe</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
                   </CardHeader>
                   
                   <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Líder</span>
-                      <Badge variant="outline">
-                        {team.leader}
-                      </Badge>
-                    </div>
-
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Membros</span>
-                        <span className="font-medium">{team.members}</span>
+                        <span className="text-muted-foreground">Colaboradores</span>
+                        <span className="font-medium">{team.collaborators}</span>
                       </div>
                     </div>
 
