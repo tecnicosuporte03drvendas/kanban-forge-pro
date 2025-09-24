@@ -8,6 +8,7 @@ import {
   User, 
   Settings, 
   HelpCircle,
+  Shield,
   Moon,
   Sun,
   Monitor
@@ -44,6 +45,7 @@ const menuItems = [
   { title: "Meu Desempenho", url: "/desempenho", icon: User },
   { title: "Integrações", url: "/integracoes", icon: Settings },
   { title: "Central de Ajuda", url: "/ajuda", icon: HelpCircle },
+  { title: "Administração", url: "/adminmasterauth", icon: Shield },
 ]
 
 export function AppSidebar() {
