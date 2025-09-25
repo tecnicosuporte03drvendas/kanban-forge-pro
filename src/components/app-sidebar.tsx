@@ -145,8 +145,8 @@ export function AppSidebar() {
           </DropdownMenu>
           
           {!collapsed && (
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
+            <NavLink to="/perfil" className="flex-1">
+              <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
                 <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
                   <span className="text-xs font-medium text-sidebar-accent-foreground">SR</span>
                 </div>
@@ -155,7 +155,15 @@ export function AppSidebar() {
                   <p className="text-xs text-sidebar-foreground/60 truncate">Gerente de Vendas</p>
                 </div>
               </div>
-            </div>
+            </NavLink>
+          )}
+          
+          {collapsed && (
+            <NavLink to="/perfil" className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-sidebar-accent/50 transition-colors">
+              <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
+                <span className="text-xs font-medium text-sidebar-accent-foreground">SR</span>
+              </div>
+            </NavLink>
           )}
         </div>
       </SidebarFooter>
