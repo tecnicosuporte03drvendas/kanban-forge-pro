@@ -16,6 +16,7 @@ interface CreateUserModalProps {
   onUserCreated: () => void;
   empresaId: string;
   empresaNome: string;
+  createdBy?: 'empresa' | 'admin';
 }
 
 export const CreateUserModal: React.FC<CreateUserModalProps> = ({ 
@@ -23,7 +24,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   onOpenChange, 
   onUserCreated,
   empresaId,
-  empresaNome
+  empresaNome,
+  createdBy = 'empresa'
 }) => {
   const [formData, setFormData] = useState({
     nome: '',
@@ -117,6 +119,30 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         title: "Usuário criado com sucesso!",
         description: `${formData.nome} foi adicionado à ${empresaNome}.`,
       });
+
+      // Notificar webhook n8n
+      try {
+        await supabase.functions.invoke('notify-user-created', {
+          body: {
+            user: {
+              nome: formData.nome.trim(),
+              email: formData.email.trim().toLowerCase(),
+              celular: formatCelularForDB(formData.celular),
+              funcao_empresa: formData.funcao_empresa.trim() || '',
+              tipo_usuario: formData.tipo_usuario
+            },
+            empresa: {
+              nome: empresaNome,
+              id: empresaId
+            },
+            created_by: createdBy
+          }
+        });
+        console.log('Notificação n8n enviada com sucesso');
+      } catch (webhookError) {
+        console.error('Erro ao notificar webhook n8n:', webhookError);
+        // Não exibir erro para o usuário, apenas logar
+      }
 
       // Limpar formulário
       setFormData({

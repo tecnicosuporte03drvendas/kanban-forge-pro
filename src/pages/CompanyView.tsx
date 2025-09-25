@@ -94,8 +94,11 @@ export default function CompanyView() {
     loadData();
   }, [empresaId]);
 
-  const handleUserCreated = () => {
-    fetchUsuarios();
+  const handleUserCreated = async () => {
+    await fetchUsuarios();
+    
+    // Se temos a empresa e há usuários, significa que um usuário foi criado
+    // A notificação já é feita no CreateUserModal, então só precisamos atualizar a lista
   };
 
   const handleInspectCompany = () => {
@@ -334,6 +337,7 @@ export default function CompanyView() {
         onUserCreated={handleUserCreated}
         empresaId={empresaId!}
         empresaNome={empresa.nome_fantasia}
+        createdBy="admin"
       />
     </div>
   );
