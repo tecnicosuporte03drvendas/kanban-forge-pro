@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { 
   LayoutDashboard, 
   CheckSquare, 
@@ -36,13 +36,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useTheme } from "@/components/theme-provider"
 import { useAuth } from "@/contexts/AuthContext"
+import { supabase } from "@/integrations/supabase/client"
 
 const menuItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Tarefas", url: "/tarefas", icon: CheckSquare },
   { title: "Calendário", url: "/calendario", icon: Calendar },
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
-  { title: "Equipe", url: "/equipe", icon: Users },
+  { title: "Empresa", url: "/empresa", icon: Users },
   { title: "Meu Desempenho", url: "/desempenho", icon: User },
   { title: "Integrações", url: "/integracoes", icon: Settings },
   { title: "Central de Ajuda", url: "/ajuda", icon: HelpCircle },
@@ -56,6 +57,47 @@ export function AppSidebar() {
   const { theme, setTheme } = useTheme()
   const { usuario } = useAuth()
   const currentPath = location.pathname
+  
+  const [perfilUsuario, setPerfilUsuario] = useState<{
+    nome: string;
+    iniciais: string;
+    funcao: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (usuario) {
+      // Calcular iniciais do nome
+      const nomes = usuario.nome.split(' ');
+      const iniciais = nomes.length >= 2 
+        ? `${nomes[0][0]}${nomes[nomes.length - 1][0]}`.toUpperCase()
+        : nomes[0].substring(0, 2).toUpperCase();
+      
+      // Definir função baseada no tipo de usuário
+      let funcao = '';
+      switch (usuario.tipo_usuario) {
+        case 'proprietario':
+          funcao = 'Proprietário';
+          break;
+        case 'gestor':
+          funcao = 'Gestor';
+          break;
+        case 'colaborador':
+          funcao = 'Colaborador';
+          break;
+        case 'master':
+          funcao = 'Master';
+          break;
+        default:
+          funcao = 'Usuário';
+      }
+      
+      setPerfilUsuario({
+        nome: usuario.nome,
+        iniciais,
+        funcao
+      });
+    }
+  }, [usuario]);
 
   const isActive = (path: string) => currentPath === path
   
@@ -157,11 +199,17 @@ export function AppSidebar() {
             <NavLink to="/perfil" className="flex-1">
               <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
                 <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
-                  <span className="text-xs font-medium text-sidebar-accent-foreground">SR</span>
+                  <span className="text-xs font-medium text-sidebar-accent-foreground">
+                    {perfilUsuario?.iniciais || 'U'}
+                  </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-sidebar-foreground truncate">Sergio Ricardo</p>
-                  <p className="text-xs text-sidebar-foreground/60 truncate">Gerente de Vendas</p>
+                  <p className="text-sm font-medium text-sidebar-foreground truncate">
+                    {perfilUsuario?.nome || 'Usuário'}
+                  </p>
+                  <p className="text-xs text-sidebar-foreground/60 truncate">
+                    {perfilUsuario?.funcao || ''}
+                  </p>
                 </div>
               </div>
             </NavLink>
@@ -170,7 +218,9 @@ export function AppSidebar() {
           {collapsed && (
             <NavLink to="/perfil" className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-sidebar-accent/50 transition-colors">
               <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
-                <span className="text-xs font-medium text-sidebar-accent-foreground">SR</span>
+                <span className="text-xs font-medium text-sidebar-accent-foreground">
+                  {perfilUsuario?.iniciais || 'U'}
+                </span>
               </div>
             </NavLink>
           )}

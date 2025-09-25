@@ -202,11 +202,11 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o tipo de usuário" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="proprietario">Proprietário</SelectItem>
-                <SelectItem value="gestor">Gestor</SelectItem>
-                <SelectItem value="colaborador">Colaborador</SelectItem>
-              </SelectContent>
+                        <SelectContent>
+                          <SelectItem value="proprietario">Proprietário</SelectItem>
+                          <SelectItem value="gestor">Gestor</SelectItem>
+                          <SelectItem value="colaborador">Colaborador</SelectItem>
+                        </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
               <strong>Proprietário:</strong> Acesso total à empresa<br/>

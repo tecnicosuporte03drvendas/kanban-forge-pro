@@ -12,7 +12,7 @@ import Index from "./pages/Index";
 import Tarefas from "./pages/Tarefas";
 import Calendario from "./pages/Calendario";
 import Relatorios from "./pages/Relatorios";
-import Equipe from "./pages/Equipe";
+import Empresa from "./pages/Empresa";
 import Desempenho from "./pages/Desempenho";
 import Integracoes from "./pages/Integracoes";
 import Ajuda from "./pages/Ajuda";
@@ -77,7 +77,7 @@ const App = () => (
                             <Route path="/tarefas" element={<Tarefas />} />
                             <Route path="/calendario" element={<Calendario />} />
                             <Route path="/relatorios" element={<Relatorios />} />
-                            <Route path="/equipe" element={<Equipe />} />
+                            <Route path="/empresa" element={<Empresa />} />
                             <Route path="/desempenho" element={<Desempenho />} />
                             <Route path="/integracoes" element={<Integracoes />} />
                             <Route path="/ajuda" element={<Ajuda />} />
