@@ -25,6 +25,7 @@ import { EditUserModal } from "@/components/modals/EditUserModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { formatCelularForDisplay } from "@/lib/utils"
 
 interface UsuarioEmpresa {
   id: string;
@@ -354,7 +355,7 @@ const Empresa = () => {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Phone className="w-4 h-4" />
-                        <span className="truncate">{member.celular}</span>
+                        <span className="truncate">{formatCelularForDisplay(member.celular)}</span>
                       </div>
                       {member.funcao_empresa && (
                         <div className="text-sm text-muted-foreground">
@@ -435,10 +436,10 @@ const Empresa = () => {
                         <Mail className="w-4 h-4" />
                         <span className="truncate">{member.email}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Phone className="w-4 h-4" />
-                        <span className="truncate">{member.celular}</span>
-                      </div>
+                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                         <Phone className="w-4 h-4" />
+                         <span className="truncate">{formatCelularForDisplay(member.celular)}</span>
+                       </div>
                       {member.funcao_empresa && (
                         <div className="text-sm text-muted-foreground">
                           <strong>Função:</strong> {member.funcao_empresa}

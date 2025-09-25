@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { formatCelularForDisplay, formatCelularForDB, validateCelular } from '@/lib/utils';
 
 interface CreateUserModalProps {
   open: boolean;
@@ -37,28 +38,11 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   
   const { usuario } = useAuth();
 
-  const formatCelular = (value: string) => {
-    // Remove tudo que não é número
-    const numbers = value.replace(/\D/g, '');
-    
-    // Formata conforme o tamanho
-    if (numbers.length <= 11) {
-      return numbers.replace(/^(\d{2})(\d{5})(\d{4})$/, '+55 $1 $2-$3');
-    }
-    
-    return value;
-  };
-
   const handleInputChange = (field: string, value: string) => {
     if (field === 'celular') {
-      value = formatCelular(value);
+      value = formatCelularForDisplay(value);
     }
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const validateCelular = (celular: string) => {
-    const numbers = celular.replace(/\D/g, '');
-    return numbers.length === 11;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,7 +59,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
     // Validar celular
     if (!validateCelular(formData.celular)) {
-      setError('Celular deve ter 11 dígitos no formato +55 XX XXXXX-XXXX');
+      setError('Celular deve ter 11 dígitos no formato (XX) XXXXX-XXXX');
       setLoading(false);
       return;
     }
@@ -116,7 +100,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           nome: formData.nome.trim(),
           email: formData.email.trim().toLowerCase(),
           senha_hash: formData.senha, // TODO: Hash com bcrypt
-          celular: formData.celular.trim(),
+          celular: formatCelularForDB(formData.celular),
           funcao_empresa: formData.funcao_empresa.trim() || null,
           tipo_usuario: formData.tipo_usuario as 'proprietario' | 'gestor' | 'colaborador',
           empresa_id: empresaId,
@@ -232,14 +216,14 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             <Input
               id="celular"
               type="tel"
-              placeholder="+55 11 99999-9999"
+              placeholder="(11) 99999-9999"
               value={formData.celular}
               onChange={(e) => handleInputChange('celular', e.target.value)}
               required
               disabled={loading}
             />
             <p className="text-xs text-muted-foreground">
-              Formato: +55 XX XXXXX-XXXX
+              Formato: (XX) XXXXX-XXXX
             </p>
           </div>
 
