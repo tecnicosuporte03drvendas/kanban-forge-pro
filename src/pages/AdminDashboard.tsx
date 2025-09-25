@@ -225,7 +225,11 @@ export default function AdminDashboard() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => navigate(`/admin/empresa/${empresa.id}`)}
+                            >
                               <Eye className="w-4 h-4" />
                             </Button>
                           </TableCell>
