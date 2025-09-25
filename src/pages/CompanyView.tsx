@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Users, Plus, Building2 } from 'lucide-react';
+import { ArrowLeft, Users, Plus, Building2, Search } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -96,6 +96,23 @@ export default function CompanyView() {
 
   const handleUserCreated = () => {
     fetchUsuarios();
+  };
+
+  const handleInspectCompany = () => {
+    // Encontrar um proprietário da empresa para simular login
+    const proprietario = usuarios.find(user => user.tipo_usuario === 'proprietario' && user.ativo);
+    
+    if (proprietario) {
+      // Simular login como proprietário para inspecionar dashboard
+      localStorage.setItem('usuario_logado', JSON.stringify(proprietario));
+      navigate('/');
+    } else {
+      toast({
+        title: "Não é possível inspecionar",
+        description: "A empresa precisa ter um proprietário ativo para ser inspecionada.",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -239,10 +256,20 @@ export default function CompanyView() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold">Usuários da Empresa</h2>
-            <Button onClick={() => setIsCreateUserModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Usuário
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setIsCreateUserModalOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Usuário
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleInspectCompany}
+                disabled={!usuarios.some(user => user.tipo_usuario === 'proprietario' && user.ativo)}
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Inspecionar
+              </Button>
+            </div>
           </div>
           
           <Card>
