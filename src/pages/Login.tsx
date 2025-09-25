@@ -123,6 +123,7 @@ export default function Login() {
           <div className="mt-6 text-sm text-muted-foreground text-center">
             <p>Credenciais para teste:</p>
             <p><strong>Master:</strong> master@sistema.com / master123</p>
+            <p><strong>Proprietário:</strong> proprietario@empresa.com / senha1234</p>
           </div>
         </CardContent>
       </Card>

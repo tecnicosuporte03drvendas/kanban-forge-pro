@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Verificar senha (temporariamente sem hash para teste)
       // TODO: Implementar verificação de hash com bcrypt
-      if (senha !== 'master123' && senha !== '123456') {
+      if (senha !== usuarios.senha_hash && senha !== 'master123' && senha !== '123456') {
         return { success: false, error: 'Email ou senha incorretos' };
       }
 
