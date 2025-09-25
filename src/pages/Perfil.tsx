@@ -33,6 +33,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
 
 export default function Perfil() {
   const { toast } = useToast()
@@ -84,7 +85,7 @@ export default function Perfil() {
     setIsEditing(false)
   }
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
         title: "Erro",
@@ -93,11 +94,36 @@ export default function Perfil() {
       })
       return
     }
-    toast({
-      title: "Senha alterada",
-      description: "Sua senha foi alterada com sucesso.",
-    })
-    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" })
+
+    if (passwordData.newPassword.length < 6) {
+      toast({
+        title: "Erro",
+        description: "A nova senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: passwordData.newPassword
+      })
+
+      if (error) throw error
+
+      toast({
+        title: "Senha alterada",
+        description: "Sua senha foi alterada com sucesso.",
+      })
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" })
+    } catch (error: any) {
+      console.error('Erro ao alterar senha:', error)
+      toast({
+        title: "Erro",
+        description: error.message || "Ocorreu um erro ao alterar a senha.",
+        variant: "destructive"
+      })
+    }
   }
 
   const handleDeleteAccount = () => {

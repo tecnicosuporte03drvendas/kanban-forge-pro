@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
-import { Plus, Search, Mail, Phone, MoreHorizontal, Users, Grid3X3, List, Edit } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Plus, Search, Mail, Phone, MoreHorizontal, Users, Grid3X3, List, Edit, UserPlus } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/dialog"
 import { CreateUserModal } from "@/components/modals/CreateUserModal"
 import { EditUserModal } from "@/components/modals/EditUserModal"
+import { CreateTeamModal } from "@/components/modals/CreateTeamModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
@@ -38,15 +40,28 @@ interface UsuarioEmpresa {
   created_at: string;
 }
 
+interface Equipe {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  empresa_id: string;
+  criado_por: string;
+  created_at: string;
+  updated_at: string;
+  membros?: UsuarioEmpresa[];
+}
+
 const Empresa = () => {
   const { usuario } = useAuth();
   const { toast } = useToast();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UsuarioEmpresa | null>(null);
   const [usuarios, setUsuarios] = useState<UsuarioEmpresa[]>([]);
   const [filteredUsuarios, setFilteredUsuarios] = useState<UsuarioEmpresa[]>([]);
+  const [equipes, setEquipes] = useState<Equipe[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [empresa, setEmpresa] = useState<any>(null);
@@ -55,6 +70,7 @@ const Empresa = () => {
     if (usuario?.empresa_id) {
       fetchEmpresa();
       fetchUsuarios();
+      fetchEquipes();
     }
   }, [usuario]);
 
@@ -114,6 +130,44 @@ const Empresa = () => {
     }
   };
 
+  const fetchEquipes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('equipes')
+        .select(`
+          *,
+          usuarios_equipes (
+            usuario_id,
+            usuarios (
+              id,
+              nome,
+              email,
+              funcao_empresa
+            )
+          )
+        `)
+        .eq('empresa_id', usuario?.empresa_id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Transform data to include members
+      const equipesWithMembers = data?.map(equipe => ({
+        ...equipe,
+        membros: equipe.usuarios_equipes?.map((ue: any) => ue.usuarios) || []
+      })) || [];
+      
+      setEquipes(equipesWithMembers);
+    } catch (error) {
+      console.error('Erro ao buscar equipes:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as equipes da empresa.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getTipoUsuarioLabel = (tipo: string) => {
     switch (tipo) {
       case 'proprietario':
@@ -158,6 +212,10 @@ const Empresa = () => {
   const handleUserUpdated = () => {
     fetchUsuarios(); // Recarregar lista de usuários
     setSelectedUser(null);
+  };
+
+  const handleTeamCreated = () => {
+    fetchEquipes(); // Recarregar lista de equipes
   };
 
   const handleEditUser = (user: UsuarioEmpresa) => {
@@ -223,76 +281,82 @@ const Empresa = () => {
       </header>
 
       <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
-        <div className="space-y-6">
-          {/* Busca e Filtros */}
-          <Card className="border-border bg-card">
-            <CardHeader>
-              <CardTitle>Buscar Membros</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Buscar por nome, email ou função..." 
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="membros" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="membros">Membros</TabsTrigger>
+            <TabsTrigger value="equipes">Equipes</TabsTrigger>
+          </TabsList>
 
-          {/* Ações e Visualização */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="w-4 h-4" />
-                <span>{usuarios.length} {usuarios.length === 1 ? 'membro' : 'membros'}</span>
+          <TabsContent value="membros" className="space-y-6">
+            {/* Busca e Filtros */}
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle>Buscar Membros</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Buscar por nome, email ou função..." 
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Ações e Visualização */}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Users className="w-4 h-4" />
+                  <span>{usuarios.length} {usuarios.length === 1 ? 'membro' : 'membros'}</span>
+                </div>
               </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
+              
               <div className="flex items-center gap-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <Grid3X3 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <CreateUserModal
+                  open={isCreateUserOpen}
+                  onOpenChange={setIsCreateUserOpen}
+                  onUserCreated={handleUserCreated}
+                  empresaId={usuario?.empresa_id || ''}
+                  empresaNome={empresa?.nome_fantasia || ''}
+                />
+                
+                <EditUserModal
+                  open={isEditUserOpen}
+                  onOpenChange={setIsEditUserOpen}
+                  onUserUpdated={handleUserUpdated}
+                  user={selectedUser}
+                />
+                
+                <Button 
+                  className="bg-primary hover:bg-primary-hover text-primary-foreground"
+                  onClick={() => setIsCreateUserOpen(true)}
                 >
-                  <Grid3X3 className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                >
-                  <List className="w-4 h-4" />
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Membro
                 </Button>
               </div>
-              
-              <CreateUserModal
-                open={isCreateUserOpen}
-                onOpenChange={setIsCreateUserOpen}
-                onUserCreated={handleUserCreated}
-                empresaId={usuario?.empresa_id || ''}
-                empresaNome={empresa?.nome_fantasia || ''}
-              />
-              
-              <EditUserModal
-                open={isEditUserOpen}
-                onOpenChange={setIsEditUserOpen}
-                onUserUpdated={handleUserUpdated}
-                user={selectedUser}
-              />
-              
-              <Button 
-                className="bg-primary hover:bg-primary-hover text-primary-foreground"
-                onClick={() => setIsCreateUserOpen(true)}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar Membro
-              </Button>
             </div>
-          </div>
 
           {/* Seção Proprietários */}
           {proprietarios.length > 0 && (
@@ -477,21 +541,135 @@ const Empresa = () => {
             </Card>
           )}
 
-          {/* Estado de busca vazia */}
-          {usuarios.length > 0 && filteredUsuarios.length === 0 && searchTerm && (
-            <Card className="border-border bg-card">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Search className="w-12 h-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Nenhum resultado encontrado
-                </h3>
-                <p className="text-muted-foreground text-center">
-                  Tente usar outros termos de busca
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+            {/* Estado de busca vazia */}
+            {usuarios.length > 0 && filteredUsuarios.length === 0 && searchTerm && (
+              <Card className="border-border bg-card">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Search className="w-12 h-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    Nenhum resultado encontrado
+                  </h3>
+                  <p className="text-muted-foreground text-center">
+                    Tente usar outros termos de busca
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="equipes" className="space-y-6">
+            {/* Cabeçalho da aba Equipes */}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <UserPlus className="w-4 h-4" />
+                <span>{equipes.length} {equipes.length === 1 ? 'equipe' : 'equipes'}</span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <CreateTeamModal
+                  open={isCreateTeamOpen}
+                  onOpenChange={setIsCreateTeamOpen}
+                  onTeamCreated={handleTeamCreated}
+                  usuarios={usuarios}
+                />
+                
+                <Button 
+                  className="bg-primary hover:bg-primary-hover text-primary-foreground"
+                  onClick={() => setIsCreateTeamOpen(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Criar Equipe
+                </Button>
+              </div>
+            </div>
+
+            {/* Lista de Equipes */}
+            {equipes.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {equipes.map((equipe) => (
+                  <Card key={equipe.id} className="border-border bg-card hover:shadow-md transition-all duration-200">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-semibold text-card-foreground">{equipe.nome}</h3>
+                          {equipe.descricao && (
+                            <p className="text-sm text-muted-foreground mt-1">{equipe.descricao}</p>
+                          )}
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="w-8 h-8 p-0">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Editar Equipe
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>Ver Membros</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              Excluir Equipe
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Users className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">
+                          {equipe.membros?.length || 0} {(equipe.membros?.length || 0) === 1 ? 'membro' : 'membros'}
+                        </span>
+                      </div>
+                      
+                      {equipe.membros && equipe.membros.length > 0 && (
+                        <div className="flex -space-x-2">
+                          {equipe.membros.slice(0, 4).map((membro) => (
+                            <Avatar key={membro.id} className="w-8 h-8 border-2 border-background">
+                              <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground text-xs">
+                                {getInitials(membro.nome)}
+                              </AvatarFallback>
+                            </Avatar>
+                          ))}
+                          {equipe.membros.length > 4 && (
+                            <div className="w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs text-muted-foreground">
+                              +{equipe.membros.length - 4}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      <div className="text-xs text-muted-foreground">
+                        Criada em {new Date(equipe.created_at).toLocaleDateString('pt-BR')}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="border-border bg-card">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <UserPlus className="w-12 h-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    Nenhuma equipe criada
+                  </h3>
+                  <p className="text-muted-foreground text-center mb-4">
+                    Organize seus membros em equipes para melhor colaboração
+                  </p>
+                  <Button 
+                    className="bg-primary hover:bg-primary-hover text-primary-foreground"
+                    onClick={() => setIsCreateTeamOpen(true)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Criar Primeira Equipe
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
