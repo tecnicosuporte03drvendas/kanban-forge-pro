@@ -14,7 +14,91 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      empresas: {
+        Row: {
+          ativa: boolean | null
+          cnpj: string | null
+          created_at: string | null
+          criado_por: string
+          id: string
+          nome_fantasia: string
+          razao_social: string
+          updated_at: string | null
+        }
+        Insert: {
+          ativa?: boolean | null
+          cnpj?: string | null
+          created_at?: string | null
+          criado_por: string
+          id?: string
+          nome_fantasia: string
+          razao_social: string
+          updated_at?: string | null
+        }
+        Update: {
+          ativa?: boolean | null
+          cnpj?: string | null
+          created_at?: string | null
+          criado_por?: string
+          id?: string
+          nome_fantasia?: string
+          razao_social?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_empresas_criado_por"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usuarios: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          email: string
+          empresa_id: string | null
+          id: string
+          nome: string
+          senha_hash: string
+          tipo_usuario: Database["public"]["Enums"]["tipo_usuario"]
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          email: string
+          empresa_id?: string | null
+          id?: string
+          nome: string
+          senha_hash: string
+          tipo_usuario: Database["public"]["Enums"]["tipo_usuario"]
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          email?: string
+          empresa_id?: string | null
+          id?: string
+          nome?: string
+          senha_hash?: string
+          tipo_usuario?: Database["public"]["Enums"]["tipo_usuario"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +107,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      tipo_usuario: "master" | "proprietario" | "gestor" | "colaborador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +234,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      tipo_usuario: ["master", "proprietario", "gestor", "colaborador"],
+    },
   },
 } as const
