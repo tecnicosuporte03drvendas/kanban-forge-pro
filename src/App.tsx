@@ -19,8 +19,10 @@ import Ajuda from "./pages/Ajuda";
 import Perfil from "./pages/Perfil";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
-import CompanyView from "./pages/CompanyView";
 import NotFound from "./pages/NotFound";
+import { lazy, Suspense } from "react";
+
+const CompanyView = lazy(() => import("./pages/CompanyView"));
 
 const queryClient = new QueryClient();
 
@@ -51,7 +53,11 @@ const App = () => (
                 path="/admin/empresa/:empresaId"
                 element={
                   <ProtectedRoute allowedRoles={['master']}>
-                    <CompanyView />
+                    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>}>
+                      <CompanyView />
+                    </Suspense>
                   </ProtectedRoute>
                 }
               />
