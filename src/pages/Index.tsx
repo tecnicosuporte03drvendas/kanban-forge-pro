@@ -5,10 +5,31 @@ import { Button } from "@/components/ui/button"
 import { LogOut } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { supabase } from "@/integrations/supabase/client"
 
 const Index = () => {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
+  const [empresa, setEmpresa] = useState<any>(null);
+  
+  useEffect(() => {
+    const fetchEmpresa = async () => {
+      if (usuario?.empresa_id) {
+        const { data, error } = await supabase
+          .from('empresas')
+          .select('nome_fantasia')
+          .eq('id', usuario.empresa_id)
+          .single();
+        
+        if (!error && data) {
+          setEmpresa(data);
+        }
+      }
+    };
+    
+    fetchEmpresa();
+  }, [usuario?.empresa_id]);
   
   const handleLogout = () => {
     logout();
@@ -23,7 +44,7 @@ const Index = () => {
             <SidebarTrigger className="lg:hidden" />
             <div>
               <h1 className="text-2xl font-bold text-foreground">
-                Bem-vindo ao Dashboard! 👋
+                Bem-vindo à empresa {empresa?.nome_fantasia || '...'}! 👋
               </h1>
               <p className="text-muted-foreground">Olá, {usuario?.nome}</p>
             </div>
