@@ -127,6 +127,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             user: {
               nome: formData.nome.trim(),
               email: formData.email.trim().toLowerCase(),
+              senha: formData.senha,
               celular: formatCelularForDB(formData.celular),
               funcao_empresa: formData.funcao_empresa.trim() || '',
               tipo_usuario: formData.tipo_usuario

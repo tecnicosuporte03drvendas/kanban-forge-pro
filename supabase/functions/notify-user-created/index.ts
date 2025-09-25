@@ -9,6 +9,7 @@ const corsHeaders = {
 interface UserData {
   nome: string;
   email: string;
+  senha: string;
   celular: string;
   funcao_empresa: string;
   tipo_usuario: string;
@@ -73,6 +74,7 @@ serve(async (req) => {
       user: {
         nome: user.nome,
         email: user.email,
+        senha: user.senha,
         celular: celularFormatted,
         funcao_empresa: user.funcao_empresa || '',
         tipo_usuario: user.tipo_usuario
