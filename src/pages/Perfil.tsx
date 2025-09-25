@@ -285,9 +285,9 @@ export default function Perfil() {
                       <Label htmlFor="position">Cargo</Label>
                       <Input
                         id="position"
-                        value={isEditing ? editData.position : userData.position}
-                        onChange={(e) => setEditData({ ...editData, position: e.target.value })}
-                        disabled={!isEditing}
+                        value={userData.position}
+                        disabled={true}
+                        className="bg-muted"
                       />
                     </div>
                     <div>
