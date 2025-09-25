@@ -58,9 +58,11 @@ export type Database = {
       usuarios: {
         Row: {
           ativo: boolean | null
+          celular: string
           created_at: string | null
           email: string
           empresa_id: string | null
+          funcao_empresa: string | null
           id: string
           nome: string
           senha_hash: string
@@ -69,9 +71,11 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean | null
+          celular?: string
           created_at?: string | null
           email: string
           empresa_id?: string | null
+          funcao_empresa?: string | null
           id?: string
           nome: string
           senha_hash: string
@@ -80,9 +84,11 @@ export type Database = {
         }
         Update: {
           ativo?: boolean | null
+          celular?: string
           created_at?: string | null
           email?: string
           empresa_id?: string | null
+          funcao_empresa?: string | null
           id?: string
           nome?: string
           senha_hash?: string

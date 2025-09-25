@@ -28,6 +28,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     nome: '',
     email: '',
     senha: '',
+    celular: '',
+    funcao_empresa: '',
     tipo_usuario: ''
   });
   const [loading, setLoading] = useState(false);
@@ -35,8 +37,28 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   
   const { usuario } = useAuth();
 
+  const formatCelular = (value: string) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '');
+    
+    // Formata conforme o tamanho
+    if (numbers.length <= 11) {
+      return numbers.replace(/^(\d{2})(\d{5})(\d{4})$/, '+55 $1 $2-$3');
+    }
+    
+    return value;
+  };
+
   const handleInputChange = (field: string, value: string) => {
+    if (field === 'celular') {
+      value = formatCelular(value);
+    }
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const validateCelular = (celular: string) => {
+    const numbers = celular.replace(/\D/g, '');
+    return numbers.length === 11;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,8 +67,15 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     setLoading(true);
 
     // Validações
-    if (!formData.nome.trim() || !formData.email.trim() || !formData.senha.trim() || !formData.tipo_usuario) {
-      setError('Todos os campos são obrigatórios');
+    if (!formData.nome.trim() || !formData.email.trim() || !formData.senha.trim() || !formData.celular.trim() || !formData.tipo_usuario) {
+      setError('Nome, email, senha, celular e tipo de usuário são obrigatórios');
+      setLoading(false);
+      return;
+    }
+
+    // Validar celular
+    if (!validateCelular(formData.celular)) {
+      setError('Celular deve ter 11 dígitos no formato +55 XX XXXXX-XXXX');
       setLoading(false);
       return;
     }
@@ -87,6 +116,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           nome: formData.nome.trim(),
           email: formData.email.trim().toLowerCase(),
           senha_hash: formData.senha, // TODO: Hash com bcrypt
+          celular: formData.celular.trim(),
+          funcao_empresa: formData.funcao_empresa.trim() || null,
           tipo_usuario: formData.tipo_usuario as 'proprietario' | 'gestor' | 'colaborador',
           empresa_id: empresaId,
           ativo: true
@@ -108,6 +139,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         nome: '',
         email: '',
         senha: '',
+        celular: '',
+        funcao_empresa: '',
         tipo_usuario: ''
       });
 
@@ -127,6 +160,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         nome: '',
         email: '',
         senha: '',
+        celular: '',
+        funcao_empresa: '',
         tipo_usuario: ''
       });
       setError('');
@@ -190,6 +225,37 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               disabled={loading}
               minLength={6}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="celular">Celular *</Label>
+            <Input
+              id="celular"
+              type="tel"
+              placeholder="+55 11 99999-9999"
+              value={formData.celular}
+              onChange={(e) => handleInputChange('celular', e.target.value)}
+              required
+              disabled={loading}
+            />
+            <p className="text-xs text-muted-foreground">
+              Formato: +55 XX XXXXX-XXXX
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="funcao_empresa">Função na Empresa</Label>
+            <Input
+              id="funcao_empresa"
+              type="text"
+              placeholder="Ex: Designer, Auxiliar Técnico, Desenvolvedor..."
+              value={formData.funcao_empresa}
+              onChange={(e) => handleInputChange('funcao_empresa', e.target.value)}
+              disabled={loading}
+            />
+            <p className="text-xs text-muted-foreground">
+              Cargo específico dentro da empresa (opcional)
+            </p>
           </div>
 
           <div className="space-y-2">

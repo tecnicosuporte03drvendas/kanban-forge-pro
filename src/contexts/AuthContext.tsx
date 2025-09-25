@@ -7,6 +7,8 @@ export interface Usuario {
   id: string;
   nome: string;
   email: string;
+  celular?: string;
+  funcao_empresa?: string | null;
   tipo_usuario: TipoUsuario;
   empresa_id?: string;
   ativo: boolean;

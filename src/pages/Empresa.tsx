@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
-import { Plus, Search, Mail, MoreHorizontal, Users, Grid3X3, List } from "lucide-react"
+import { Plus, Search, Mail, Phone, MoreHorizontal, Users, Grid3X3, List, Edit } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { CreateUserModal } from "@/components/modals/CreateUserModal"
+import { EditUserModal } from "@/components/modals/EditUserModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
@@ -29,6 +30,8 @@ interface UsuarioEmpresa {
   id: string;
   nome: string;
   email: string;
+  celular: string;
+  funcao_empresa: string | null;
   tipo_usuario: 'master' | 'proprietario' | 'gestor' | 'colaborador';
   ativo: boolean;
   created_at: string;
@@ -39,6 +42,8 @@ const Empresa = () => {
   const { toast } = useToast();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
+  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UsuarioEmpresa | null>(null);
   const [usuarios, setUsuarios] = useState<UsuarioEmpresa[]>([]);
   const [filteredUsuarios, setFilteredUsuarios] = useState<UsuarioEmpresa[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -149,6 +154,33 @@ const Empresa = () => {
     });
   };
 
+  const handleUserUpdated = () => {
+    fetchUsuarios(); // Recarregar lista de usuários
+    setSelectedUser(null);
+  };
+
+  const handleEditUser = (user: UsuarioEmpresa) => {
+    setSelectedUser(user);
+    setIsEditUserOpen(true);
+  };
+
+  // Verificar se pode editar usuário
+  const canEditUser = (targetUser: UsuarioEmpresa) => {
+    if (!usuario) return false;
+    
+    // Proprietários podem editar todos (exceto outros proprietários)
+    if (usuario.tipo_usuario === 'proprietario') {
+      return targetUser.tipo_usuario !== 'proprietario' || targetUser.id === usuario.id;
+    }
+    
+    // Gestores podem editar apenas colaboradores
+    if (usuario.tipo_usuario === 'gestor') {
+      return targetUser.tipo_usuario === 'colaborador';
+    }
+    
+    return false;
+  };
+
   const proprietarios = usuarios.filter(u => u.tipo_usuario === 'proprietario');
   const outrosMembros = usuarios.filter(u => u.tipo_usuario !== 'proprietario');
 
@@ -244,6 +276,13 @@ const Empresa = () => {
                 empresaNome={empresa?.nome_fantasia || ''}
               />
               
+              <EditUserModal
+                open={isEditUserOpen}
+                onOpenChange={setIsEditUserOpen}
+                onUserUpdated={handleUserUpdated}
+                user={selectedUser}
+              />
+              
               <Button 
                 className="bg-primary hover:bg-primary-hover text-primary-foreground"
                 onClick={() => setIsCreateUserOpen(true)}
@@ -290,6 +329,12 @@ const Empresa = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            {canEditUser(member) && (
+                              <DropdownMenuItem onClick={() => handleEditUser(member)}>
+                                <Edit className="w-4 h-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
                             <DropdownMenuItem>Enviar Mensagem</DropdownMenuItem>
                             {usuario?.tipo_usuario === 'proprietario' && member.id !== usuario.id && (
@@ -307,6 +352,15 @@ const Empresa = () => {
                         <Mail className="w-4 h-4" />
                         <span className="truncate">{member.email}</span>
                       </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="w-4 h-4" />
+                        <span className="truncate">{member.celular}</span>
+                      </div>
+                      {member.funcao_empresa && (
+                        <div className="text-sm text-muted-foreground">
+                          <strong>Função:</strong> {member.funcao_empresa}
+                        </div>
+                      )}
                       <div className="text-xs text-muted-foreground">
                         Membro desde {new Date(member.created_at).toLocaleDateString('pt-BR')}
                       </div>
@@ -351,13 +405,19 @@ const Empresa = () => {
                             </Badge>
                           </div>
                         </div>
-                        <DropdownMenu>
+                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-8 h-8 p-0">
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            {canEditUser(member) && (
+                              <DropdownMenuItem onClick={() => handleEditUser(member)}>
+                                <Edit className="w-4 h-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
                             <DropdownMenuItem>Enviar Mensagem</DropdownMenuItem>
                             {(usuario?.tipo_usuario === 'proprietario' || usuario?.tipo_usuario === 'gestor') && (
@@ -370,11 +430,20 @@ const Empresa = () => {
                       </div>
                     </CardHeader>
                     
-                    <CardContent className="space-y-2">
+                     <CardContent className="space-y-2">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Mail className="w-4 h-4" />
                         <span className="truncate">{member.email}</span>
                       </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="w-4 h-4" />
+                        <span className="truncate">{member.celular}</span>
+                      </div>
+                      {member.funcao_empresa && (
+                        <div className="text-sm text-muted-foreground">
+                          <strong>Função:</strong> {member.funcao_empresa}
+                        </div>
+                      )}
                       <div className="text-xs text-muted-foreground">
                         Membro desde {new Date(member.created_at).toLocaleDateString('pt-BR')}
                       </div>
