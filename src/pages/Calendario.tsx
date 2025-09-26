@@ -34,6 +34,7 @@ const Calendario = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date())
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false)
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
   
@@ -247,7 +248,10 @@ const Calendario = () => {
                       </div>
                     ))}
                     {hourEvents.length === 0 && (
-                      <button className="w-full h-full text-left opacity-0 hover:opacity-100 transition-opacity">
+                      <button 
+                        className="w-full h-full text-left opacity-0 hover:opacity-100 transition-opacity"
+                        onClick={() => setIsTypeSelectionOpen(true)}
+                      >
                         <div className="text-xs text-muted-foreground hover:text-primary">
                           + Adicionar agendamento às {hour.toString().padStart(2, '0')}:00
                         </div>
@@ -537,13 +541,48 @@ const Calendario = () => {
               </p>
             </div>
           </div>
+          <Button 
+            className="bg-primary hover:bg-primary-hover text-primary-foreground"
+            onClick={() => setIsTypeSelectionOpen(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Criar Agendamento
+          </Button>
+
+          {/* Modal de Seleção de Tipo */}
+          <Dialog open={isTypeSelectionOpen} onOpenChange={setIsTypeSelectionOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Tipo de Agendamento</DialogTitle>
+              </DialogHeader>
+              <div className="grid grid-cols-2 gap-4 py-4">
+                <Button
+                  variant="outline"
+                  className="h-24 flex-col gap-2"
+                  onClick={() => {
+                    setIsTypeSelectionOpen(false)
+                    setIsModalOpen(true)
+                  }}
+                >
+                  <CheckSquare className="h-8 w-8" />
+                  <span>Tarefa</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-24 flex-col gap-2"
+                  onClick={() => {
+                    setIsTypeSelectionOpen(false)
+                    setIsModalOpen(true)
+                  }}
+                >
+                  <Video className="h-8 w-8" />
+                  <span>Reunião</span>
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
-                <Plus className="w-4 h-4 mr-2" />
-                Criar Agendamento
-              </Button>
-            </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>Novo Agendamento</DialogTitle>
