@@ -45,8 +45,8 @@ const taskSchema = z.object({
     required_error: 'Data de conclusão é obrigatória',
   }),
   horario_conclusao: z.string().default('18:00'),
-  responsavel: z.string().optional(),
-  categoria: z.string().optional(),
+      responsavel: z.string().optional(),
+      categoria: z.string().optional(),
 })
 
 interface CreateTaskModalProps {
@@ -66,8 +66,8 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
       descricao: '',
       prioridade: 'media',
       horario_conclusao: '18:00',
-      responsavel: '',
-      categoria: '',
+      responsavel: 'none',
+      categoria: 'none',
     },
   })
 
@@ -169,7 +169,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
       if (tarefaError) throw tarefaError
 
       // Add responsible if selected
-      if (values.responsavel) {
+      if (values.responsavel && values.responsavel !== 'none') {
         const responsible = responsibleOptions.find(r => r.id === values.responsavel)
         if (responsible) {
           await supabase.from('tarefas_responsaveis').insert({
@@ -298,7 +298,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {responsibleOptions.map((option) => (
                         <SelectItem key={option.id} value={option.id}>
                           <div className="flex items-center gap-2">
@@ -384,7 +384,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nenhuma</SelectItem>
+                      <SelectItem value="none">Nenhuma</SelectItem>
                       <SelectItem value="vendas">Vendas</SelectItem>
                       <SelectItem value="marketing">Marketing</SelectItem>
                       <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
