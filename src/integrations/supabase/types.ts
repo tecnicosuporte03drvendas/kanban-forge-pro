@@ -103,6 +103,7 @@ export type Database = {
           empresa_id: string
           horario_conclusao: string
           id: string
+          posicao_coluna: number | null
           prioridade: Database["public"]["Enums"]["prioridade_tarefa"]
           status: Database["public"]["Enums"]["status_tarefa"]
           tempo_fim: string | null
@@ -120,6 +121,7 @@ export type Database = {
           empresa_id: string
           horario_conclusao?: string
           id?: string
+          posicao_coluna?: number | null
           prioridade?: Database["public"]["Enums"]["prioridade_tarefa"]
           status?: Database["public"]["Enums"]["status_tarefa"]
           tempo_fim?: string | null
@@ -137,6 +139,7 @@ export type Database = {
           empresa_id?: string
           horario_conclusao?: string
           id?: string
+          posicao_coluna?: number | null
           prioridade?: Database["public"]["Enums"]["prioridade_tarefa"]
           status?: Database["public"]["Enums"]["status_tarefa"]
           tempo_fim?: string | null

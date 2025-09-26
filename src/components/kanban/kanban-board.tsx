@@ -38,6 +38,7 @@ export interface Task {
   tempo_inicio?: string
   tempo_fim?: string
   arquivada: boolean
+  posicao_coluna?: number
 }
 
 interface KanbanBoardProps {
@@ -92,6 +93,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         `)
         .eq('empresa_id', usuario.empresa_id)
         .eq('arquivada', false)
+        .order('posicao_coluna', { ascending: true })
 
       if (error) throw error
 
@@ -142,6 +144,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
           tempo_inicio: tarefa.tempo_inicio,
           tempo_fim: tarefa.tempo_fim,
           arquivada: tarefa.arquivada,
+          posicao_coluna: tarefa.posicao_coluna || 0,
         }
       }) || []
 
@@ -249,9 +252,16 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       }
     }
     
-    // Update in database if status changed
+    // Update in database if status changed or position changed
     if (movedTask.status !== finalStatus) {
       updateTaskStatus(taskId, finalStatus)
+    } else {
+      // Same column, just position change - save new order
+      const tasksInColumn = getTasksByStatus(finalStatus)
+      const targetIndex = tasksInColumn.findIndex(t => t.id === taskId)
+      if (targetIndex !== -1) {
+        updateTaskPosition(taskId, finalStatus, targetIndex)
+      }
     }
   }
 
@@ -269,54 +279,43 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
 
       // Status change logic for time tracking
       if (oldTask.status !== status) {
-        // Starting work (assumida or executando)
-        if ((oldTask.status === 'criada' && status === 'assumida') || 
-            (status === 'executando')) {
-          
-          // Set initial start time if not set
-          if (!oldTask.tempo_inicio) {
-            updateFields.tempo_inicio = now
-          }
+        // Saindo de "criada" pela primeira vez - registrar tempo_inicio
+        if (oldTask.status === 'criada' && (status === 'assumida' || status === 'executando')) {
+          updateFields.tempo_inicio = now
+        }
 
-          // Create new work session if moving to executando
-          if (status === 'executando') {
-            await supabase.from('tarefas_tempo_sessoes').insert({
-              tarefa_id: taskId,
-              usuario_id: user.id,
-              inicio: now
-            })
-          }
+        // Entrando em "executando" - criar nova sessão de tempo
+        if (status === 'executando') {
+          await supabase.from('tarefas_tempo_sessoes').insert({
+            tarefa_id: taskId,
+            usuario_id: user.id,
+            inicio: now
+          })
         }
         
-        // Stopping work (moving away from executando)
+        // Saindo de "executando" - fechar sessão ativa
         if (oldTask.status === 'executando' && status !== 'executando') {
-          // Close active session
-          const { data: activeSessions } = await supabase
-            .from('tarefas_tempo_sessoes')
-            .select('*')
-            .eq('tarefa_id', taskId)
-            .is('fim', null)
-
-          if (activeSessions && activeSessions.length > 0) {
-            await supabase
-              .from('tarefas_tempo_sessoes')
-              .update({ fim: now })
-              .eq('tarefa_id', taskId)
-              .is('fim', null)
-          }
-        }
-
-        // Completing task
-        if (status === 'concluida' && !oldTask.tempo_fim) {
-          updateFields.tempo_fim = now
-          
-          // Close any active sessions
           await supabase
             .from('tarefas_tempo_sessoes')
             .update({ fim: now })
             .eq('tarefa_id', taskId)
             .is('fim', null)
         }
+
+        // Concluindo tarefa - registrar tempo_fim e fechar sessões
+        if (status === 'concluida' && !oldTask.tempo_fim) {
+          updateFields.tempo_fim = now
+          
+          // Fechar qualquer sessão ativa
+          await supabase
+            .from('tarefas_tempo_sessoes')
+            .update({ fim: now })
+            .eq('tarefa_id', taskId)
+            .is('fim', null)
+        }
+
+        // Voltando para "criada" - triggers do banco cuidarão do resto
+        // (fechar sessões, resetar tempos, preservar tempo acumulado)
       }
 
       // Update task status and time fields
@@ -341,6 +340,23 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       console.error('Error updating task status:', error)
       // Revert local state on error
       loadTasks()
+    }
+  }
+
+  const updateTaskPosition = async (taskId: string, newStatus: StatusTarefa, newPosition: number) => {
+    try {
+      const { error } = await supabase
+        .from('tarefas')
+        .update({ 
+          status: newStatus,
+          posicao_coluna: newPosition
+        })
+        .eq('id', taskId)
+
+      if (error) throw error
+    } catch (error) {
+      console.error('Error updating task position:', error)
+      throw error
     }
   }
 
@@ -383,7 +399,9 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
   }, [tasks, filters])
 
   const getTasksByStatus = (status: Task["status"]) =>
-    filteredTasks.filter(task => task.status === status)
+    filteredTasks
+      .filter(task => task.status === status)
+      .sort((a, b) => (a.posicao_coluna || 0) - (b.posicao_coluna || 0))
 
   return (
     <div className="flex flex-col h-full">

@@ -8,8 +8,6 @@ interface TaskTimeBadgeProps {
 }
 
 export function TaskTimeBadge({ tempoGastoMinutos, status, className }: TaskTimeBadgeProps) {
-  if (!tempoGastoMinutos || tempoGastoMinutos === 0) return null;
-
   const formatTime = (minutes: number) => {
     if (minutes < 60) return `${Math.round(minutes)}m`;
     const hours = Math.floor(minutes / 60);
@@ -17,15 +15,46 @@ export function TaskTimeBadge({ tempoGastoMinutos, status, className }: TaskTime
     return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`;
   };
 
-  const isRunning = status === 'executando';
+  // Mostrar apenas para status específicos
+  if (status === 'criada') return null;
 
-  return (
-    <Badge 
-      variant={isRunning ? "default" : "secondary"} 
-      className={`flex items-center gap-1 ${className}`}
-    >
-      <Clock className="h-3 w-3" />
-      {formatTime(tempoGastoMinutos)}
-    </Badge>
-  );
+  // Para tarefas concluídas/validadas, mostrar tempo total se houver
+  if (status === 'concluida' || status === 'validada') {
+    if (!tempoGastoMinutos || tempoGastoMinutos === 0) return null;
+    return (
+      <Badge 
+        variant="secondary" 
+        className={`flex items-center gap-1 ${className}`}
+      >
+        <Clock className="h-3 w-3" />
+        {formatTime(tempoGastoMinutos)}
+      </Badge>
+    );
+  }
+
+  // Para tarefas assumidas/executando, mostrar apenas ícone ou ícone + tempo acumulado
+  if (status === 'assumida') {
+    return (
+      <Badge 
+        variant="outline" 
+        className={`flex items-center gap-1 ${className}`}
+      >
+        <Clock className="h-3 w-3" />
+      </Badge>
+    );
+  }
+
+  if (status === 'executando') {
+    return (
+      <Badge 
+        variant="default" 
+        className={`flex items-center gap-1 animate-pulse ${className}`}
+      >
+        <Clock className="h-3 w-3" />
+        {tempoGastoMinutos && tempoGastoMinutos > 0 ? formatTime(tempoGastoMinutos) : ''}
+      </Badge>
+    );
+  }
+
+  return null;
 }

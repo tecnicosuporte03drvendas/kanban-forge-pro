@@ -17,6 +17,7 @@ export interface Tarefa {
   tempo_fim?: string;
   tempo_gasto_minutos?: number;
   arquivada: boolean;
+  posicao_coluna?: number;
 }
 
 export interface TarefaResponsavel {
