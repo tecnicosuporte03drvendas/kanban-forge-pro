@@ -62,30 +62,60 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Buscar usuário pelo email
       const { data: usuarios, error } = await supabase
         .from('usuarios')
-        .select(`
-          *,
-          empresas!inner(ativa)
-        `)
+        .select('*')
         .eq('email', email)
         .eq('ativo', true)
         .single();
 
       if (error || !usuarios) {
+        console.log('Erro ao buscar usuário:', error);
         return { success: false, error: 'Email ou senha incorretos' };
       }
 
-      // Verificar se é master ou se a empresa está ativa
-      if (usuarios.tipo_usuario !== 'master' && !usuarios.empresas?.ativa) {
-        return { 
-          success: false, 
-          error: 'Empresa desativada. Entre em contato com o administrador.' 
-        };
-      }
+      console.log('Usuário encontrado:', usuarios);
 
       // Verificar senha (temporariamente sem hash para teste)
       // TODO: Implementar verificação de hash com bcrypt
       if (senha !== usuarios.senha_hash && senha !== 'master123' && senha !== '123456') {
+        console.log('Senha incorreta para usuário:', usuarios.email);
         return { success: false, error: 'Email ou senha incorretos' };
+      }
+
+      // Verificar se é master (masters sempre podem entrar)
+      if (usuarios.tipo_usuario === 'master') {
+        const usuarioLogado: Usuario = {
+          id: usuarios.id,
+          nome: usuarios.nome,
+          email: usuarios.email,
+          tipo_usuario: usuarios.tipo_usuario as TipoUsuario,
+          empresa_id: usuarios.empresa_id,
+          ativo: usuarios.ativo
+        };
+
+        setUsuario(usuarioLogado);
+        localStorage.setItem('usuario_logado', JSON.stringify(usuarioLogado));
+        return { success: true };
+      }
+
+      // Para usuários não-master, verificar se a empresa está ativa
+      if (usuarios.empresa_id) {
+        const { data: empresa, error: empresaError } = await supabase
+          .from('empresas')
+          .select('ativa')
+          .eq('id', usuarios.empresa_id)
+          .single();
+
+        if (empresaError) {
+          console.error('Erro ao buscar empresa:', empresaError);
+          return { success: false, error: 'Erro interno do servidor' };
+        }
+
+        if (!empresa?.ativa) {
+          return { 
+            success: false, 
+            error: 'Empresa desativada. Entre em contato com o administrador.' 
+          };
+        }
       }
 
       const usuarioLogado: Usuario = {
