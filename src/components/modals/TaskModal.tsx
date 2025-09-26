@@ -141,7 +141,7 @@ export function TaskModal({
         data: comentariosData
       } = await supabase.from('tarefas_comentarios').select(`
           *,
-          usuarios(nome)
+          usuario:usuarios(nome)
         `).eq('tarefa_id', taskId).order('created_at', {
         ascending: false
       });
