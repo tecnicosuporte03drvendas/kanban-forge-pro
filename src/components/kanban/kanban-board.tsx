@@ -291,7 +291,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       const oldTask = tasks.find(t => t.id === taskId)
       if (!oldTask) return
 
-      // Handle time tracking logic
+      // Handle time tracking logic - lógica simplificada
       const now = new Date().toISOString()
       let updateFields: any = { status }
 
@@ -301,39 +301,16 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         if (oldTask.status === 'criada' && (status === 'assumida' || status === 'executando')) {
           updateFields.tempo_inicio = now
         }
-
-        // Entrando em "executando" - criar nova sessão de tempo
-        if (status === 'executando') {
-          await supabase.from('tarefas_tempo_sessoes').insert({
-            tarefa_id: taskId,
-            usuario_id: user.id,
-            inicio: now
-          })
-        }
         
-        // Saindo de "executando" - fechar sessão ativa
-        if (oldTask.status === 'executando' && status !== 'executando') {
-          await supabase
-            .from('tarefas_tempo_sessoes')
-            .update({ fim: now })
-            .eq('tarefa_id', taskId)
-            .is('fim', null)
-        }
+        // Mantém tempo_inicio se saindo de "assumida" para "executando"
+        // (não precisa fazer nada aqui, apenas manter o tempo existente)
 
-        // Concluindo tarefa - registrar tempo_fim e fechar sessões
-        if (status === 'concluida' && !oldTask.tempo_fim) {
+        // Concluindo tarefa - registrar tempo_fim
+        if (status === 'concluida') {
           updateFields.tempo_fim = now
-          
-          // Fechar qualquer sessão ativa
-          await supabase
-            .from('tarefas_tempo_sessoes')
-            .update({ fim: now })
-            .eq('tarefa_id', taskId)
-            .is('fim', null)
         }
 
-        // Voltando para "criada" - triggers do banco cuidarão do resto
-        // (fechar sessões, resetar tempos, preservar tempo acumulado)
+        // Voltando para "criada" - o trigger do banco resetará os tempos automaticamente
       }
 
       // Update task status and time fields
