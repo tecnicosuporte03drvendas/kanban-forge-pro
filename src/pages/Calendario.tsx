@@ -101,8 +101,8 @@ const Calendario = () => {
           tarefas_responsaveis(
             usuario_id,
             equipe_id,
-            usuarios!tarefas_responsaveis_usuario_id_fkey(nome),
-            equipes!tarefas_responsaveis_equipe_id_fkey(nome)
+            usuarios(nome),
+            equipes(nome)
           )
         `)
         .eq('empresa_id', usuario.empresa_id)
@@ -119,8 +119,8 @@ const Calendario = () => {
           reunioes_participantes(
             usuario_id,
             equipe_id,
-            usuarios!reunioes_participantes_usuario_id_fkey(nome),
-            equipes!reunioes_participantes_equipe_id_fkey(nome)
+            usuarios(nome),
+            equipes(nome)
           )
         `)
         .eq('empresa_id', usuario.empresa_id)
