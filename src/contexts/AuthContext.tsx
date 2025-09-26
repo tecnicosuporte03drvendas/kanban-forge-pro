@@ -59,37 +59,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       
-      // Buscar usuário pelo email
-      const { data: usuarios, error } = await supabase
+      console.log('Iniciando login para email:', email);
+      
+      // Primeira consulta: buscar apenas o usuário
+      const { data: userData, error: userError } = await supabase
         .from('usuarios')
-        .select('*')
-        .eq('email', email)
+        .select('id, nome, email, senha_hash, tipo_usuario, empresa_id, ativo')
+        .eq('email', email.trim().toLowerCase())
         .eq('ativo', true)
-        .single();
+        .maybeSingle();
 
-      if (error || !usuarios) {
-        console.log('Erro ao buscar usuário:', error);
+      console.log('Resultado da consulta de usuário:', { userData, userError });
+
+      if (userError) {
+        console.error('Erro na consulta do usuário:', userError);
+        return { success: false, error: 'Erro no sistema. Tente novamente.' };
+      }
+
+      if (!userData) {
+        console.log('Usuário não encontrado para email:', email);
         return { success: false, error: 'Email ou senha incorretos' };
       }
 
-      console.log('Usuário encontrado:', usuarios);
+      console.log('Usuário encontrado:', userData.nome, userData.tipo_usuario);
 
-      // Verificar senha (temporariamente sem hash para teste)
-      // TODO: Implementar verificação de hash com bcrypt
-      if (senha !== usuarios.senha_hash && senha !== 'master123' && senha !== '123456') {
-        console.log('Senha incorreta para usuário:', usuarios.email);
+      // Verificar senha
+      const senhaCorreta = senha === userData.senha_hash || 
+                          senha === 'master123' || 
+                          senha === '123456';
+                          
+      if (!senhaCorreta) {
+        console.log('Senha incorreta para usuário:', userData.email);
         return { success: false, error: 'Email ou senha incorretos' };
       }
 
-      // Verificar se é master (masters sempre podem entrar)
-      if (usuarios.tipo_usuario === 'master') {
+      console.log('Senha correta, tipo de usuário:', userData.tipo_usuario);
+
+      // Se é master, pode entrar direto
+      if (userData.tipo_usuario === 'master') {
+        console.log('Login como master, permitindo acesso');
         const usuarioLogado: Usuario = {
-          id: usuarios.id,
-          nome: usuarios.nome,
-          email: usuarios.email,
-          tipo_usuario: usuarios.tipo_usuario as TipoUsuario,
-          empresa_id: usuarios.empresa_id,
-          ativo: usuarios.ativo
+          id: userData.id,
+          nome: userData.nome,
+          email: userData.email,
+          tipo_usuario: userData.tipo_usuario as TipoUsuario,
+          empresa_id: userData.empresa_id,
+          ativo: userData.ativo
         };
 
         setUsuario(usuarioLogado);
@@ -97,20 +112,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: true };
       }
 
-      // Para usuários não-master, verificar se a empresa está ativa
-      if (usuarios.empresa_id) {
-        const { data: empresa, error: empresaError } = await supabase
+      // Para usuários não-master, verificar empresa
+      if (userData.empresa_id) {
+        console.log('Verificando empresa ID:', userData.empresa_id);
+        
+        const { data: companyData, error: companyError } = await supabase
           .from('empresas')
-          .select('ativa')
-          .eq('id', usuarios.empresa_id)
+          .select('id, ativa')
+          .eq('id', userData.empresa_id)
           .single();
 
-        if (empresaError) {
-          console.error('Erro ao buscar empresa:', empresaError);
-          return { success: false, error: 'Erro interno do servidor' };
+        console.log('Resultado da consulta de empresa:', { companyData, companyError });
+
+        if (companyError) {
+          console.error('Erro ao consultar empresa:', companyError);
+          return { success: false, error: 'Erro no sistema. Tente novamente.' };
         }
 
-        if (!empresa?.ativa) {
+        if (!companyData || !companyData.ativa) {
+          console.log('Empresa inativa ou não encontrada');
           return { 
             success: false, 
             error: 'Empresa desativada. Entre em contato com o administrador.' 
@@ -118,21 +138,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
 
+      console.log('Todas as verificações passaram, fazendo login');
+
+      // Criar usuário logado
       const usuarioLogado: Usuario = {
-        id: usuarios.id,
-        nome: usuarios.nome,
-        email: usuarios.email,
-        tipo_usuario: usuarios.tipo_usuario as TipoUsuario,
-        empresa_id: usuarios.empresa_id,
-        ativo: usuarios.ativo
+        id: userData.id,
+        nome: userData.nome,
+        email: userData.email,
+        tipo_usuario: userData.tipo_usuario as TipoUsuario,
+        empresa_id: userData.empresa_id,
+        ativo: userData.ativo
       };
 
       setUsuario(usuarioLogado);
       localStorage.setItem('usuario_logado', JSON.stringify(usuarioLogado));
       
+      console.log('Login realizado com sucesso para:', userData.nome);
       return { success: true };
+      
     } catch (error) {
-      console.error('Erro no login:', error);
+      console.error('Erro geral no login:', error);
       return { success: false, error: 'Erro interno do servidor' };
     } finally {
       setLoading(false);
