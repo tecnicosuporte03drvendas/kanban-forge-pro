@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from '@/hooks/use-toast'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface TaskAttachment {
   id: string
@@ -27,6 +28,7 @@ interface TaskAttachmentsProps {
 }
 
 export function TaskAttachments({ taskId, attachments, onAttachmentsChange }: TaskAttachmentsProps) {
+  const { usuario } = useAuth()
   const [isUploading, setIsUploading] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
   const [linkName, setLinkName] = useState('')
@@ -39,8 +41,7 @@ export function TaskAttachments({ taskId, attachments, onAttachmentsChange }: Ta
     setIsUploading(true)
     
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Usuário não autenticado')
+      if (!usuario) throw new Error('Usuário não autenticado')
 
       for (const file of Array.from(files)) {
         // Validate file type (images only)
@@ -75,7 +76,7 @@ export function TaskAttachments({ taskId, attachments, onAttachmentsChange }: Ta
           url: urlData.publicUrl,
           nome: file.name,
           tamanho: file.size,
-          usuario_id: user.id
+          usuario_id: usuario.id
         })
       }
 
@@ -101,8 +102,7 @@ export function TaskAttachments({ taskId, attachments, onAttachmentsChange }: Ta
     if (!linkUrl.trim()) return
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Usuário não autenticado')
+      if (!usuario) throw new Error('Usuário não autenticado')
 
       // Validate URL
       try {
@@ -121,7 +121,7 @@ export function TaskAttachments({ taskId, attachments, onAttachmentsChange }: Ta
         tipo: 'link',
         url: linkUrl,
         nome: linkName || linkUrl,
-        usuario_id: user.id
+        usuario_id: usuario.id
       })
 
       onAttachmentsChange()

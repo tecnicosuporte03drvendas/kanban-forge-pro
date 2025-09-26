@@ -35,6 +35,7 @@ import { TaskResponsibles } from './TaskResponsibles'
 import { TaskAttachments } from './TaskAttachments'
 import { TaskDatePicker } from './TaskDatePicker'
 import { TaskActivityTabs } from './TaskActivityTabs'
+import { TaskChecklists } from './TaskChecklists'
 import type { TarefaCompleta, TarefaComentario, TarefaAtividade, PrioridadeTarefa, StatusTarefa } from '@/types/task'
 
 const taskSchema = z.object({
@@ -98,25 +99,23 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
     },
   })
 
-  // Auto-save with debounce
-  const debouncedSave = useCallback(
-    debounce(async (values: z.infer<typeof taskSchema>) => {
-      if (!tarefa || !hasUnsavedChanges) return
-      await saveTask(values)
-    }, 1000),
-    [tarefa, hasUnsavedChanges]
-  )
-
-  // Watch for form changes
+  // Track changes to save on close
   useEffect(() => {
     const subscription = form.watch((values) => {
-      if (tarefa && values.titulo && values.titulo !== tarefa.titulo) {
-        setHasUnsavedChanges(true)
-        debouncedSave(values as z.infer<typeof taskSchema>)
+      if (tarefa && values) {
+        const hasChanges = 
+          values.titulo !== tarefa.titulo ||
+          (values.descricao || '') !== (tarefa.descricao || '') ||
+          values.prioridade !== tarefa.prioridade ||
+          format(values.data_conclusao, 'yyyy-MM-dd') !== tarefa.data_conclusao ||
+          values.horario_conclusao !== tarefa.horario_conclusao ||
+          JSON.stringify(values.responsaveis.sort()) !== JSON.stringify(tarefa.responsaveis.map(r => r.usuario_id || r.equipe_id || '').filter(Boolean).sort())
+        
+        setHasUnsavedChanges(hasChanges)
       }
     })
     return () => subscription.unsubscribe()
-  }, [form, tarefa, debouncedSave])
+  }, [form, tarefa])
 
   useEffect(() => {
     if (taskId && open) {
@@ -247,11 +246,73 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
     setResponsibleOptions(options)
   }
 
-  const saveTask = async (values: z.infer<typeof taskSchema>) => {
+  const generateActivityDescription = (oldValues: any, newValues: z.infer<typeof taskSchema>) => {
+    const changes = []
+    
+    if (oldValues.titulo !== newValues.titulo) {
+      changes.push(`Alterou o título de "${oldValues.titulo}" para "${newValues.titulo}"`)
+    }
+    
+    if ((oldValues.descricao || '') !== (newValues.descricao || '')) {
+      if (!oldValues.descricao && newValues.descricao) {
+        changes.push('Adicionou descrição')
+      } else if (oldValues.descricao && !newValues.descricao) {
+        changes.push('Removeu a descrição')
+      } else {
+        changes.push('Alterou a descrição')
+      }
+    }
+    
+    if (oldValues.prioridade !== newValues.prioridade) {
+      changes.push(`Alterou a prioridade de "${oldValues.prioridade}" para "${newValues.prioridade}"`)
+    }
+    
+    if (format(oldValues.data_conclusao, 'yyyy-MM-dd') !== format(newValues.data_conclusao, 'yyyy-MM-dd')) {
+      changes.push(`Alterou a data de conclusão para ${format(newValues.data_conclusao, 'dd/MM/yyyy')}`)
+    }
+    
+    if (oldValues.horario_conclusao !== newValues.horario_conclusao) {
+      changes.push(`Alterou o horário de conclusão para ${newValues.horario_conclusao}`)
+    }
+
+    const oldResponsaveis = oldValues.responsaveis.sort()
+    const newResponsaveis = newValues.responsaveis.sort()
+    if (JSON.stringify(oldResponsaveis) !== JSON.stringify(newResponsaveis)) {
+      const added = newResponsaveis.filter(r => !oldResponsaveis.includes(r))
+      const removed = oldResponsaveis.filter(r => !newResponsaveis.includes(r))
+      
+      added.forEach(id => {
+        const responsible = responsibleOptions.find(r => r.id === id)
+        if (responsible) {
+          changes.push(`${responsible.type === 'user' ? 'Adicionou o usuário' : 'Adicionou a equipe'} ${responsible.nome}`)
+        }
+      })
+      
+      removed.forEach(id => {
+        const responsible = responsibleOptions.find(r => r.id === id)
+        if (responsible) {
+          changes.push(`${responsible.type === 'user' ? 'Removeu o usuário' : 'Removeu a equipe'} ${responsible.nome}`)
+        }
+      })
+    }
+    
+    return changes.join('; ')
+  }
+
+  const saveTask = async (values: z.infer<typeof taskSchema>, skipActivityLog = false) => {
     if (!tarefa || !usuario) return
 
     setSaving(true)
     try {
+      const oldValues = {
+        titulo: tarefa.titulo,
+        descricao: tarefa.descricao || '',
+        prioridade: tarefa.prioridade,
+        data_conclusao: new Date(tarefa.data_conclusao),
+        horario_conclusao: tarefa.horario_conclusao,
+        responsaveis: tarefa.responsaveis.map(r => r.usuario_id || r.equipe_id || '').filter(Boolean)
+      }
+
       const { error: tarefaError } = await supabase
         .from('tarefas')
         .update({
@@ -288,12 +349,17 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
         }
       }
 
-      await supabase.from('tarefas_atividades').insert({
-        tarefa_id: tarefa.id,
-        usuario_id: usuario.id,
-        acao: 'editou',
-        descricao: 'Tarefa editada',
-      })
+      if (!skipActivityLog) {
+        const activityDescription = generateActivityDescription(oldValues, values)
+        if (activityDescription) {
+          await supabase.from('tarefas_atividades').insert({
+            tarefa_id: tarefa.id,
+            usuario_id: usuario.id,
+            acao: 'editou',
+            descricao: activityDescription,
+          })
+        }
+      }
 
       setHasUnsavedChanges(false)
       loadTask()
@@ -307,28 +373,26 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
   }
 
   const enviarComentario = async () => {
-    if (!novoComentario.trim() || !tarefa) return
+    if (!novoComentario.trim() || !tarefa || !usuario) return
 
     setEnviandoComentario(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
       await supabase.from('tarefas_comentarios').insert({
         tarefa_id: tarefa.id,
-        usuario_id: user.id,
+        usuario_id: usuario.id,
         comentario: novoComentario.trim(),
       })
 
       await supabase.from('tarefas_atividades').insert({
         tarefa_id: tarefa.id,
-        usuario_id: user.id,
+        usuario_id: usuario.id,
         acao: 'comentou',
         descricao: 'Adicionou um comentário',
       })
 
       setNovoComentario('')
       loadTask()
+      toast({ title: 'Sucesso', description: 'Comentário adicionado' })
     } catch (error) {
       console.error('Error adding comment:', error)
       toast({ title: 'Erro', description: 'Erro ao adicionar comentário', variant: 'destructive' })
@@ -343,9 +407,7 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
       return
     }
 
-    const values = { ...form.getValues(), titulo: tempTitle }
     form.setValue('titulo', tempTitle)
-    await saveTask(values)
     setEditingTitle(false)
   }
 
@@ -355,10 +417,17 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
       return
     }
 
-    const values = { ...form.getValues(), descricao: tempDescription }
     form.setValue('descricao', tempDescription)
-    await saveTask(values)
     setEditingDescription(false)
+  }
+
+  const handleClose = async () => {
+    if (hasUnsavedChanges) {
+      const values = form.getValues()
+      await saveTask(values)
+      toast({ title: 'Sucesso', description: 'Alterações salvas' })
+    }
+    onOpenChange(false)
   }
 
   const getPriorityIcon = (priority: PrioridadeTarefa) => {
@@ -426,6 +495,9 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
             )}
           </div>
           <div className="flex items-center gap-2">
+            {hasUnsavedChanges && (
+              <span className="text-sm text-amber-600">Alterações não salvas</span>
+            )}
             {saving && (
               <span className="text-sm text-muted-foreground">Salvando...</span>
             )}
@@ -435,7 +507,7 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => onOpenChange(false)}
+              onClick={handleClose}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -456,20 +528,10 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
                 date={new Date(tarefa.data_conclusao)}
                 time={tarefa.horario_conclusao}
                 onDateChange={(date) => {
-                  const values = { 
-                    ...form.getValues(), 
-                    data_conclusao: date 
-                  }
                   form.setValue('data_conclusao', date)
-                  saveTask(values)
                 }}
                 onTimeChange={(time) => {
-                  const values = { 
-                    ...form.getValues(), 
-                    horario_conclusao: time 
-                  }
                   form.setValue('horario_conclusao', time)
-                  saveTask(values)
                 }}
                 disabled={saving}
               />
@@ -529,13 +591,17 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
               responsibles={tarefa.responsaveis}
               options={responsibleOptions}
               selectedIds={form.watch('responsaveis') || []}
-              onSelectionChange={(ids) => {
-                const values = { 
-                  ...form.getValues(), 
-                  responsaveis: ids 
-                }
-                form.setValue('responsaveis', ids)
-                saveTask(values)
+                onSelectionChange={(ids) => {
+                  form.setValue('responsaveis', ids)
+                }}
+            />
+
+            {/* Checklists */}
+            <TaskChecklists
+              taskId={tarefa.id}
+              checklists={tarefa.checklists}
+              onChecklistsChange={() => {
+                loadTask()
               }}
             />
 
@@ -548,32 +614,6 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
               }}
             />
 
-            {/* Checklists */}
-            {tarefa.checklists.length > 0 && (
-              <div>
-                <h4 className="font-medium mb-3">Checklists</h4>
-                <div className="space-y-4">
-                  {tarefa.checklists.map((checklist) => (
-                    <div key={checklist.id} className="border rounded-lg p-4">
-                      <h5 className="font-medium mb-3">{checklist.titulo}</h5>
-                      <div className="space-y-2">
-                        {checklist.itens.map((item) => (
-                          <div key={item.id} className="flex items-center gap-2">
-                            <Checkbox
-                              checked={item.concluido}
-                              onCheckedChange={() => {}}
-                            />
-                            <span className={`text-sm ${item.concluido ? 'line-through text-muted-foreground' : ''}`}>
-                              {item.item}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Right Column - Comments & Activity */}
@@ -589,16 +629,4 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
       </DialogContent>
     </Dialog>
   )
-}
-
-// Debounce utility function
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null
-  return (...args: Parameters<T>) => {
-    if (timeout) clearTimeout(timeout)
-    timeout = setTimeout(() => func(...args), wait)
-  }
 }
