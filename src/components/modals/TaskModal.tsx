@@ -21,7 +21,8 @@ import { TaskAttachments } from './TaskAttachments';
 import { TaskDatePicker } from './TaskDatePicker';
 import { TaskActivityTabs } from './TaskActivityTabs';
 import { TaskChecklists } from './TaskChecklists';
-import type { TarefaCompleta, TarefaComentario, TarefaAtividade, PrioridadeTarefa, StatusTarefa } from '@/types/task';
+import { TaskTimeTracker } from '@/components/task-time/TaskTimeTracker';
+import type { TarefaCompleta, TarefaComentario, TarefaAtividade, PrioridadeTarefa, StatusTarefa, TarefaTempoSessao } from '@/types/task';
 const taskSchema = z.object({
   titulo: z.string().min(1, 'Título é obrigatório'),
   descricao: z.string().optional(),
@@ -158,6 +159,14 @@ export function TaskModal({
       } = await supabase.from('tarefas_anexos').select('*').eq('tarefa_id', taskId).order('created_at', {
         ascending: false
       });
+
+      // Fetch time sessions
+      const {
+        data: tempoSessoesData
+      } = await supabase.from('tarefas_tempo_sessoes').select('*').eq('tarefa_id', taskId).order('created_at', {
+        ascending: false
+      });
+
       const tarefaCompleta: TarefaCompleta = {
         ...tarefaData,
         responsaveis: responsaveisData || [],
@@ -166,7 +175,8 @@ export function TaskModal({
           itens: cl.tarefas_checklist_itens || []
         })) || [],
         comentarios: comentariosData || [],
-        atividades: atividadesData || []
+        atividades: atividadesData || [],
+        tempo_sessoes: tempoSessoesData || []
       };
       setTarefa(tarefaCompleta);
       setAttachments((anexosData || []) as TaskAttachment[]);
@@ -493,6 +503,15 @@ export function TaskModal({
             <TaskAttachments taskId={tarefa.id} attachments={attachments} onAttachmentsChange={() => {
             loadTask();
           }} />
+
+            {/* Time Tracking */}
+            <TaskTimeTracker 
+              tempoGastoMinutos={tarefa.tempo_gasto_minutos}
+              tempoInicio={tarefa.tempo_inicio}
+              tempoFim={tarefa.tempo_fim}
+              status={tarefa.status}
+              sessoes={tarefa.tempo_sessoes}
+            />
 
           </div>
 

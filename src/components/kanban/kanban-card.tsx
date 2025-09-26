@@ -4,6 +4,7 @@ import { Task } from "./kanban-board"
 import { Calendar, User, AlertCircle, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { getDateStatus, formatDate } from "@/utils/date-utils"
+import { TaskTimeBadge } from "@/components/task-time/TaskTimeBadge"
 
 interface KanbanCardProps {
   task: Task
@@ -101,6 +102,11 @@ export function KanbanCard({ task, isDragging = false }: KanbanCardProps) {
                 {getPriorityIcon(task.priority)}
                 {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
               </Badge>
+              <TaskTimeBadge 
+                tempoGastoMinutos={task.tempo_gasto_minutos} 
+                status={task.status}
+                className="text-xs"
+              />
             </div>
         </div>
 

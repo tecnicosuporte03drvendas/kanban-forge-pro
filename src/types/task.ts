@@ -13,6 +13,9 @@ export interface Tarefa {
   criado_por: string;
   created_at: string;
   updated_at: string;
+  tempo_inicio?: string;
+  tempo_fim?: string;
+  tempo_gasto_minutos?: number;
 }
 
 export interface TarefaResponsavel {
@@ -64,9 +67,20 @@ export interface TarefaAtividade {
   };
 }
 
+export interface TarefaTempoSessao {
+  id: string;
+  tarefa_id: string;
+  usuario_id: string;
+  inicio: string;
+  fim?: string;
+  minutos_trabalhados?: number;
+  created_at: string;
+}
+
 export interface TarefaCompleta extends Tarefa {
   responsaveis: TarefaResponsavel[];
   checklists: TarefaChecklist[];
   comentarios: TarefaComentario[];
   atividades: TarefaAtividade[];
+  tempo_sessoes?: TarefaTempoSessao[];
 }

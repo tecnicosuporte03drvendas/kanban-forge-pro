@@ -34,6 +34,9 @@ export interface Task {
   status: "criada" | "assumida" | "executando" | "concluida" | "validada"
   isCurrentUserAssigned?: boolean
   totalResponsaveis?: number
+  tempo_gasto_minutos?: number
+  tempo_inicio?: string
+  tempo_fim?: string
 }
 
 interface KanbanBoardProps {
@@ -133,6 +136,9 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
           status: tarefa.status,
           isCurrentUserAssigned,
           totalResponsaveis,
+          tempo_gasto_minutos: tarefa.tempo_gasto_minutos,
+          tempo_inicio: tarefa.tempo_inicio,
+          tempo_fim: tarefa.tempo_fim,
         }
       }) || []
 
@@ -248,23 +254,86 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
 
   const updateTaskStatus = async (taskId: string, status: StatusTarefa) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const oldTask = tasks.find(t => t.id === taskId)
+      if (!oldTask) return
+
+      // Handle time tracking logic
+      const now = new Date().toISOString()
+      let updateFields: any = { status }
+
+      // Status change logic for time tracking
+      if (oldTask.status !== status) {
+        // Starting work (assumida or executando)
+        if ((oldTask.status === 'criada' && status === 'assumida') || 
+            (status === 'executando')) {
+          
+          // Set initial start time if not set
+          if (!oldTask.tempo_inicio) {
+            updateFields.tempo_inicio = now
+          }
+
+          // Create new work session if moving to executando
+          if (status === 'executando') {
+            await supabase.from('tarefas_tempo_sessoes').insert({
+              tarefa_id: taskId,
+              usuario_id: user.id,
+              inicio: now
+            })
+          }
+        }
+        
+        // Stopping work (moving away from executando)
+        if (oldTask.status === 'executando' && status !== 'executando') {
+          // Close active session
+          const { data: activeSessions } = await supabase
+            .from('tarefas_tempo_sessoes')
+            .select('*')
+            .eq('tarefa_id', taskId)
+            .is('fim', null)
+
+          if (activeSessions && activeSessions.length > 0) {
+            await supabase
+              .from('tarefas_tempo_sessoes')
+              .update({ fim: now })
+              .eq('tarefa_id', taskId)
+              .is('fim', null)
+          }
+        }
+
+        // Completing task
+        if (status === 'concluida' && !oldTask.tempo_fim) {
+          updateFields.tempo_fim = now
+          
+          // Close any active sessions
+          await supabase
+            .from('tarefas_tempo_sessoes')
+            .update({ fim: now })
+            .eq('tarefa_id', taskId)
+            .is('fim', null)
+        }
+      }
+
+      // Update task status and time fields
       const { error } = await supabase
         .from('tarefas')
-        .update({ status })
+        .update(updateFields)
         .eq('id', taskId)
 
       if (error) throw error
 
       // Create activity record
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        await supabase.from('tarefas_atividades').insert({
-          tarefa_id: taskId,
-          usuario_id: user.id,
-          acao: 'alterou status',
-          descricao: `Status alterado para: ${status}`,
-        })
-      }
+      await supabase.from('tarefas_atividades').insert({
+        tarefa_id: taskId,
+        usuario_id: user.id,
+        acao: 'alterou status',
+        descricao: `Status alterado para: ${status}`,
+      })
+
+      // Reload tasks to get updated time data
+      loadTasks()
     } catch (error) {
       console.error('Error updating task status:', error)
       // Revert local state on error

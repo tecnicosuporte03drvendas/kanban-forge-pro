@@ -1,0 +1,31 @@
+import { Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
+interface TaskTimeBadgeProps {
+  tempoGastoMinutos?: number;
+  status: string;
+  className?: string;
+}
+
+export function TaskTimeBadge({ tempoGastoMinutos, status, className }: TaskTimeBadgeProps) {
+  if (!tempoGastoMinutos || tempoGastoMinutos === 0) return null;
+
+  const formatTime = (minutes: number) => {
+    if (minutes < 60) return `${Math.round(minutes)}m`;
+    const hours = Math.floor(minutes / 60);
+    const mins = Math.round(minutes % 60);
+    return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`;
+  };
+
+  const isRunning = status === 'executando';
+
+  return (
+    <Badge 
+      variant={isRunning ? "default" : "secondary"} 
+      className={`flex items-center gap-1 ${className}`}
+    >
+      <Clock className="h-3 w-3" />
+      {formatTime(tempoGastoMinutos)}
+    </Badge>
+  );
+}
