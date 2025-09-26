@@ -178,7 +178,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     const task = tasks.find(t => t.id === event.active.id)
     if (task) {
       setActiveTask(task)
-      setActiveColumn(task.status)
+      setActiveColumn(task.status) // Guarda o status original
       setDragStartTime(Date.now())
       setIsDragInProgress(true)
     }
@@ -273,12 +273,12 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     // Update in database if status changed or position changed
     console.log('🔍 Drag end check:', { 
       taskId, 
-      movedTaskStatus: movedTask.status, 
+      originalStatus: activeColumn, // Status original guardado no dragStart
       finalStatus, 
-      statusChanged: movedTask.status !== finalStatus 
+      statusChanged: activeColumn !== finalStatus 
     })
     
-    if (movedTask.status !== finalStatus) {
+    if (activeColumn !== finalStatus) {
       console.log('✅ Calling updateTaskStatus')
       updateTaskStatus(taskId, finalStatus)
     } else {
