@@ -55,6 +55,8 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
   const [loading, setLoading] = useState(false)
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [activeColumn, setActiveColumn] = useState<string | null>(null)
+  const [dragStartTime, setDragStartTime] = useState<number | null>(null)
+  const [isDragInProgress, setIsDragInProgress] = useState(false)
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     assignee: 'all',
@@ -147,6 +149,8 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     if (task) {
       setActiveTask(task)
       setActiveColumn(task.status)
+      setDragStartTime(Date.now())
+      setIsDragInProgress(true)
     }
   }
 
@@ -196,10 +200,22 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
+    const dragEndTime = Date.now()
+    const dragDuration = dragStartTime ? dragEndTime - dragStartTime : 0
     
     setActiveTask(null)
     setActiveColumn(null)
-    
+    setIsDragInProgress(false)
+    setDragStartTime(null)
+
+    // If it was a quick click (less than 200ms and no real movement), treat as click
+    if (dragDuration < 200 && (!over || over.id === active.id)) {
+      if (onTaskClick) {
+        onTaskClick(active.id as string)
+      }
+      return
+    }
+
     if (!over) return
 
     const taskId = active.id as string
@@ -337,7 +353,6 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
                       title={column.title}
                       tasks={columnTasks}
                       color={column.color}
-                      onTaskClick={onTaskClick}
                     />
                   </SortableContext>
                 </div>

@@ -10,10 +10,9 @@ interface KanbanColumnProps {
   title: string
   tasks: Task[]
   color: string
-  onTaskClick?: (taskId: string) => void
 }
 
-export function KanbanColumn({ id, title, tasks, color, onTaskClick }: KanbanColumnProps) {
+export function KanbanColumn({ id, title, tasks, color }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id,
   })
@@ -71,7 +70,7 @@ export function KanbanColumn({ id, title, tasks, color, onTaskClick }: KanbanCol
         ) : (
           <>
             {tasks.map((task) => (
-              <KanbanCard key={task.id} task={task} onTaskClick={onTaskClick} />
+              <KanbanCard key={task.id} task={task} />
             ))}
           </>
         )}

@@ -4,15 +4,13 @@ import { Task } from "./kanban-board"
 import { Calendar, User, AlertCircle, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { getDateStatus, formatDate } from "@/utils/date-utils"
-import { useState } from "react"
 
 interface KanbanCardProps {
   task: Task
   isDragging?: boolean
-  onTaskClick?: (taskId: string) => void
 }
 
-export function KanbanCard({ task, isDragging = false, onTaskClick }: KanbanCardProps) {
+export function KanbanCard({ task, isDragging = false }: KanbanCardProps) {
   const {
     attributes,
     listeners,
@@ -58,32 +56,13 @@ export function KanbanCard({ task, isDragging = false, onTaskClick }: KanbanCard
     }
   }
 
-  const [isDragStarted, setIsDragStarted] = useState(false)
-
-  const handleMouseDown = () => {
-    setIsDragStarted(false)
-  }
-
-  const handleDragStart = () => {
-    setIsDragStarted(true)
-  }
-
-  const handleClick = (e: React.MouseEvent) => {
-    // Small delay to allow drag to be detected
-    setTimeout(() => {
-      if (!isDragStarted && !isDragging && !isSortableDragging && onTaskClick) {
-        e.stopPropagation()
-        onTaskClick(task.id)
-      }
-    }, 10)
-  }
+  // Click handling is now managed by the parent KanbanBoard component
 
   const dateStatus = getDateStatus(task.dueDate)
 
   const cardClass = `
     p-4 bg-card border border-card-border rounded-lg shadow-sm cursor-grab 
     hover:shadow-md transition-all duration-200 select-none
-    ${onTaskClick ? 'hover:cursor-pointer' : ''}
     ${isDragging || isSortableDragging ? 'opacity-50 rotate-2 scale-105 shadow-lg' : ''}
     ${isDragging ? 'cursor-grabbing' : ''}
   `
@@ -95,9 +74,6 @@ export function KanbanCard({ task, isDragging = false, onTaskClick }: KanbanCard
       className={cardClass}
       {...attributes}
       {...listeners}
-      onMouseDown={handleMouseDown}
-      onDragStart={handleDragStart}
-      onClick={handleClick}
     >
       <div className="space-y-3">
           <div className="space-y-2">
