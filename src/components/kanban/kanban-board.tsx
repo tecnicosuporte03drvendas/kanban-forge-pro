@@ -296,9 +296,12 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       let updateFields: any = { status }
 
       // Status change logic for time tracking
+      console.log('🔄 Status change:', { oldStatus: oldTask.status, newStatus: status, taskId })
+      
       if (oldTask.status !== status) {
         // Saindo de "criada" pela primeira vez - registrar tempo_inicio
         if (oldTask.status === 'criada' && (status === 'assumida' || status === 'executando')) {
+          console.log('⏰ Setting tempo_inicio:', now)
           updateFields.tempo_inicio = now
         }
         
@@ -307,11 +310,14 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
 
         // Concluindo tarefa - registrar tempo_fim
         if (status === 'concluida') {
+          console.log('🏁 Setting tempo_fim:', now)
           updateFields.tempo_fim = now
         }
 
         // Voltando para "criada" - o trigger do banco resetará os tempos automaticamente
       }
+      
+      console.log('📝 Update fields:', updateFields)
 
       // Update task status and time fields
       const { error } = await supabase
