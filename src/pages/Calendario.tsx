@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { CreateTaskModal } from "@/components/modals/CreateTaskModal"
 import { CreateMeetingModal } from "@/components/modals/CreateMeetingModal"
+import { EditMeetingModal } from "@/components/modals/EditMeetingModal"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users, Video, CheckSquare } from "lucide-react"
 import { getDateStatus } from "@/utils/date-utils"
@@ -35,6 +36,8 @@ const Calendario = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false)
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false)
+  const [isEditMeetingModalOpen, setIsEditMeetingModalOpen] = useState(false)
+  const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null)
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
   
@@ -79,6 +82,12 @@ const Calendario = () => {
     } else {
       return currentViewDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
     }
+  }
+
+  // Função para abrir modal de edição de reunião
+  const handleMeetingClick = (meetingId: string) => {
+    setSelectedMeetingId(meetingId)
+    setIsEditMeetingModalOpen(true)
   }
   
   // Carregar tarefas e reuniões da empresa
@@ -299,7 +308,11 @@ const Calendario = () => {
                     {hourEvents.map((event, index) => {
                       const eventStyle = getEventStyle(event)
                       return (
-                        <div key={index} className={`mb-2 p-3 rounded-r border-l-4 ${eventStyle.background}`}>
+                        <div 
+                          key={index} 
+                          className={`mb-2 p-3 rounded-r border-l-4 ${eventStyle.background} ${event.type === 'meeting' ? 'cursor-pointer hover:opacity-80' : ''}`}
+                          onClick={() => event.type === 'meeting' ? handleMeetingClick(event.id) : undefined}
+                        >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               {event.type === 'meeting' ? (
@@ -419,8 +432,12 @@ const Calendario = () => {
                               return (
                                 <div
                                   key={eventIndex}
-                                  className={`text-xs p-1 rounded border mb-1 ${eventStyle.background.replace('/10', '/20')} ${eventStyle.text}`}
+                                  className={`text-xs p-1 rounded border mb-1 ${eventStyle.background.replace('/10', '/20')} ${eventStyle.text} ${event.type === 'meeting' ? 'cursor-pointer hover:opacity-80' : ''}`}
                                   title={`${event.title} - ${event.assignee}${event.type === 'meeting' && event.duration ? ` (${event.duration}min)` : ''}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    if (event.type === 'meeting') handleMeetingClick(event.id)
+                                  }}
                                 >
                                   <div className="flex items-center gap-1">
                                     {event.type === 'meeting' ? (
@@ -541,8 +558,12 @@ const Calendario = () => {
                         return (
                           <div
                             key={eventIndex}
-                            className={`text-xs p-1 rounded truncate flex items-center gap-1 ${eventStyle.background.replace('/10', '/20')} border-l-2 ${eventStyle.text}`}
+                            className={`text-xs p-1 rounded truncate flex items-center gap-1 ${eventStyle.background.replace('/10', '/20')} border-l-2 ${eventStyle.text} ${event.type === 'meeting' ? 'cursor-pointer hover:opacity-80' : ''}`}
                             style={{ borderLeftColor: event.type === 'meeting' ? '#3b82f6' : undefined }}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (event.type === 'meeting') handleMeetingClick(event.id)
+                            }}
                           >
                             {event.type === 'meeting' ? (
                               <Video className="w-3 h-3 flex-shrink-0" />
@@ -585,7 +606,11 @@ const Calendario = () => {
                 getEventsForDate(selectedDate).map((event) => {
                   const eventStyle = getEventStyle(event)
                   return (
-                    <div key={event.id} className="p-4 border border-border rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
+                    <div 
+                      key={event.id} 
+                      className={`p-4 border border-border rounded-lg bg-background/50 hover:bg-background/80 transition-colors ${event.type === 'meeting' ? 'cursor-pointer' : ''}`}
+                      onClick={() => event.type === 'meeting' ? handleMeetingClick(event.id) : undefined}
+                    >
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-4">
                           {event.type === 'meeting' ? (
@@ -700,6 +725,13 @@ const Calendario = () => {
             onOpenChange={setIsMeetingModalOpen}
             onMeetingCreated={loadEvents}
           />
+
+          <EditMeetingModal
+            meetingId={selectedMeetingId}
+            open={isEditMeetingModalOpen}
+            onOpenChange={setIsEditMeetingModalOpen}
+            onMeetingUpdated={loadEvents}
+          />
         </div>
       </header>
 
@@ -773,17 +805,21 @@ const Calendario = () => {
                  {events.map((event) => {
                    const eventStyle = getEventStyle(event)
                    return (
-                     <div key={event.id} className="p-3 border border-border rounded-lg bg-background/50">
-                       <div className="flex items-start justify-between gap-2">
-                         <div className="flex-1">
-                           <div className="flex items-center gap-2 mb-1">
-                             {event.type === 'meeting' ? (
-                               <Video className="w-4 h-4 text-blue-600" />
-                             ) : (
-                               <CheckSquare className="w-4 h-4" style={{ color: eventStyle.text.includes('high') ? 'var(--priority-high)' : eventStyle.text.includes('medium') ? 'var(--priority-medium)' : 'var(--priority-low)' }} />
-                             )}
-                             <h4 className="font-medium text-sm text-card-foreground">{event.title}</h4>
-                           </div>
+                      <div 
+                        key={event.id} 
+                        className={`p-3 border border-border rounded-lg bg-background/50 ${event.type === 'meeting' ? 'cursor-pointer hover:bg-background/80' : ''}`}
+                        onClick={() => event.type === 'meeting' ? handleMeetingClick(event.id) : undefined}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              {event.type === 'meeting' ? (
+                                <Video className="w-4 h-4 text-blue-600" />
+                              ) : (
+                                <CheckSquare className="w-4 h-4" style={{ color: eventStyle.text.includes('high') ? 'var(--priority-high)' : eventStyle.text.includes('medium') ? 'var(--priority-medium)' : 'var(--priority-low)' }} />
+                              )}
+                              <h4 className="font-medium text-sm text-card-foreground">{event.title}</h4>
+                            </div>
                            <div className="flex items-center gap-4 text-xs">
                              <span className="flex items-center gap-1 text-muted-foreground">
                                <Clock className="w-3 h-3" />
