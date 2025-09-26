@@ -497,7 +497,9 @@ export function TaskModal({
           </div>
 
           {/* Right Column - Comments & Activity */}
-          <TaskActivityTabs comments={tarefa.comentarios} activities={tarefa.atividades} newComment={novoComentario} onCommentChange={setNovoComentario} onSubmitComment={enviarComentario} isSubmitting={enviandoComentario} />
+          <div className="lg:col-span-1 flex flex-col h-full min-h-0">
+            <TaskActivityTabs comments={tarefa.comentarios} activities={tarefa.atividades} newComment={novoComentario} onCommentChange={setNovoComentario} onSubmitComment={enviarComentario} isSubmitting={enviandoComentario} />
+          </div>
         </div>
       </DialogContent>
     </Dialog>;
