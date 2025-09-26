@@ -99,8 +99,10 @@ const Calendario = () => {
         .select(`
           *,
           tarefas_responsaveis(
-            usuarios:usuario_id(nome),
-            equipes:equipe_id(nome)
+            usuario_id,
+            equipe_id,
+            usuarios!tarefas_responsaveis_usuario_id_fkey(nome),
+            equipes!tarefas_responsaveis_equipe_id_fkey(nome)
           )
         `)
         .eq('empresa_id', usuario.empresa_id)
@@ -115,8 +117,10 @@ const Calendario = () => {
         .select(`
           *,
           reunioes_participantes(
-            usuarios:usuario_id(nome),
-            equipes:equipe_id(nome)
+            usuario_id,
+            equipe_id,
+            usuarios!reunioes_participantes_usuario_id_fkey(nome),
+            equipes!reunioes_participantes_equipe_id_fkey(nome)
           )
         `)
         .eq('empresa_id', usuario.empresa_id)
@@ -129,8 +133,8 @@ const Calendario = () => {
       // Transform tasks to calendar events
       tarefas?.forEach((tarefa: any) => {
         const responsaveis = tarefa.tarefas_responsaveis || []
-        const usuarios = responsaveis.filter((r: any) => r.usuarios).map((r: any) => r.usuarios)
-        const equipes = responsaveis.filter((r: any) => r.equipes).map((r: any) => r.equipes)
+        const usuarios = responsaveis.filter((r: any) => r.usuarios?.nome).map((r: any) => r.usuarios)
+        const equipes = responsaveis.filter((r: any) => r.equipes?.nome).map((r: any) => r.equipes)
         
         let assignee = 'Não atribuído'
         let team = 'Sem equipe'
@@ -168,8 +172,8 @@ const Calendario = () => {
       // Transform meetings to calendar events
       reunioes?.forEach((reuniao: any) => {
         const participantes = reuniao.reunioes_participantes || []
-        const usuarios = participantes.filter((p: any) => p.usuarios).map((p: any) => p.usuarios)
-        const equipes = participantes.filter((p: any) => p.equipes).map((p: any) => p.equipes)
+        const usuarios = participantes.filter((p: any) => p.usuarios?.nome).map((p: any) => p.usuarios)
+        const equipes = participantes.filter((p: any) => p.equipes?.nome).map((p: any) => p.equipes)
         
         let assignee = 'Sem participantes'
         const participantesNames: string[] = []
