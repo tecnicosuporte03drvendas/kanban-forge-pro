@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar as CalendarIcon, Clock, User, Users, MessageSquare, Activity, CheckSquare, AlertCircle, Zap, Plus, Calendar, Paperclip, X, MoreHorizontal } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, User, Users, MessageSquare, Activity, CheckSquare, AlertCircle, Zap, Plus, Calendar, Paperclip, X, MoreHorizontal, Check } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDebounce } from '@/hooks/useDebounce';
 import { TaskResponsibles } from './TaskResponsibles';
 import { TaskAttachments } from './TaskAttachments';
 import { TaskDatePicker } from './TaskDatePicker';
@@ -67,14 +68,16 @@ export function TaskModal({
   const [enviandoComentario, setEnviandoComentario] = useState(false);
   const [responsibleOptions, setResponsibleOptions] = useState<ResponsibleOption[]>([]);
   const [saving, setSaving] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
+  const saveTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Edit states for inline editing
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
   const [tempTitle, setTempTitle] = useState('');
   const [tempDescription, setTempDescription] = useState('');
+  
   const form = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -86,16 +89,33 @@ export function TaskModal({
     }
   });
 
-  // Track changes to save on close
+  // Auto-save with debounce
+  const debouncedValues = useDebounce(form.watch(), 1000);
+  
   useEffect(() => {
-    const subscription = form.watch(values => {
-      if (tarefa && values) {
-        const hasChanges = values.titulo !== tarefa.titulo || (values.descricao || '') !== (tarefa.descricao || '') || values.prioridade !== tarefa.prioridade || format(values.data_conclusao, 'yyyy-MM-dd') !== tarefa.data_conclusao || values.horario_conclusao !== tarefa.horario_conclusao || JSON.stringify(values.responsaveis.sort()) !== JSON.stringify(tarefa.responsaveis.map(r => r.usuario_id || r.equipe_id || '').filter(Boolean).sort());
-        setHasUnsavedChanges(hasChanges);
+    if (tarefa && debouncedValues) {
+      const currentValues = {
+        titulo: tarefa.titulo,
+        descricao: tarefa.descricao || '',
+        prioridade: tarefa.prioridade,
+        data_conclusao: new Date(tarefa.data_conclusao),
+        horario_conclusao: tarefa.horario_conclusao,
+        responsaveis: tarefa.responsaveis.map(r => r.usuario_id || r.equipe_id || '').filter(Boolean)
+      };
+
+      const hasChanges = 
+        debouncedValues.titulo !== currentValues.titulo ||
+        (debouncedValues.descricao || '') !== (currentValues.descricao || '') ||
+        debouncedValues.prioridade !== currentValues.prioridade ||
+        format(debouncedValues.data_conclusao, 'yyyy-MM-dd') !== format(currentValues.data_conclusao, 'yyyy-MM-dd') ||
+        debouncedValues.horario_conclusao !== currentValues.horario_conclusao ||
+        JSON.stringify(debouncedValues.responsaveis.sort()) !== JSON.stringify(currentValues.responsaveis.sort());
+
+      if (hasChanges && !saving) {
+        autoSave();
       }
-    });
-    return () => subscription.unsubscribe();
-  }, [form, tarefa]);
+    }
+  }, [debouncedValues, tarefa, saving]);
   useEffect(() => {
     if (taskId && open) {
       loadTask();
@@ -258,6 +278,45 @@ export function TaskModal({
     }
     return changes.join('; ');
   };
+
+  const autoSave = async () => {
+    if (!tarefa || saving) return;
+    
+    setSaving(true);
+    
+    try {
+      const formValues = form.getValues();
+      
+      // Optimistic update - update UI immediately
+      const updatedTarefa: TarefaCompleta = {
+        ...tarefa,
+        titulo: formValues.titulo,
+        descricao: formValues.descricao || '',
+        prioridade: formValues.prioridade,
+        data_conclusao: format(formValues.data_conclusao, 'yyyy-MM-dd'),
+        horario_conclusao: formValues.horario_conclusao,
+        updated_at: new Date().toISOString()
+      };
+      setTarefa(updatedTarefa);
+      
+      // Save to database in background
+      await saveTask(formValues, true); // true = skip activity log for auto-save
+      
+      // Show subtle success indicator
+      setJustSaved(true);
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => {
+        setJustSaved(false);
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Auto-save error:', error);
+      // Reload task on error to revert optimistic update
+      loadTask();
+    } finally {
+      setSaving(false);
+    }
+  };
   const saveTask = async (values: z.infer<typeof taskSchema>, skipActivityLog = false) => {
     if (!tarefa || !usuario) return;
     setSaving(true);
@@ -308,7 +367,6 @@ export function TaskModal({
           });
         }
       }
-      setHasUnsavedChanges(false);
       loadTask();
       onTaskUpdated?.();
     } catch (error) {
@@ -359,26 +417,25 @@ export function TaskModal({
       setEditingTitle(false);
       return;
     }
+    
+    // Optimistic update
+    setTarefa(prev => prev ? { ...prev, titulo: tempTitle } : null);
     form.setValue('titulo', tempTitle);
     setEditingTitle(false);
   };
+  
   const handleDescriptionSave = async () => {
     if (!tarefa || tempDescription === (tarefa.descricao || '')) {
       setEditingDescription(false);
       return;
     }
+    
+    // Optimistic update
+    setTarefa(prev => prev ? { ...prev, descricao: tempDescription } : null);
     form.setValue('descricao', tempDescription);
     setEditingDescription(false);
   };
   const handleClose = async () => {
-    if (hasUnsavedChanges) {
-      const values = form.getValues();
-      await saveTask(values);
-      toast({
-        title: 'Sucesso',
-        description: 'Alterações salvas'
-      });
-    }
     onOpenChange(false);
   };
   const getPriorityIcon = (priority: PrioridadeTarefa) => {
@@ -434,7 +491,12 @@ export function TaskModal({
               </h1>}
           </div>
           <div className="flex items-center gap-2">
-            {hasUnsavedChanges && <span className="text-sm text-amber-600">Alterações não salvas</span>}
+            {justSaved && (
+              <span className="text-sm text-green-600 flex items-center gap-1">
+                <Check className="h-3 w-3" />
+                Salvo
+              </span>
+            )}
             {saving && <span className="text-sm text-muted-foreground">Salvando...</span>}
             <Button variant="ghost" size="sm">
               <MoreHorizontal className="h-4 w-4" />
@@ -456,10 +518,20 @@ export function TaskModal({
               </Button>
               
               <TaskDatePicker date={new Date(tarefa.data_conclusao)} time={tarefa.horario_conclusao} onDateChange={date => {
-              form.setValue('data_conclusao', date);
-            }} onTimeChange={time => {
-              form.setValue('horario_conclusao', time);
-            }} disabled={saving} />
+                // Optimistic update
+                setTarefa(prev => prev ? { 
+                  ...prev, 
+                  data_conclusao: format(date, 'yyyy-MM-dd') 
+                } : null);
+                form.setValue('data_conclusao', date);
+              }} onTimeChange={time => {
+                // Optimistic update  
+                setTarefa(prev => prev ? { 
+                  ...prev, 
+                  horario_conclusao: time 
+                } : null);
+                form.setValue('horario_conclusao', time);
+              }} disabled={saving} />
               
               <Button variant="outline" size="sm">
                 <CheckSquare className="h-4 w-4 mr-1" />
@@ -491,8 +563,24 @@ export function TaskModal({
 
             {/* Responsibles */}
             <TaskResponsibles responsibles={tarefa.responsaveis} options={responsibleOptions} selectedIds={form.watch('responsaveis') || []} onSelectionChange={ids => {
-            form.setValue('responsaveis', ids);
-          }} />
+              // Optimistic update for responsibles
+              const newResponsaveis = ids.map(id => {
+                const option = responsibleOptions.find(r => r.id === id);
+                return {
+                  id: `temp-${id}`,
+                  tarefa_id: tarefa.id,
+                  usuario_id: option?.type === 'user' ? id : undefined,
+                  equipe_id: option?.type === 'team' ? id : undefined,
+                  created_at: new Date().toISOString()
+                };
+              }).filter(Boolean);
+              
+              setTarefa(prev => prev ? { 
+                ...prev, 
+                responsaveis: newResponsaveis as any 
+              } : null);
+              form.setValue('responsaveis', ids);
+            }} />
 
             {/* Checklists */}
             <TaskChecklists taskId={tarefa.id} checklists={tarefa.checklists} onChecklistsChange={() => {
