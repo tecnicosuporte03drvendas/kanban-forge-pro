@@ -165,6 +165,20 @@ export type Database = {
             referencedRelation: "reunioes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "reunioes_participantes_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reunioes_participantes_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
         ]
       }
       tarefas: {
