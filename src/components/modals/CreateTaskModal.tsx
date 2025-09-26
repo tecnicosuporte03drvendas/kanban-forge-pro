@@ -14,6 +14,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from '@/hooks/use-toast'
@@ -45,8 +46,7 @@ const taskSchema = z.object({
     required_error: 'Data de conclusão é obrigatória',
   }),
   horario_conclusao: z.string().default('18:00'),
-      responsavel: z.string().optional(),
-      categoria: z.string().optional(),
+  responsaveis: z.array(z.string()).default([]),
 })
 
 interface CreateTaskModalProps {
@@ -57,6 +57,7 @@ interface CreateTaskModalProps {
 
 export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTaskModalProps) {
   const [responsibleOptions, setResponsibleOptions] = useState<ResponsibleOption[]>([])
+  const [selectedResponsibles, setSelectedResponsibles] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
   const form = useForm<z.infer<typeof taskSchema>>({
@@ -66,8 +67,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
       descricao: '',
       prioridade: 'media',
       horario_conclusao: '18:00',
-      responsavel: 'none',
-      categoria: 'none',
+      responsaveis: [],
     },
   })
 
@@ -168,15 +168,22 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
 
       if (tarefaError) throw tarefaError
 
-      // Add responsible if selected
-      if (values.responsavel && values.responsavel !== 'none') {
-        const responsible = responsibleOptions.find(r => r.id === values.responsavel)
-        if (responsible) {
-          await supabase.from('tarefas_responsaveis').insert({
-            tarefa_id: tarefa.id,
-            usuario_id: responsible.type === 'user' ? responsible.id : null,
-            equipe_id: responsible.type === 'team' ? responsible.id : null,
-          })
+      // Add responsibles if selected
+      if (values.responsaveis && values.responsaveis.length > 0) {
+        const responsibleInserts = values.responsaveis.map(responsibleId => {
+          const responsible = responsibleOptions.find(r => r.id === responsibleId)
+          if (responsible) {
+            return {
+              tarefa_id: tarefa.id,
+              usuario_id: responsible.type === 'user' ? responsible.id : null,
+              equipe_id: responsible.type === 'team' ? responsible.id : null,
+            }
+          }
+          return null
+        }).filter(Boolean)
+
+        if (responsibleInserts.length > 0) {
+          await supabase.from('tarefas_responsaveis').insert(responsibleInserts)
         }
       }
 
@@ -287,28 +294,32 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
 
             <FormField
               control={form.control}
-              name="responsavel"
+              name="responsaveis"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Responsável</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um responsável" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum</SelectItem>
-                      {responsibleOptions.map((option) => (
-                        <SelectItem key={option.id} value={option.id}>
-                          <div className="flex items-center gap-2">
-                            {option.type === 'user' ? <User className="w-4 h-4" /> : <Users className="w-4 h-4" />}
-                            {option.nome}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Responsáveis</FormLabel>
+                  <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                    {responsibleOptions.map((option) => (
+                      <div key={option.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={option.id}
+                          checked={field.value?.includes(option.id) || false}
+                          onCheckedChange={(checked) => {
+                            const updatedValue = field.value || []
+                            if (checked) {
+                              field.onChange([...updatedValue, option.id])
+                            } else {
+                              field.onChange(updatedValue.filter((id) => id !== option.id))
+                            }
+                          }}
+                        />
+                        <Label htmlFor={option.id} className="flex items-center gap-2 cursor-pointer">
+                          {option.type === 'user' ? <User className="w-4 h-4" /> : <Users className="w-4 h-4" />}
+                          {option.nome}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -370,32 +381,6 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
                 )}
               />
             </div>
-
-            <FormField
-              control={form.control}
-              name="categoria"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categoria</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhuma</SelectItem>
-                      <SelectItem value="vendas">Vendas</SelectItem>
-                      <SelectItem value="marketing">Marketing</SelectItem>
-                      <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
-                      <SelectItem value="suporte">Suporte</SelectItem>
-                      <SelectItem value="administrativo">Administrativo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <div className="flex justify-end gap-3 pt-4">
               <Button
