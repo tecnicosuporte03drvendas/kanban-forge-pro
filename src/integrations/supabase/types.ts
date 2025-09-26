@@ -93,6 +93,250 @@ export type Database = {
           },
         ]
       }
+      tarefas: {
+        Row: {
+          created_at: string
+          criado_por: string
+          data_conclusao: string
+          descricao: string | null
+          empresa_id: string
+          horario_conclusao: string
+          id: string
+          prioridade: Database["public"]["Enums"]["prioridade_tarefa"]
+          status: Database["public"]["Enums"]["status_tarefa"]
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criado_por: string
+          data_conclusao: string
+          descricao?: string | null
+          empresa_id: string
+          horario_conclusao?: string
+          id?: string
+          prioridade?: Database["public"]["Enums"]["prioridade_tarefa"]
+          status?: Database["public"]["Enums"]["status_tarefa"]
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string
+          data_conclusao?: string
+          descricao?: string | null
+          empresa_id?: string
+          horario_conclusao?: string
+          id?: string
+          prioridade?: Database["public"]["Enums"]["prioridade_tarefa"]
+          status?: Database["public"]["Enums"]["status_tarefa"]
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tarefas_atividades: {
+        Row: {
+          acao: string
+          created_at: string
+          descricao: string | null
+          id: string
+          tarefa_id: string
+          usuario_id: string
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          tarefa_id: string
+          usuario_id: string
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          tarefa_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_atividades_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_atividades_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tarefas_checklist_itens: {
+        Row: {
+          checklist_id: string
+          concluido: boolean
+          created_at: string
+          id: string
+          item: string
+          updated_at: string
+        }
+        Insert: {
+          checklist_id: string
+          concluido?: boolean
+          created_at?: string
+          id?: string
+          item: string
+          updated_at?: string
+        }
+        Update: {
+          checklist_id?: string
+          concluido?: boolean
+          created_at?: string
+          id?: string
+          item?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_checklist_itens_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas_checklists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tarefas_checklists: {
+        Row: {
+          created_at: string
+          id: string
+          tarefa_id: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tarefa_id: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tarefa_id?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_checklists_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tarefas_comentarios: {
+        Row: {
+          comentario: string
+          created_at: string
+          id: string
+          tarefa_id: string
+          usuario_id: string
+        }
+        Insert: {
+          comentario: string
+          created_at?: string
+          id?: string
+          tarefa_id: string
+          usuario_id: string
+        }
+        Update: {
+          comentario?: string
+          created_at?: string
+          id?: string
+          tarefa_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_comentarios_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_comentarios_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tarefas_responsaveis: {
+        Row: {
+          created_at: string
+          equipe_id: string | null
+          id: string
+          tarefa_id: string
+          usuario_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          equipe_id?: string | null
+          id?: string
+          tarefa_id: string
+          usuario_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          equipe_id?: string | null
+          id?: string
+          tarefa_id?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_responsaveis_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_responsaveis_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_responsaveis_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usuarios: {
         Row: {
           ativo: boolean | null
@@ -187,6 +431,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      prioridade_tarefa: "baixa" | "media" | "alta" | "urgente"
+      status_tarefa:
+        | "criada"
+        | "assumida"
+        | "executando"
+        | "concluida"
+        | "validada"
       tipo_usuario: "master" | "proprietario" | "gestor" | "colaborador"
     }
     CompositeTypes: {
@@ -315,6 +566,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      prioridade_tarefa: ["baixa", "media", "alta", "urgente"],
+      status_tarefa: [
+        "criada",
+        "assumida",
+        "executando",
+        "concluida",
+        "validada",
+      ],
       tipo_usuario: ["master", "proprietario", "gestor", "colaborador"],
     },
   },

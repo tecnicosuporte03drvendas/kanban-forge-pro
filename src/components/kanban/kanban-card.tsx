@@ -8,9 +8,10 @@ import { getDateStatus, formatDate } from "@/utils/date-utils"
 interface KanbanCardProps {
   task: Task
   isDragging?: boolean
+  onTaskClick?: (taskId: string) => void
 }
 
-export function KanbanCard({ task, isDragging = false }: KanbanCardProps) {
+export function KanbanCard({ task, isDragging = false, onTaskClick }: KanbanCardProps) {
   const {
     attributes,
     listeners,
@@ -31,6 +32,8 @@ export function KanbanCard({ task, isDragging = false }: KanbanCardProps) {
     switch (priority) {
       case "alta":
         return "bg-priority-high text-white"
+      case "urgente":
+        return "bg-red-500 text-white"
       case "media":
         return "bg-priority-medium text-white"
       case "baixa":
@@ -43,13 +46,21 @@ export function KanbanCard({ task, isDragging = false }: KanbanCardProps) {
   const getPriorityIcon = (priority: Task["priority"]) => {
     switch (priority) {
       case "alta":
+      case "urgente":
         return <AlertCircle className="w-3 h-3" />
       case "media":
-        return <Clock className="w-3 h-3" />
       case "baixa":
         return <Clock className="w-3 h-3" />
       default:
         return null
+    }
+  }
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Only trigger click if not dragging and onTaskClick is provided
+    if (!isDragging && !isSortableDragging && onTaskClick) {
+      e.stopPropagation()
+      onTaskClick(task.id)
     }
   }
 
@@ -58,6 +69,7 @@ export function KanbanCard({ task, isDragging = false }: KanbanCardProps) {
   const cardClass = `
     p-4 bg-card border border-card-border rounded-lg shadow-sm cursor-grab 
     hover:shadow-md transition-all duration-200 select-none
+    ${onTaskClick ? 'hover:cursor-pointer' : ''}
     ${isDragging || isSortableDragging ? 'opacity-50 rotate-2 scale-105 shadow-lg' : ''}
     ${isDragging ? 'cursor-grabbing' : ''}
   `
@@ -69,6 +81,7 @@ export function KanbanCard({ task, isDragging = false }: KanbanCardProps) {
       className={cardClass}
       {...attributes}
       {...listeners}
+      onClick={handleClick}
     >
       <div className="space-y-3">
         <div className="space-y-2">
