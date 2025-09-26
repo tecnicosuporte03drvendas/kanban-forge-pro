@@ -82,14 +82,14 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
     const options: ResponsibleOption[] = []
     
     // Load users (excluding master users)
-    const { data: usuarios } = await supabase
+    const { data: usersData } = await supabase
       .from('usuarios')
       .select('id, nome, email')
       .eq('ativo', true)
       .neq('tipo_usuario', 'master')
     
-    if (usuarios) {
-      options.push(...usuarios.map(u => ({ 
+    if (usersData) {
+      options.push(...usersData.map(u => ({ 
         id: u.id, 
         nome: u.nome, 
         type: 'user' as const 
@@ -97,12 +97,12 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
     }
 
     // Load teams
-    const { data: equipes } = await supabase
+    const { data: teamsData } = await supabase
       .from('equipes')
       .select('id, nome, descricao')
     
-    if (equipes) {
-      options.push(...equipes.map(e => ({ 
+    if (teamsData) {
+      options.push(...teamsData.map(e => ({ 
         id: e.id, 
         nome: e.nome, 
         type: 'team' as const 
