@@ -72,23 +72,26 @@ export function AppSidebar() {
         ? `${nomes[0][0]}${nomes[nomes.length - 1][0]}`.toUpperCase()
         : nomes[0].substring(0, 2).toUpperCase();
       
-      // Definir função baseada no tipo de usuário
-      let funcao = '';
-      switch (usuario.tipo_usuario) {
-        case 'proprietario':
-          funcao = 'Proprietário';
-          break;
-        case 'gestor':
-          funcao = 'Gestor';
-          break;
-        case 'colaborador':
-          funcao = 'Colaborador';
-          break;
-        case 'master':
-          funcao = 'Master';
-          break;
-        default:
-          funcao = 'Usuário';
+      // Usar a função da empresa se disponível, senão usar baseado no tipo de usuário
+      let funcao = usuario.funcao_empresa || '';
+      
+      if (!funcao) {
+        switch (usuario.tipo_usuario) {
+          case 'proprietario':
+            funcao = 'Proprietário';
+            break;
+          case 'gestor':
+            funcao = 'Gestor';
+            break;
+          case 'colaborador':
+            funcao = 'Colaborador';
+            break;
+          case 'master':
+            funcao = 'Master';
+            break;
+          default:
+            funcao = 'Usuário';
+        }
       }
       
       setPerfilUsuario({

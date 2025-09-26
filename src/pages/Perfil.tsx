@@ -649,13 +649,13 @@ export default function Perfil() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Alterações</AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
-              <p>Você está prestes a fazer as seguintes alterações em seu perfil:</p>
+              <div>Você está prestes a fazer as seguintes alterações em seu perfil:</div>
               <div className="bg-muted p-3 rounded-md">
                 {profileChanges.map((change, index) => (
                   <div key={index} className="text-sm font-medium">{change}</div>
                 ))}
               </div>
-              <p>Deseja continuar com essas alterações?</p>
+              <div>Deseja continuar com essas alterações?</div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
