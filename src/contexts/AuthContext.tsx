@@ -62,13 +62,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Buscar usuário pelo email
       const { data: usuarios, error } = await supabase
         .from('usuarios')
-        .select('*')
+        .select(`
+          *,
+          empresas!inner(ativa)
+        `)
         .eq('email', email)
         .eq('ativo', true)
         .single();
 
       if (error || !usuarios) {
         return { success: false, error: 'Email ou senha incorretos' };
+      }
+
+      // Verificar se é master ou se a empresa está ativa
+      if (usuarios.tipo_usuario !== 'master' && !usuarios.empresas?.ativa) {
+        return { 
+          success: false, 
+          error: 'Empresa desativada. Entre em contato com o administrador.' 
+        };
       }
 
       // Verificar senha (temporariamente sem hash para teste)

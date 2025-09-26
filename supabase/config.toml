@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.notify-task-completed]
 verify_jwt = false
+
+[functions.notify-company-deactivated]
+verify_jwt = false
+
+[functions.notify-user-deleted]
+verify_jwt = false

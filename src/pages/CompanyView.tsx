@@ -4,11 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Users, Plus, Building2, Search } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ArrowLeft, Users, Plus, Building2, Search, MoreVertical, Trash2, AlertTriangle, Eye } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { CreateUserModal } from '@/components/modals/CreateUserModal';
+import { DeactivateCompanyModal } from '@/components/modals/DeactivateCompanyModal';
+import { DeleteUserModal } from '@/components/modals/DeleteUserModal';
+import { CompanyInspectorModal } from '@/components/modals/CompanyInspectorModal';
 
 interface Empresa {
   id: string;
@@ -26,6 +30,7 @@ interface Usuario {
   tipo_usuario: string;
   ativo: boolean;
   created_at: string;
+  funcao_empresa?: string | null;
 }
 
 export default function CompanyView() {
@@ -36,6 +41,10 @@ export default function CompanyView() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);
+  const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+  const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
+  const [isInspectorModalOpen, setIsInspectorModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
 
   const fetchEmpresa = async () => {
     if (!empresaId) return;
@@ -96,26 +105,23 @@ export default function CompanyView() {
 
   const handleUserCreated = async () => {
     await fetchUsuarios();
-    
-    // Se temos a empresa e há usuários, significa que um usuário foi criado
-    // A notificação já é feita no CreateUserModal, então só precisamos atualizar a lista
+  };
+
+  const handleCompanyDeactivated = async () => {
+    await fetchEmpresa();
+  };
+
+  const handleUserDeleted = async () => {
+    await fetchUsuarios();
+  };
+
+  const handleDeleteUser = (user: Usuario) => {
+    setSelectedUser(user);
+    setIsDeleteUserModalOpen(true);
   };
 
   const handleInspectCompany = () => {
-    // Encontrar um proprietário da empresa para simular login
-    const proprietario = usuarios.find(user => user.tipo_usuario === 'proprietario' && user.ativo);
-    
-    if (proprietario) {
-      // Simular login como proprietário para inspecionar dashboard
-      localStorage.setItem('usuario_logado', JSON.stringify(proprietario));
-      navigate('/');
-    } else {
-      toast({
-        title: "Não é possível inspecionar",
-        description: "A empresa precisa ter um proprietário ativo para ser inspecionada.",
-        variant: "destructive",
-      });
-    }
+    setIsInspectorModalOpen(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -168,10 +174,32 @@ export default function CompanyView() {
               Voltar
             </Button>
             <Building2 className="w-6 h-6" />
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl font-bold">{empresa.nome_fantasia}</h1>
               <p className="text-muted-foreground">{empresa.razao_social}</p>
             </div>
+            
+            {/* Ações do Master */}
+            {usuario?.tipo_usuario === 'master' && (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  onClick={() => setIsInspectorModalOpen(true)}
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  Inspecionar
+                </Button>
+                
+                <Button 
+                  variant="destructive"
+                  onClick={() => setIsDeactivateModalOpen(true)}
+                  disabled={!empresa.ativa}
+                >
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  {empresa.ativa ? 'Desativar Empresa' : 'Empresa Inativa'}
+                </Button>
+              </div>
+            )}
           </div>
           
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -270,7 +298,7 @@ export default function CompanyView() {
                 disabled={!usuarios.some(user => user.tipo_usuario === 'proprietario' && user.ativo)}
               >
                 <Search className="w-4 h-4 mr-2" />
-                Inspecionar
+                Inspecionar Dashboard
               </Button>
             </div>
           </div>
@@ -299,26 +327,49 @@ export default function CompanyView() {
                         <TableHead>Tipo</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Data de Criação</TableHead>
+                        {usuario?.tipo_usuario === 'master' && <TableHead>Ações</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {usuarios.map((usuario) => (
-                        <TableRow key={usuario.id}>
+                      {usuarios.map((usuarioItem) => (
+                        <TableRow key={usuarioItem.id}>
                           <TableCell className="font-medium">
-                            {usuario.nome}
+                            {usuarioItem.nome}
                           </TableCell>
-                          <TableCell>{usuario.email}</TableCell>
+                          <TableCell>{usuarioItem.email}</TableCell>
                           <TableCell>
-                            <Badge variant={getTipoUsuarioColor(usuario.tipo_usuario)}>
-                              {usuario.tipo_usuario.charAt(0).toUpperCase() + usuario.tipo_usuario.slice(1)}
+                            <Badge variant={getTipoUsuarioColor(usuarioItem.tipo_usuario)}>
+                              {usuarioItem.tipo_usuario.charAt(0).toUpperCase() + usuarioItem.tipo_usuario.slice(1)}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={usuario.ativo ? "default" : "secondary"}>
-                              {usuario.ativo ? 'Ativo' : 'Inativo'}
+                            <Badge variant={usuarioItem.ativo ? "default" : "secondary"}>
+                              {usuarioItem.ativo ? 'Ativo' : 'Inativo'}
                             </Badge>
                           </TableCell>
-                          <TableCell>{formatDate(usuario.created_at)}</TableCell>
+                          <TableCell>{formatDate(usuarioItem.created_at)}</TableCell>
+                          
+                          {/* Ações do Master */}
+                          {usuario?.tipo_usuario === 'master' && (
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteUser(usuarioItem)}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Excluir Usuário
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>
@@ -330,7 +381,7 @@ export default function CompanyView() {
         </div>
       </main>
 
-      {/* Modal de Criar Usuário */}
+      {/* Modals */}
       <CreateUserModal
         open={isCreateUserModalOpen}
         onOpenChange={setIsCreateUserModalOpen}
@@ -338,6 +389,27 @@ export default function CompanyView() {
         empresaId={empresaId!}
         empresaNome={empresa.nome_fantasia}
         createdBy="admin"
+      />
+
+      <DeactivateCompanyModal
+        open={isDeactivateModalOpen}
+        onOpenChange={setIsDeactivateModalOpen}
+        onCompanyDeactivated={handleCompanyDeactivated}
+        company={empresa}
+      />
+
+      <DeleteUserModal
+        open={isDeleteUserModalOpen}
+        onOpenChange={setIsDeleteUserModalOpen}
+        onUserDeleted={handleUserDeleted}
+        user={selectedUser}
+        companyName={empresa.nome_fantasia}
+      />
+
+      <CompanyInspectorModal
+        open={isInspectorModalOpen}
+        onOpenChange={setIsInspectorModalOpen}
+        company={empresa}
       />
     </div>
   );
