@@ -271,9 +271,18 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     }
     
     // Update in database if status changed or position changed
+    console.log('🔍 Drag end check:', { 
+      taskId, 
+      movedTaskStatus: movedTask.status, 
+      finalStatus, 
+      statusChanged: movedTask.status !== finalStatus 
+    })
+    
     if (movedTask.status !== finalStatus) {
+      console.log('✅ Calling updateTaskStatus')
       updateTaskStatus(taskId, finalStatus)
     } else {
+      console.log('❌ Calling updateTaskPosition instead')
       // Same column, just position change - save new order
       const tasksInColumn = getTasksByStatus(finalStatus)
       const targetIndex = tasksInColumn.findIndex(t => t.id === taskId)
