@@ -143,6 +143,39 @@ export type Database = {
           },
         ]
       }
+      tarefas_anexos: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          tamanho: number | null
+          tarefa_id: string
+          tipo: string
+          url: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          tamanho?: number | null
+          tarefa_id: string
+          tipo: string
+          url: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          tamanho?: number | null
+          tarefa_id?: string
+          tipo?: string
+          url?: string
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       tarefas_atividades: {
         Row: {
           acao: string

@@ -17,26 +17,24 @@ import {
   Plus,
   Calendar,
   Paperclip,
-  Hash,
   X,
   MoreHorizontal
 } from 'lucide-react'
+import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Calendar as CalendarComp } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
+import { TaskResponsibles } from './TaskResponsibles'
+import { TaskAttachments } from './TaskAttachments'
+import { TaskDatePicker } from './TaskDatePicker'
+import { TaskActivityTabs } from './TaskActivityTabs'
 import type { TarefaCompleta, TarefaComentario, TarefaAtividade, PrioridadeTarefa, StatusTarefa } from '@/types/task'
 
 const taskSchema = z.object({
@@ -61,6 +59,17 @@ interface ResponsibleOption {
   type: 'user' | 'team';
 }
 
+interface TaskAttachment {
+  id: string
+  tarefa_id: string
+  tipo: 'imagem' | 'link'
+  url: string
+  nome: string
+  tamanho?: number
+  usuario_id: string
+  created_at: string
+}
+
 export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskModalProps) {
   const { usuario } = useAuth()
   const [tarefa, setTarefa] = useState<TarefaCompleta | null>(null)
@@ -70,6 +79,7 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
   const [responsibleOptions, setResponsibleOptions] = useState<ResponsibleOption[]>([])
   const [saving, setSaving] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [attachments, setAttachments] = useState<TaskAttachment[]>([])
 
   // Edit states for inline editing
   const [editingTitle, setEditingTitle] = useState(false)
@@ -178,6 +188,12 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
         .eq('tarefa_id', taskId)
         .order('created_at', { ascending: false })
 
+      const { data: anexosData } = await supabase
+        .from('tarefas_anexos')
+        .select('*')
+        .eq('tarefa_id', taskId)
+        .order('created_at', { ascending: false })
+
       const tarefaCompleta: TarefaCompleta = {
         ...tarefaData,
         responsaveis: responsaveisData || [],
@@ -190,6 +206,7 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
       }
 
       setTarefa(tarefaCompleta)
+      setAttachments((anexosData || []) as TaskAttachment[])
     } catch (error) {
       console.error('Error loading task:', error)
       toast({ title: 'Erro', description: 'Erro ao carregar tarefa', variant: 'destructive' })
@@ -434,10 +451,29 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
                 <Plus className="h-4 w-4 mr-1" />
                 Adicionar
               </Button>
-              <Button variant="outline" size="sm">
-                <Calendar className="h-4 w-4 mr-1" />
-                Datas
-              </Button>
+              
+              <TaskDatePicker
+                date={new Date(tarefa.data_conclusao)}
+                time={tarefa.horario_conclusao}
+                onDateChange={(date) => {
+                  const values = { 
+                    ...form.getValues(), 
+                    data_conclusao: date 
+                  }
+                  form.setValue('data_conclusao', date)
+                  saveTask(values)
+                }}
+                onTimeChange={(time) => {
+                  const values = { 
+                    ...form.getValues(), 
+                    horario_conclusao: time 
+                  }
+                  form.setValue('horario_conclusao', time)
+                  saveTask(values)
+                }}
+                disabled={saving}
+              />
+              
               <Button variant="outline" size="sm">
                 <CheckSquare className="h-4 w-4 mr-1" />
                 Checklist
@@ -450,32 +486,6 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
                 <Paperclip className="h-4 w-4 mr-1" />
                 Anexo
               </Button>
-            </div>
-
-            {/* Tags */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Hash className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-muted-foreground">Etiquetas</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Badge className={getPriorityColor(tarefa.prioridade)}>
-                  {getPriorityIcon(tarefa.prioridade)}
-                  <span className="ml-1">{tarefa.prioridade.charAt(0).toUpperCase() + tarefa.prioridade.slice(1)}</span>
-                </Badge>
-                <Badge variant="secondary" className="bg-tezeus-blue text-white">
-                  Design
-                </Badge>
-                <Badge variant="secondary" className="bg-purple-500 text-white">
-                  Design & UX
-                </Badge>
-                <Badge variant="secondary" className="bg-gray-500 text-white">
-                  Documentação
-                </Badge>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 rounded-sm">
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
             </div>
 
             {/* Description */}
@@ -515,28 +525,28 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
             </div>
 
             {/* Responsibles */}
-            {tarefa.responsaveis.length > 0 && (
-              <div>
-                <h4 className="font-medium mb-3">Responsáveis</h4>
-                <div className="flex flex-wrap gap-2">
-                  {tarefa.responsaveis.map((responsavel) => (
-                    <Badge key={responsavel.id} variant="outline" className="flex items-center gap-1">
-                      {responsavel.usuario_id ? (
-                        <>
-                          <User className="h-3 w-3" />
-                          {(responsavel as any).usuarios?.nome || 'Usuário'}
-                        </>
-                      ) : (
-                        <>
-                          <Users className="h-3 w-3" />
-                          {(responsavel as any).equipes?.nome || 'Equipe'}
-                        </>
-                      )}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
+            <TaskResponsibles
+              responsibles={tarefa.responsaveis}
+              options={responsibleOptions}
+              selectedIds={form.watch('responsaveis') || []}
+              onSelectionChange={(ids) => {
+                const values = { 
+                  ...form.getValues(), 
+                  responsaveis: ids 
+                }
+                form.setValue('responsaveis', ids)
+                saveTask(values)
+              }}
+            />
+
+            {/* Attachments */}
+            <TaskAttachments
+              taskId={tarefa.id}
+              attachments={attachments}
+              onAttachmentsChange={() => {
+                loadTask()
+              }}
+            />
 
             {/* Checklists */}
             {tarefa.checklists.length > 0 && (
@@ -567,93 +577,14 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
           </div>
 
           {/* Right Column - Comments & Activity */}
-          <div className="border-l border-border bg-muted/10 flex flex-col">
-            <div className="p-4 border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                <span className="text-sm font-medium">Comentários e atividade</span>
-              </div>
-              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-                Ocultar detalhes
-              </Button>
-            </div>
-
-            <div className="p-4 space-y-4 flex-1 overflow-y-auto">
-              {/* Add Comment */}
-              <div className="space-y-2">
-                <Textarea
-                  placeholder="Escrever um comentário..."
-                  value={novoComentario}
-                  onChange={(e) => setNovoComentario(e.target.value)}
-                  rows={3}
-                  className="resize-none"
-                />
-                <Button 
-                  onClick={enviarComentario} 
-                  disabled={!novoComentario.trim() || enviandoComentario}
-                  size="sm"
-                  className="w-full"
-                >
-                  {enviandoComentario ? 'Enviando...' : 'Comentar'}
-                </Button>
-              </div>
-
-              <Separator />
-
-              {/* Activity Feed */}
-              <div className="space-y-4">
-                {/* Activity example from image */}
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm font-medium">
-                    N
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="font-medium">Nutra</span>
-                      <span>adicionou este cartão a</span>
-                      <span className="font-medium text-primary">Produto e UX Design</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">23 de jul. de 2025, 01:38</div>
-                  </div>
-                </div>
-
-                {/* Comments */}
-                {tarefa.comentarios.map((comentario) => (
-                  <div key={comentario.id} className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-sm font-medium">
-                      {comentario.usuario?.nome?.[0] || 'U'}
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="font-medium">{comentario.usuario?.nome || 'Usuário'}</span>
-                        <span>{format(new Date(comentario.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</span>
-                      </div>
-                      <p className="text-sm bg-background border rounded-lg p-3">{comentario.comentario}</p>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Activities */}
-                {tarefa.atividades.map((atividade) => (
-                  <div key={atividade.id} className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                      <Activity className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <div className="text-xs text-muted-foreground">
-                        <span className="font-medium">{atividade.usuario?.nome || 'Usuário'}</span>
-                        <span className="ml-1">{atividade.acao}</span>
-                        {atividade.descricao && `: ${atividade.descricao}`}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {format(new Date(atividade.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <TaskActivityTabs
+            comments={tarefa.comentarios}
+            activities={tarefa.atividades}
+            newComment={novoComentario}
+            onCommentChange={setNovoComentario}
+            onSubmitComment={enviarComentario}
+            isSubmitting={enviandoComentario}
+          />
         </div>
       </DialogContent>
     </Dialog>
