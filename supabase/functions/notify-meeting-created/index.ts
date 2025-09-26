@@ -22,6 +22,29 @@ serve(async (req) => {
       horario: reuniao.horario_inicio
     });
 
+    // Buscar dados completos dos usuários participantes
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.58.0');
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    interface Usuario {
+      id: string;
+      nome: string;
+      celular: string;
+    }
+
+    let usuariosCompletos: Usuario[] = [];
+    if (participantes.usuarios && participantes.usuarios.length > 0) {
+      const { data: usuarios } = await supabase
+        .from('usuarios')
+        .select('id, nome, celular')
+        .in('id', participantes.usuarios);
+      
+      usuariosCompletos = usuarios || [];
+    }
+
     // Obter URL do webhook N8N
     const webhookUrl = Deno.env.get('N8N_WEBHOOK_URL');
     
@@ -50,7 +73,11 @@ serve(async (req) => {
         created_at: reuniao.created_at
       },
       participantes: {
-        usuarios: participantes.usuarios || [],
+        usuarios: usuariosCompletos.map(user => ({
+          id: user.id,
+          nome: user.nome,
+          celular: user.celular
+        })),
         equipes: participantes.equipes || []
       },
       empresa: {
