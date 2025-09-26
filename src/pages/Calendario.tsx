@@ -230,6 +230,38 @@ const Calendario = () => {
     }
   }
 
+  // Função helper para obter estilo por tipo de evento
+  const getEventStyle = (event: CalendarEvent) => {
+    if (event.type === 'meeting') {
+      return {
+        background: 'bg-blue-500/10 border-blue-500',
+        text: 'text-blue-600',
+        badge: 'bg-blue-500 text-white'
+      }
+    } else {
+      // Para tarefas, usar prioridade
+      if (event.priority === 'alta' || event.priority === 'urgente') {
+        return {
+          background: 'bg-priority-high/10 border-priority-high',
+          text: 'text-priority-high',
+          badge: 'bg-priority-high text-white'
+        }
+      } else if (event.priority === 'media') {
+        return {
+          background: 'bg-priority-medium/10 border-priority-medium',
+          text: 'text-priority-medium',
+          badge: 'bg-priority-medium text-white'
+        }
+      } else {
+        return {
+          background: 'bg-priority-low/10 border-priority-low',
+          text: 'text-priority-low',
+          badge: 'bg-priority-low text-white'
+        }
+      }
+    }
+  }
+
   // Função para renderizar visualização do dia
   const renderDayView = () => {
     const viewDate = currentViewDate
@@ -260,45 +292,44 @@ const Calendario = () => {
                     {hour.toString().padStart(2, '0')}:00
                   </div>
                   <div className="flex-1 min-h-[60px] p-3 relative">
-                    {hourEvents.map((event, index) => (
-                      <div key={index} className={`mb-2 p-3 rounded-r border-l-4 ${
-                        event.priority === 'alta' || event.priority === 'urgente'
-                          ? 'bg-priority-high/10 border-priority-high'
-                          : event.priority === 'media'
-                          ? 'bg-priority-medium/10 border-priority-medium'
-                          : 'bg-primary/10 border-primary'
-                      }`}>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className={`font-semibold text-sm ${
-                              event.priority === 'alta' || event.priority === 'urgente'
-                                ? 'text-priority-high'
-                                : event.priority === 'media'
-                                ? 'text-priority-medium'
-                                : 'text-primary'
-                            }`}>
-                              {event.time}
+                    {hourEvents.map((event, index) => {
+                      const eventStyle = getEventStyle(event)
+                      return (
+                        <div key={index} className={`mb-2 p-3 rounded-r border-l-4 ${eventStyle.background}`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              {event.type === 'meeting' ? (
+                                <Video className="w-4 h-4 text-blue-600" />
+                              ) : (
+                                <CheckSquare className="w-4 h-4" style={{ color: eventStyle.text.includes('high') ? 'var(--priority-high)' : eventStyle.text.includes('medium') ? 'var(--priority-medium)' : 'var(--priority-low)' }} />
+                              )}
+                              <div>
+                                <div className={`font-semibold text-sm ${eventStyle.text}`}>
+                                  {event.time}
+                                  {event.type === 'meeting' && event.duration && (
+                                    <span className="text-xs ml-2">({event.duration}min)</span>
+                                  )}
+                                </div>
+                                <div className="font-medium text-card-foreground">{event.title}</div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {event.type === 'meeting' ? 'Reunião' : event.team} • {event.assignee}
+                                </div>
+                              </div>
                             </div>
-                            <div className="font-medium text-card-foreground">{event.title}</div>
-                            <div className="text-xs text-muted-foreground mt-1">{event.team} • {event.assignee}</div>
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <Badge className={`${
-                              event.priority === 'alta' || event.priority === 'urgente'
-                                ? 'bg-priority-high text-white'
-                                : event.priority === 'media'
-                                ? 'bg-priority-medium text-white'
-                                : 'bg-primary text-primary-foreground'
-                            }`}>
-                              {event.priority.charAt(0).toUpperCase() + event.priority.slice(1)}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {event.status}
-                            </Badge>
+                            <div className="flex flex-col gap-1">
+                              <Badge className={eventStyle.badge}>
+                                {event.type === 'meeting' ? 'Reunião' : (event.priority?.charAt(0).toUpperCase() + event.priority?.slice(1))}
+                              </Badge>
+                              {event.type === 'task' && event.status && (
+                                <Badge variant="outline" className="text-xs">
+                                  {event.status}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                     {hourEvents.length === 0 && (
                       <button 
                         className="w-full h-full text-left opacity-0 hover:opacity-100 transition-opacity"
@@ -379,22 +410,26 @@ const Calendario = () => {
                               setViewMode('dia')
                             }}
                           >
-                            {dayHourEvents.map((event, eventIndex) => (
-                              <div
-                                key={eventIndex}
-                                className={`text-xs p-1 rounded border mb-1 ${
-                                  event.priority === 'alta' || event.priority === 'urgente'
-                                    ? 'bg-priority-high/20 border-priority-high/30 text-priority-high'
-                                    : event.priority === 'media'
-                                    ? 'bg-priority-medium/20 border-priority-medium/30 text-priority-medium'
-                                    : 'bg-primary/20 border-primary/30 text-primary'
-                                }`}
-                                title={`${event.title} - ${event.assignee}`}
-                              >
-                                <div className="font-medium truncate">{event.time}</div>
-                                <div className="truncate">{event.title}</div>
-                              </div>
-                            ))}
+                            {dayHourEvents.map((event, eventIndex) => {
+                              const eventStyle = getEventStyle(event)
+                              return (
+                                <div
+                                  key={eventIndex}
+                                  className={`text-xs p-1 rounded border mb-1 ${eventStyle.background.replace('/10', '/20')} ${eventStyle.text}`}
+                                  title={`${event.title} - ${event.assignee}${event.type === 'meeting' && event.duration ? ` (${event.duration}min)` : ''}`}
+                                >
+                                  <div className="flex items-center gap-1">
+                                    {event.type === 'meeting' ? (
+                                      <Video className="w-3 h-3" />
+                                    ) : (
+                                      <CheckSquare className="w-3 h-3" />
+                                    )}
+                                    <div className="font-medium truncate">{event.time}</div>
+                                  </div>
+                                  <div className="truncate">{event.title}</div>
+                                </div>
+                              )
+                            })}
                           </div>
                         )
                     })}
@@ -497,21 +532,26 @@ const Calendario = () => {
                     
                     {/* Agendamentos do dia */}
                     <div className="space-y-1">
-                      {dayEvents.slice(0, 2).map((event, eventIndex) => (
-                        <div
-                          key={eventIndex}
-                          className={`text-xs p-1 rounded truncate ${
-                            event.priority === 'alta' 
-                              ? 'bg-priority-high/20 text-priority-high border-l-2 border-priority-high' 
-                              : event.priority === 'media' 
-                              ? 'bg-priority-medium/20 text-priority-medium border-l-2 border-priority-medium'
-                              : 'bg-primary/20 text-primary border-l-2 border-primary'
-                          }`}
-                        >
-                          <div className="font-medium">{event.time}</div>
-                          <div className="truncate">{event.title}</div>
-                        </div>
-                      ))}
+                      {dayEvents.slice(0, 2).map((event, eventIndex) => {
+                        const eventStyle = getEventStyle(event)
+                        return (
+                          <div
+                            key={eventIndex}
+                            className={`text-xs p-1 rounded truncate flex items-center gap-1 ${eventStyle.background.replace('/10', '/20')} border-l-2 ${eventStyle.text}`}
+                            style={{ borderLeftColor: event.type === 'meeting' ? '#3b82f6' : undefined }}
+                          >
+                            {event.type === 'meeting' ? (
+                              <Video className="w-3 h-3 flex-shrink-0" />
+                            ) : (
+                              <CheckSquare className="w-3 h-3 flex-shrink-0" />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium">{event.time}</div>
+                              <div className="truncate">{event.title}</div>
+                            </div>
+                          </div>
+                        )
+                      })}
                       {dayEvents.length > 2 && (
                         <div className="text-xs text-muted-foreground font-medium">
                           +{dayEvents.length - 2} mais
@@ -538,28 +578,40 @@ const Calendario = () => {
             </h4>
             <div className="space-y-3">
               {getEventsForDate(selectedDate).length > 0 ? (
-                getEventsForDate(selectedDate).map((event) => (
-                  <div key={event.id} className="p-4 border border-border rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          <span className="font-medium">{event.time}</span>
+                getEventsForDate(selectedDate).map((event) => {
+                  const eventStyle = getEventStyle(event)
+                  return (
+                    <div key={event.id} className="p-4 border border-border rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-4">
+                          {event.type === 'meeting' ? (
+                            <Video className="w-5 h-5 text-blue-600" />
+                          ) : (
+                            <CheckSquare className="w-5 h-5" style={{ color: eventStyle.text.includes('high') ? 'var(--priority-high)' : eventStyle.text.includes('medium') ? 'var(--priority-medium)' : 'var(--priority-low)' }} />
+                          )}
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Clock className="w-4 h-4" />
+                            <span className="font-medium">
+                              {event.time}
+                              {event.type === 'meeting' && event.duration && (
+                                <span className="text-xs ml-2">({event.duration}min)</span>
+                              )}
+                            </span>
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-card-foreground">{event.title}</h5>
+                            <p className="text-sm text-muted-foreground">
+                              {event.type === 'meeting' ? 'Reunião' : event.team} • {event.assignee}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h5 className="font-semibold text-card-foreground">{event.title}</h5>
-                          <p className="text-sm text-muted-foreground">{event.assignee}</p>
-                        </div>
-                        <Badge className={`${event.teamColor} text-white border-0`}>
-                          {event.team}
+                        <Badge className={eventStyle.badge}>
+                          {event.type === 'meeting' ? 'Reunião' : (event.priority?.charAt(0).toUpperCase() + event.priority?.slice(1))}
                         </Badge>
                       </div>
-                      <Badge className={`${getEventColor(event.priority)}`}>
-                        {event.priority.charAt(0).toUpperCase() + event.priority.slice(1)}
-                      </Badge>
                     </div>
-                  </div>
-                ))
+                  )
+                })
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <CalendarIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -714,45 +766,44 @@ const Calendario = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {events.map((event) => (
-                  <div key={event.id} className="p-3 border border-border rounded-lg bg-background/50">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-sm text-card-foreground">{event.title}</h4>
-                          <Badge className={`text-xs ${event.teamColor} text-white border-0 px-2 py-1`}>
-                            {event.team}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-4 text-xs">
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <Clock className="w-3 h-3" />
-                            {event.time}
-                          </span>
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <Users className="w-3 h-3" />
-                            {event.assignee}
-                          </span>
-                          <span className={`${getDateStatus(event.dueDate).className}`}>
-                            {new Date(event.dueDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
-                          </span>
-                        </div>
-                      </div>
-                      <Badge className={`text-xs ${
-                        event.type === 'task' && event.priority 
-                          ? getEventColor(event.priority) 
-                          : event.type === 'meeting' 
-                            ? 'bg-blue-500 text-white' 
-                            : 'bg-muted text-muted-foreground'
-                      }`}>
-                        {event.type === 'task' 
-                          ? (event.priority?.charAt(0).toUpperCase() + event.priority?.slice(1) || 'Tarefa')
-                          : `${event.duration}min`
-                        }
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
+                 {events.map((event) => {
+                   const eventStyle = getEventStyle(event)
+                   return (
+                     <div key={event.id} className="p-3 border border-border rounded-lg bg-background/50">
+                       <div className="flex items-start justify-between gap-2">
+                         <div className="flex-1">
+                           <div className="flex items-center gap-2 mb-1">
+                             {event.type === 'meeting' ? (
+                               <Video className="w-4 h-4 text-blue-600" />
+                             ) : (
+                               <CheckSquare className="w-4 h-4" style={{ color: eventStyle.text.includes('high') ? 'var(--priority-high)' : eventStyle.text.includes('medium') ? 'var(--priority-medium)' : 'var(--priority-low)' }} />
+                             )}
+                             <h4 className="font-medium text-sm text-card-foreground">{event.title}</h4>
+                           </div>
+                           <div className="flex items-center gap-4 text-xs">
+                             <span className="flex items-center gap-1 text-muted-foreground">
+                               <Clock className="w-3 h-3" />
+                               {event.time}
+                               {event.type === 'meeting' && event.duration && (
+                                 <span className="ml-1">({event.duration}min)</span>
+                               )}
+                             </span>
+                             <span className="flex items-center gap-1 text-muted-foreground">
+                               <Users className="w-3 h-3" />
+                               {event.assignee}
+                             </span>
+                             <span className={`${getDateStatus(event.dueDate).className}`}>
+                               {new Date(event.dueDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+                             </span>
+                           </div>
+                         </div>
+                         <Badge className={eventStyle.badge}>
+                           {event.type === 'meeting' ? 'Reunião' : (event.priority?.charAt(0).toUpperCase() + event.priority?.slice(1) || 'Tarefa')}
+                         </Badge>
+                       </div>
+                     </div>
+                   )
+                 })}
               </CardContent>
             </Card>
 
