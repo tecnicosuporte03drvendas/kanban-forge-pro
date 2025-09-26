@@ -11,14 +11,107 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users, Video, CheckSquare } from "lucide-react"
 import { getDateStatus } from "@/utils/date-utils"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { supabase } from "@/integrations/supabase/client"
+import { useAuth } from "@/contexts/AuthContext"
+
+interface CalendarEvent {
+  id: string
+  title: string
+  time: string
+  type: "task" | "meeting"
+  priority: "alta" | "media" | "baixa" | "urgente"
+  dueDate: string
+  team: string
+  teamColor: string
+  assignee: string
+  status: string
+}
 
 const Calendario = () => {
+  const { usuario } = useAuth()
   const [viewMode, setViewMode] = useState<'dia' | 'semana' | 'mes'>('semana')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [loading, setLoading] = useState(true)
+  
   const currentDate = new Date()
   const currentMonth = currentDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
+  
+  // Carregar tarefas da empresa
+  useEffect(() => {
+    if (usuario?.empresa_id) {
+      loadTasks()
+    }
+  }, [usuario?.empresa_id])
+
+  const loadTasks = async () => {
+    if (!usuario?.empresa_id) return
+    
+    setLoading(true)
+    try {
+      const { data: tarefas, error } = await supabase
+        .from('tarefas')
+        .select(`
+          *,
+          tarefas_responsaveis(
+            usuarios:usuario_id(nome),
+            equipes:equipe_id(nome)
+          )
+        `)
+        .eq('empresa_id', usuario.empresa_id)
+        .eq('arquivada', false)
+        .order('data_conclusao', { ascending: true })
+
+      if (error) throw error
+
+      // Transform tasks to calendar events
+      const calendarEvents: CalendarEvent[] = tarefas?.map((tarefa: any) => {
+        const responsaveis = tarefa.tarefas_responsaveis || []
+        const usuarios = responsaveis.filter((r: any) => r.usuarios).map((r: any) => r.usuarios)
+        const equipes = responsaveis.filter((r: any) => r.equipes).map((r: any) => r.equipes)
+        
+        let assignee = 'Não atribuído'
+        let team = 'Sem equipe'
+        let teamColor = 'bg-gray-500'
+        
+        if (usuarios.length > 1) {
+          assignee = `${usuarios.length} Responsáveis`
+        } else if (usuarios.length > 0) {
+          assignee = usuarios[0].nome
+        }
+        
+        if (equipes.length > 0) {
+          team = equipes[0].nome
+          teamColor = 'bg-blue-500'
+        }
+
+        // Extract time from horario_conclusao or use default
+        const time = tarefa.horario_conclusao || '18:00:00'
+        const timeFormatted = time.substring(0, 5) // HH:MM
+
+        return {
+          id: tarefa.id,
+          title: tarefa.titulo,
+          time: timeFormatted,
+          type: 'task',
+          priority: tarefa.prioridade,
+          dueDate: tarefa.data_conclusao,
+          team,
+          teamColor,
+          assignee,
+          status: tarefa.status
+        }
+      }) || []
+
+      setEvents(calendarEvents)
+    } catch (error) {
+      console.error('Error loading tasks:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
   
   // Simulated calendar data
   const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
@@ -27,42 +120,6 @@ const Calendario = () => {
     date.setDate(date.getDate() - date.getDay() + i)
     return date
   })
-
-  const events = [
-    {
-      id: "1",
-      title: "Reunião de Vendas",
-      time: "09:00",
-      type: "meeting",
-      priority: "alta",
-      dueDate: "2025-01-20",
-      team: "Vendas",
-      teamColor: "bg-blue-500",
-      assignee: "Sergio Ricardo"
-    },
-    {
-      id: "2",
-      title: "Apresentação Proposta ABC",
-      time: "14:30",
-      type: "presentation",
-      priority: "alta",
-      dueDate: "2025-01-22",
-      team: "Comercial",
-      teamColor: "bg-green-500",
-      assignee: "Ana Silva"
-    },
-    {
-      id: "3",
-      title: "Follow-up Clientes",
-      time: "16:00", 
-      type: "task",
-      priority: "media",
-      dueDate: "2025-01-25",
-      team: "Marketing",
-      teamColor: "bg-purple-500",
-      assignee: "João Santos"
-    }
-  ]
 
   const getEventColor = (priority: string) => {
     switch (priority) {
@@ -77,68 +134,82 @@ const Calendario = () => {
   const renderDayView = () => {
     const today = selectedDate || currentDate
     const dayName = today.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+    const todayStr = today.toISOString().split('T')[0]
+    const todayEvents = events.filter(event => event.dueDate === todayStr)
     
     return (
       <div className="space-y-4">
         <div className="text-center border-b border-border pb-4">
           <h3 className="text-2xl font-bold text-card-foreground capitalize mb-2">{dayName}</h3>
-          <p className="text-muted-foreground">Clique em um horário para adicionar um agendamento</p>
+          <p className="text-muted-foreground">
+            {loading ? 'Carregando tarefas...' : `${todayEvents.length} tarefa(s) agendada(s)`}
+          </p>
         </div>
         
         <div className="max-h-[600px] overflow-y-auto">
           <div className="space-y-1">
-            {Array.from({ length: 24 }, (_, hour) => (
-              <div key={hour} className="flex hover:bg-accent/30 transition-colors rounded-lg">
-                <div className="w-20 flex-shrink-0 text-sm text-muted-foreground font-medium py-3 px-3 border-r border-border/20">
-                  {hour.toString().padStart(2, '0')}:00
+            {Array.from({ length: 24 }, (_, hour) => {
+              const hourEvents = todayEvents.filter(event => {
+                const eventHour = parseInt(event.time.split(':')[0])
+                return eventHour === hour
+              })
+              
+              return (
+                <div key={hour} className="flex hover:bg-accent/30 transition-colors rounded-lg">
+                  <div className="w-20 flex-shrink-0 text-sm text-muted-foreground font-medium py-3 px-3 border-r border-border/20">
+                    {hour.toString().padStart(2, '0')}:00
+                  </div>
+                  <div className="flex-1 min-h-[60px] p-3 relative">
+                    {hourEvents.map((event, index) => (
+                      <div key={index} className={`mb-2 p-3 rounded-r border-l-4 ${
+                        event.priority === 'alta' || event.priority === 'urgente'
+                          ? 'bg-priority-high/10 border-priority-high'
+                          : event.priority === 'media'
+                          ? 'bg-priority-medium/10 border-priority-medium'
+                          : 'bg-primary/10 border-primary'
+                      }`}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className={`font-semibold text-sm ${
+                              event.priority === 'alta' || event.priority === 'urgente'
+                                ? 'text-priority-high'
+                                : event.priority === 'media'
+                                ? 'text-priority-medium'
+                                : 'text-primary'
+                            }`}>
+                              {event.time}
+                            </div>
+                            <div className="font-medium text-card-foreground">{event.title}</div>
+                            <div className="text-xs text-muted-foreground mt-1">{event.team} • {event.assignee}</div>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <Badge className={`${
+                              event.priority === 'alta' || event.priority === 'urgente'
+                                ? 'bg-priority-high text-white'
+                                : event.priority === 'media'
+                                ? 'bg-priority-medium text-white'
+                                : 'bg-primary text-primary-foreground'
+                            }`}>
+                              {event.priority.charAt(0).toUpperCase() + event.priority.slice(1)}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {event.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {hourEvents.length === 0 && (
+                      <button className="w-full h-full text-left opacity-0 hover:opacity-100 transition-opacity">
+                        <div className="text-xs text-muted-foreground hover:text-primary">
+                          + Adicionar agendamento às {hour.toString().padStart(2, '0')}:00
+                        </div>
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1 min-h-[60px] p-3 relative">
-                  {hour === 9 && (
-                    <div className="bg-primary/10 border-l-4 border-primary rounded-r p-3 mb-2">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-semibold text-primary text-sm">09:00 - 10:00</div>
-                          <div className="font-medium text-card-foreground">Reunião de Vendas</div>
-                          <div className="text-xs text-muted-foreground mt-1">Equipe de Vendas • Sala de reuniões</div>
-                        </div>
-                        <Badge className="bg-primary text-primary-foreground">Alta</Badge>
-                      </div>
-                    </div>
-                  )}
-                  {hour === 14 && (
-                    <div className="bg-priority-high/10 border-l-4 border-priority-high rounded-r p-3 mb-2">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-semibold text-priority-high text-sm">14:30 - 16:00</div>
-                          <div className="font-medium text-card-foreground">Apresentação Proposta ABC</div>
-                          <div className="text-xs text-muted-foreground mt-1">Comercial • Cliente ABC Corp</div>
-                        </div>
-                        <Badge className="bg-priority-high text-white">Urgente</Badge>
-                      </div>
-                    </div>
-                  )}
-                  {hour === 16 && (
-                    <div className="bg-priority-medium/10 border-l-4 border-priority-medium rounded-r p-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-semibold text-priority-medium text-sm">16:00 - 17:00</div>
-                          <div className="font-medium text-card-foreground">Follow-up Clientes</div>
-                          <div className="text-xs text-muted-foreground mt-1">Marketing • Ligações de retorno</div>
-                        </div>
-                        <Badge className="bg-priority-medium text-white">Média</Badge>
-                      </div>
-                    </div>
-                  )}
-                  {![9, 14, 16].includes(hour) && (
-                    <button className="w-full h-full text-left opacity-0 hover:opacity-100 transition-opacity">
-                      <div className="text-xs text-muted-foreground hover:text-primary">
-                        + Adicionar agendamento às {hour.toString().padStart(2, '0')}:00
-                      </div>
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </div>
@@ -150,47 +221,78 @@ const Calendario = () => {
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-7 gap-4 mb-4">
-          {weekDays.map((day, index) => (
-            <div key={day} className="text-center">
-              <div className="text-sm font-medium text-muted-foreground mb-2">{day}</div>
-              <div className={`text-lg font-semibold p-2 rounded-lg ${
-                index === new Date().getDay() 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'text-card-foreground'
-              }`}>
-                {dates[index].getDate()}
+          {weekDays.map((day, index) => {
+            const currentWeekDate = dates[index]
+            const dayEvents = events.filter(event => 
+              event.dueDate === currentWeekDate.toISOString().split('T')[0]
+            )
+            
+            return (
+              <div key={day} className="text-center">
+                <div className="text-sm font-medium text-muted-foreground mb-2">{day}</div>
+                <div className={`text-lg font-semibold p-2 rounded-lg relative ${
+                  index === new Date().getDay() 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'text-card-foreground'
+                }`}>
+                  {currentWeekDate.getDate()}
+                  {dayEvents.length > 0 && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                      {dayEvents.length}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         <div className="grid grid-cols-7 gap-4 mt-8" style={{ minHeight: "400px" }}>
-          {Array.from({ length: 24 }, (_, hour) => (
-            <div key={hour} className="col-span-7 border-b border-border/20 py-2">
-              <div className="flex">
-                <div className="w-16 text-xs text-muted-foreground">
-                  {hour.toString().padStart(2, '0')}:00
-                </div>
-                <div className="flex-1 grid grid-cols-7 gap-1">
-                  {hour === 9 && (
-                    <div className="col-span-2 bg-primary/10 border border-primary/20 rounded p-1">
-                      <div className="text-xs font-medium text-primary">09:00 - Reunião de Vendas</div>
-                    </div>
-                  )}
-                  {hour === 14 && (
-                    <div className="col-span-3 col-start-4 bg-priority-high/10 border border-priority-high/20 rounded p-1">
-                      <div className="text-xs font-medium text-priority-high">14:30 - Apresentação Proposta ABC</div>
-                    </div>
-                  )}
-                  {hour === 16 && (
-                    <div className="col-span-2 col-start-6 bg-priority-medium/10 border border-priority-medium/20 rounded p-1">
-                      <div className="text-xs font-medium text-priority-medium">16:00 - Follow-up Clientes</div>
-                    </div>
-                  )}
+          {Array.from({ length: 24 }, (_, hour) => {
+            const hourEvents = events.filter(event => {
+              const eventHour = parseInt(event.time.split(':')[0])
+              return eventHour === hour
+            })
+            
+            return (
+              <div key={hour} className="col-span-7 border-b border-border/20 py-2">
+                <div className="flex">
+                  <div className="w-16 text-xs text-muted-foreground">
+                    {hour.toString().padStart(2, '0')}:00
+                  </div>
+                  <div className="flex-1 grid grid-cols-7 gap-1">
+                    {dates.map((weekDate, dayIndex) => {
+                      const dateStr = weekDate.toISOString().split('T')[0]
+                      const dayHourEvents = events.filter(event => 
+                        event.dueDate === dateStr && parseInt(event.time.split(':')[0]) === hour
+                      )
+                      
+                      return (
+                        <div key={dayIndex} className="min-h-[40px]">
+                          {dayHourEvents.map((event, eventIndex) => (
+                            <div
+                              key={eventIndex}
+                              className={`text-xs p-1 rounded border mb-1 ${
+                                event.priority === 'alta' || event.priority === 'urgente'
+                                  ? 'bg-priority-high/20 border-priority-high/30 text-priority-high'
+                                  : event.priority === 'media'
+                                  ? 'bg-priority-medium/20 border-priority-medium/30 text-priority-medium'
+                                  : 'bg-primary/20 border-primary/30 text-primary'
+                              }`}
+                              title={`${event.title} - ${event.assignee}`}
+                            >
+                              <div className="font-medium truncate">{event.time}</div>
+                              <div className="truncate">{event.title}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     )
@@ -221,15 +323,12 @@ const Calendario = () => {
 
     const hasEvents = (date: Date) => {
       const dateStr = date.toISOString().split('T')[0]
-      return ['2025-01-20', '2025-01-22', '2025-01-25'].some(eventDate => 
-        new Date(eventDate).toDateString() === date.toDateString()
-      )
+      return events.some(event => event.dueDate === dateStr)
     }
 
     const getEventsForDate = (date: Date) => {
-      return events.filter(event => 
-        new Date(event.dueDate).toDateString() === date.toDateString()
-      )
+      const dateStr = date.toISOString().split('T')[0]
+      return events.filter(event => event.dueDate === dateStr)
     }
 
     return (
@@ -372,7 +471,12 @@ const Calendario = () => {
             <SidebarTrigger className="lg:hidden" />
             <div>
               <h1 className="text-2xl font-bold text-foreground">Agenda</h1>
-              <p className="text-muted-foreground">Visualize suas tarefas, reuniões e lembretes</p>
+              <p className="text-muted-foreground">
+                {loading 
+                  ? 'Carregando agenda...' 
+                  : `${events.length} tarefa(s) agendada(s)`
+                }
+              </p>
             </div>
           </div>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
