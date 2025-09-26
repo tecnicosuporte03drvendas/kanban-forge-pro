@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,17 +34,20 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function Perfil() {
   const { toast } = useToast()
+  const { usuario } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [userData, setUserData] = useState({
-    name: "Sergio Ricardo",
-    email: "sergio.ricardo@empresa.com",
-    phone: "(11) 99999-9999",
-    department: "Vendas",
-    position: "Gerente de Vendas",
-    location: "São Paulo, SP"
+    name: "",
+    email: "",
+    phone: "",
+    department: "",
+    position: "",
+    location: ""
   })
   const [editData, setEditData] = useState(userData)
   const [passwordData, setPasswordData] = useState({
@@ -52,32 +55,116 @@ export default function Perfil() {
     newPassword: "",
     confirmPassword: ""
   })
+  const [stats, setStats] = useState([
+    { label: "Tarefas Concluídas", value: "0", icon: CheckSquare, color: "text-green-600" },
+    { label: "Tarefas Ativas", value: "0", icon: Calendar, color: "text-blue-600" },
+    { label: "Taxa de Conclusão", value: "0%", icon: BarChart3, color: "text-purple-600" }
+  ])
 
-  const stats = [
-    { label: "Tarefas Concluídas", value: "127", icon: CheckSquare, color: "text-green-600" },
-    { label: "Reuniões este Mês", value: "23", icon: Calendar, color: "text-blue-600" },
-    { label: "Taxa de Conclusão", value: "89%", icon: BarChart3, color: "text-purple-600" }
-  ]
+  // Carregar dados do usuário
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!usuario) return
 
-  const upcomingMeetings = [
-    { title: "Reunião de Vendas", date: "Hoje, 14:30", participants: 5 },
-    { title: "Apresentação Q4", date: "Amanhã, 09:00", participants: 12 },
-    { title: "1:1 com Diretor", date: "Sex, 16:00", participants: 2 }
-  ]
+      try {
+        setLoading(true)
+        
+        // Buscar dados completos do usuário
+        const { data: fullUserData, error: userError } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('id', usuario.id)
+          .single()
 
-  const upcomingTasks = [
-    { title: "Relatório Mensal", priority: "Alta", dueDate: "Hoje" },
-    { title: "Follow-up Clientes", priority: "Média", dueDate: "Amanhã" },
-    { title: "Análise Concorrência", priority: "Baixa", dueDate: "Próx. Semana" }
-  ]
+        if (userError) throw userError
 
-  const handleSaveProfile = () => {
-    setUserData(editData)
-    setIsEditing(false)
-    toast({
-      title: "Perfil atualizado",
-      description: "Suas informações foram salvas com sucesso.",
-    })
+        // Atualizar dados do usuário
+        const newUserData = {
+          name: fullUserData.nome || "",
+          email: fullUserData.email || "",
+          phone: fullUserData.celular || "",
+          department: fullUserData.funcao_empresa || "",
+          position: fullUserData.funcao_empresa || "",
+          location: ""
+        }
+        
+        setUserData(newUserData)
+        setEditData(newUserData)
+
+        // Buscar estatísticas do usuário
+        const { data: taskStats, error: statsError } = await supabase
+          .from('tarefas')
+          .select('status, arquivada')
+          .eq('criado_por', usuario.id)
+
+        if (!statsError && taskStats) {
+          const completedTasks = taskStats.filter(t => t.status === 'concluida' || t.status === 'validada').length
+          const activeTasks = taskStats.filter(t => t.status !== 'concluida' && t.status !== 'validada' && !t.arquivada).length
+          const totalTasks = taskStats.filter(t => !t.arquivada).length
+          const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+
+          setStats([
+            { label: "Tarefas Concluídas", value: completedTasks.toString(), icon: CheckSquare, color: "text-green-600" },
+            { label: "Tarefas Ativas", value: activeTasks.toString(), icon: Calendar, color: "text-blue-600" },
+            { label: "Taxa de Conclusão", value: `${completionRate}%`, icon: BarChart3, color: "text-purple-600" }
+          ])
+        }
+
+      } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error)
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os dados do perfil.",
+          variant: "destructive"
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadUserData()
+  }, [usuario, toast])
+
+  const [upcomingTasks, setUpcomingTasks] = useState([])
+  const [upcomingMeetings, setUpcomingMeetings] = useState([])
+
+  // Carregando dados reais do banco - arrays vazios quando não há dados
+
+  const handleSaveProfile = async () => {
+    if (!usuario) return
+
+    try {
+      setLoading(true)
+
+      const { error } = await supabase
+        .from('usuarios')
+        .update({
+          nome: editData.name,
+          email: editData.email,
+          celular: editData.phone,
+          funcao_empresa: editData.department,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', usuario.id)
+
+      if (error) throw error
+
+      setUserData(editData)
+      setIsEditing(false)
+      toast({
+        title: "Perfil atualizado",
+        description: "Suas informações foram salvas com sucesso.",
+      })
+    } catch (error) {
+      console.error('Erro ao salvar perfil:', error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar as alterações.",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleCancelEdit = () => {
@@ -144,14 +231,23 @@ export default function Perfil() {
 
   return (
     <div className="flex-1 space-y-6 p-6 bg-background">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Meu Perfil</h1>
-          <p className="text-muted-foreground">Gerencie suas informações pessoais e configurações</p>
+      {loading ? (
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Carregando perfil...</p>
+          </div>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Meu Perfil</h1>
+              <p className="text-muted-foreground">Gerencie suas informações pessoais e configurações</p>
+            </div>
+          </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-3">
         {/* Profile Info Card */}
         <div className="md:col-span-1">
           <Card>
@@ -223,17 +319,24 @@ export default function Perfil() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {upcomingMeetings.map((meeting, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{meeting.title}</p>
-                          <p className="text-sm text-muted-foreground">{meeting.date}</p>
+                  {upcomingMeetings.length > 0 ? (
+                    <div className="space-y-3">
+                      {upcomingMeetings.map((meeting, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{meeting.title}</p>
+                            <p className="text-sm text-muted-foreground">{meeting.date}</p>
+                          </div>
+                          <Badge variant="outline">{meeting.participants} participantes</Badge>
                         </div>
-                        <Badge variant="outline">{meeting.participants} participantes</Badge>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>Nenhuma reunião agendada</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -246,17 +349,24 @@ export default function Perfil() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {upcomingTasks.map((task, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{task.title}</p>
-                          <p className="text-sm text-muted-foreground">Prazo: {task.dueDate}</p>
+                  {upcomingTasks.length > 0 ? (
+                    <div className="space-y-3">
+                      {upcomingTasks.map((task, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{task.title}</p>
+                            <p className="text-sm text-muted-foreground">Prazo: {task.dueDate}</p>
+                          </div>
+                          <Badge variant={getPriorityColor(task.priority)}>{task.priority}</Badge>
                         </div>
-                        <Badge variant={getPriorityColor(task.priority)}>{task.priority}</Badge>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <CheckSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>Nenhuma tarefa próxima</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -437,6 +547,8 @@ export default function Perfil() {
           </Tabs>
         </div>
       </div>
+      </>
+    )}
     </div>
   )
 }
