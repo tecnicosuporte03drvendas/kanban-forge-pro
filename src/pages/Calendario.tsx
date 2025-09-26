@@ -32,12 +32,12 @@ const Calendario = () => {
   const { usuario } = useAuth()
   const [viewMode, setViewMode] = useState<'dia' | 'semana' | 'mes'>('semana')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date()) // Data atual da visualização
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
   
   const currentDate = new Date()
-  const currentMonth = currentDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
   
   // Carregar tarefas da empresa
   useEffect(() => {
@@ -112,18 +112,80 @@ const Calendario = () => {
       setLoading(false)
     }
   }
+
+  // Navegação
+  const navigatePrevious = () => {
+    const newDate = new Date(currentViewDate)
+    
+    if (viewMode === 'dia') {
+      newDate.setDate(newDate.getDate() - 1)
+    } else if (viewMode === 'semana') {
+      newDate.setDate(newDate.getDate() - 7)
+    } else if (viewMode === 'mes') {
+      newDate.setMonth(newDate.getMonth() - 1)
+    }
+    
+    setCurrentViewDate(newDate)
+    setSelectedDate(newDate)
+  }
+
+  const navigateNext = () => {
+    const newDate = new Date(currentViewDate)
+    
+    if (viewMode === 'dia') {
+      newDate.setDate(newDate.getDate() + 1)
+    } else if (viewMode === 'semana') {
+      newDate.setDate(newDate.getDate() + 7)
+    } else if (viewMode === 'mes') {
+      newDate.setMonth(newDate.getMonth() + 1)
+    }
+    
+    setCurrentViewDate(newDate)
+    setSelectedDate(newDate)
+  }
+
+  const goToToday = () => {
+    const today = new Date()
+    setCurrentViewDate(today)
+    setSelectedDate(today)
+  }
+
+  const getNavigationTitle = () => {
+    if (viewMode === 'dia') {
+      return currentViewDate.toLocaleDateString("pt-BR", { 
+        weekday: "long", 
+        day: "numeric", 
+        month: "long", 
+        year: "numeric" 
+      })
+    } else if (viewMode === 'semana') {
+      const startOfWeek = new Date(currentViewDate)
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay())
+      const endOfWeek = new Date(startOfWeek)
+      endOfWeek.setDate(endOfWeek.getDate() + 6)
+      
+      return `${startOfWeek.getDate()} - ${endOfWeek.getDate()} de ${startOfWeek.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}`
+    } else {
+      return currentViewDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
+    }
+  }
   
-  // Simulated calendar data
-  const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
-  const dates = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date()
-    date.setDate(date.getDate() - date.getDay() + i)
-    return date
-  })
+  // Calculate week dates based on currentViewDate
+  const getWeekDates = () => {
+    const startOfWeek = new Date(currentViewDate)
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay())
+    
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(startOfWeek)
+      date.setDate(date.getDate() + i)
+      return date
+    })
+  }
 
   const getEventColor = (priority: string) => {
     switch (priority) {
       case "alta": return "bg-priority-high text-white"
+      case "urgente": return "bg-priority-high text-white"
       case "media": return "bg-priority-medium text-white"
       case "baixa": return "bg-priority-low text-white"
       default: return "bg-muted text-muted-foreground"
@@ -132,7 +194,7 @@ const Calendario = () => {
 
   // Função para renderizar visualização do dia
   const renderDayView = () => {
-    const today = selectedDate || currentDate
+    const today = currentViewDate
     const dayName = today.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
     const todayStr = today.toISOString().split('T')[0]
     const todayEvents = events.filter(event => event.dueDate === todayStr)
@@ -218,11 +280,14 @@ const Calendario = () => {
 
   // Função para renderizar visualização da semana
   const renderWeekView = () => {
+    const weekDates = getWeekDates()
+    const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
+    
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-7 gap-4 mb-4">
           {weekDays.map((day, index) => {
-            const currentWeekDate = dates[index]
+            const currentWeekDate = weekDates[index]
             const dayEvents = events.filter(event => 
               event.dueDate === currentWeekDate.toISOString().split('T')[0]
             )
@@ -230,11 +295,16 @@ const Calendario = () => {
             return (
               <div key={day} className="text-center">
                 <div className="text-sm font-medium text-muted-foreground mb-2">{day}</div>
-                <div className={`text-lg font-semibold p-2 rounded-lg relative ${
-                  index === new Date().getDay() 
+                <div className={`text-lg font-semibold p-2 rounded-lg relative cursor-pointer hover:bg-accent/30 ${
+                  currentWeekDate.toDateString() === currentDate.toDateString()
                     ? 'bg-primary text-primary-foreground' 
                     : 'text-card-foreground'
-                }`}>
+                }`}
+                onClick={() => {
+                  setViewMode('dia')
+                  setCurrentViewDate(currentWeekDate)
+                  setSelectedDate(currentWeekDate)
+                }}>
                   {currentWeekDate.getDate()}
                   {dayEvents.length > 0 && (
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
@@ -249,11 +319,6 @@ const Calendario = () => {
 
         <div className="grid grid-cols-7 gap-4 mt-8" style={{ minHeight: "400px" }}>
           {Array.from({ length: 24 }, (_, hour) => {
-            const hourEvents = events.filter(event => {
-              const eventHour = parseInt(event.time.split(':')[0])
-              return eventHour === hour
-            })
-            
             return (
               <div key={hour} className="col-span-7 border-b border-border/20 py-2">
                 <div className="flex">
@@ -261,7 +326,7 @@ const Calendario = () => {
                     {hour.toString().padStart(2, '0')}:00
                   </div>
                   <div className="flex-1 grid grid-cols-7 gap-1">
-                    {dates.map((weekDate, dayIndex) => {
+                    {weekDates.map((weekDate, dayIndex) => {
                       const dateStr = weekDate.toISOString().split('T')[0]
                       const dayHourEvents = events.filter(event => 
                         event.dueDate === dateStr && parseInt(event.time.split(':')[0]) === hour
@@ -272,7 +337,7 @@ const Calendario = () => {
                           {dayHourEvents.map((event, eventIndex) => (
                             <div
                               key={eventIndex}
-                              className={`text-xs p-1 rounded border mb-1 ${
+                              className={`text-xs p-1 rounded border mb-1 cursor-pointer hover:opacity-80 ${
                                 event.priority === 'alta' || event.priority === 'urgente'
                                   ? 'bg-priority-high/20 border-priority-high/30 text-priority-high'
                                   : event.priority === 'media'
@@ -300,9 +365,7 @@ const Calendario = () => {
 
   // Função para renderizar visualização do mês
   const renderMonthView = () => {
-    const today = new Date()
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+    const firstDayOfMonth = new Date(currentViewDate.getFullYear(), currentViewDate.getMonth(), 1)
     const startDate = new Date(firstDayOfMonth)
     startDate.setDate(startDate.getDate() - firstDayOfMonth.getDay())
     
@@ -333,13 +396,6 @@ const Calendario = () => {
 
     return (
       <div className="space-y-6">
-        {/* Cabeçalho do mês */}
-        <div className="text-center">
-          <h3 className="text-2xl font-bold text-card-foreground capitalize mb-2">
-            {today.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
-          </h3>
-        </div>
-
         {/* Grid do calendário */}
         <div className="bg-background rounded-lg border border-border overflow-hidden">
           {/* Cabeçalho dos dias da semana */}
@@ -355,8 +411,8 @@ const Calendario = () => {
           {weeks.map((week, weekIndex) => (
             <div key={weekIndex} className="grid grid-cols-7 border-t border-border">
               {week.map((date, dayIndex) => {
-                const isCurrentMonth = date.getMonth() === today.getMonth()
-                const isToday = date.toDateString() === today.toDateString()
+                const isCurrentMonth = date.getMonth() === currentViewDate.getMonth()
+                const isToday = date.toDateString() === currentDate.toDateString()
                 const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
                 const dayEvents = getEventsForDate(date)
                 
@@ -366,7 +422,10 @@ const Calendario = () => {
                     className={`min-h-[120px] p-2 border-r border-border last:border-r-0 cursor-pointer hover:bg-accent/30 transition-colors ${
                       !isCurrentMonth ? 'bg-muted/10 text-muted-foreground' : ''
                     } ${isSelected ? 'bg-primary/10 ring-2 ring-primary/20' : ''}`}
-                    onClick={() => setSelectedDate(date)}
+                    onClick={() => {
+                      setSelectedDate(date)
+                      setCurrentViewDate(date)
+                    }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className={`text-sm font-medium ${
@@ -386,8 +445,8 @@ const Calendario = () => {
                       {dayEvents.slice(0, 2).map((event, eventIndex) => (
                         <div
                           key={eventIndex}
-                          className={`text-xs p-1 rounded truncate ${
-                            event.priority === 'alta' 
+                          className={`text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 ${
+                            event.priority === 'alta' || event.priority === 'urgente'
                               ? 'bg-priority-high/20 text-priority-high border-l-2 border-priority-high' 
                               : event.priority === 'media' 
                               ? 'bg-priority-medium/20 text-priority-medium border-l-2 border-priority-medium'
@@ -425,7 +484,7 @@ const Calendario = () => {
             <div className="space-y-3">
               {getEventsForDate(selectedDate).length > 0 ? (
                 getEventsForDate(selectedDate).map((event) => (
-                  <div key={event.id} className="p-4 border border-border rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
+                  <div key={event.id} className="p-4 border border-border rounded-lg bg-background/50 hover:bg-background/80 transition-colors cursor-pointer">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 text-muted-foreground">
@@ -440,9 +499,14 @@ const Calendario = () => {
                           {event.team}
                         </Badge>
                       </div>
-                      <Badge className={`${getEventColor(event.priority)}`}>
-                        {event.priority.charAt(0).toUpperCase() + event.priority.slice(1)}
-                      </Badge>
+                      <div className="flex flex-col gap-1">
+                        <Badge className={`${getEventColor(event.priority)}`}>
+                          {event.priority.charAt(0).toUpperCase() + event.priority.slice(1)}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {event.status}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -479,245 +543,89 @@ const Calendario = () => {
               </p>
             </div>
           </div>
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
-                <Plus className="w-4 h-4 mr-2" />
-                Criar Agendamento
+          
+          {/* Controles de navegação */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={navigatePrevious}>
+                <ChevronLeft className="w-4 h-4" />
               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Novo Agendamento</DialogTitle>
-              </DialogHeader>
-              <Tabs defaultValue="reuniao" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="reuniao" className="flex items-center gap-2">
-                    <Video className="w-4 h-4" />
-                    Reunião
-                  </TabsTrigger>
-                  <TabsTrigger value="tarefa" className="flex items-center gap-2">
-                    <CheckSquare className="w-4 h-4" />
-                    Tarefa
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="reuniao" className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="reuniao-titulo">Título da Reunião</Label>
-                    <Input id="reuniao-titulo" placeholder="Ex: Reunião de vendas" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="reuniao-data">Data</Label>
-                      <Input id="reuniao-data" type="date" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="reuniao-hora">Horário</Label>
-                      <Input id="reuniao-hora" type="time" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reuniao-participantes">Participantes</Label>
-                    <Input id="reuniao-participantes" placeholder="Digite os nomes dos participantes" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reuniao-local">Local/Link</Label>
-                    <Input id="reuniao-local" placeholder="Sala de reuniões ou link da videoconferência" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reuniao-descricao">Descrição</Label>
-                    <Textarea id="reuniao-descricao" placeholder="Descrição da reunião..." />
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={() => setIsModalOpen(false)}>
-                      Criar Reunião
-                    </Button>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="tarefa" className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="tarefa-titulo">Título da Tarefa</Label>
-                    <Input id="tarefa-titulo" placeholder="Ex: Preparar relatório mensal" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="tarefa-data">Data de Vencimento</Label>
-                      <Input id="tarefa-data" type="date" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="tarefa-prioridade">Prioridade</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a prioridade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="baixa">Baixa</SelectItem>
-                          <SelectItem value="media">Média</SelectItem>
-                          <SelectItem value="alta">Alta</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="tarefa-responsavel">Responsável</Label>
-                    <Input id="tarefa-responsavel" placeholder="Nome do responsável" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="tarefa-equipe">Equipe</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a equipe" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="vendas">Vendas</SelectItem>
-                        <SelectItem value="marketing">Marketing</SelectItem>
-                        <SelectItem value="comercial">Comercial</SelectItem>
-                        <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="tarefa-descricao">Descrição</Label>
-                    <Textarea id="tarefa-descricao" placeholder="Descrição da tarefa..." />
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={() => setIsModalOpen(false)}>
-                      Criar Tarefa
-                    </Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </DialogContent>
-          </Dialog>
+              
+              <div className="text-center min-w-[200px]">
+                <h2 className="text-lg font-semibold text-foreground capitalize">
+                  {getNavigationTitle()}
+                </h2>
+              </div>
+              
+              <Button variant="outline" size="sm" onClick={navigateNext}>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            <Button variant="outline" size="sm" onClick={goToToday}>
+              Hoje
+            </Button>
+            
+            {/* Seletor de visualização */}
+            <div className="flex bg-muted rounded-lg p-1">
+              <Button
+                variant={viewMode === 'dia' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('dia')}
+                className="text-xs"
+              >
+                Dia
+              </Button>
+              <Button
+                variant={viewMode === 'semana' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('semana')}
+                className="text-xs"
+              >
+                Semana
+              </Button>
+              <Button
+                variant={viewMode === 'mes' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('mes')}
+                className="text-xs"
+              >
+                Mês
+              </Button>
+            </div>
+
+            <Button 
+              className="bg-primary hover:bg-primary-hover text-primary-foreground"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Criar Agendamento
+            </Button>
+          </div>
         </div>
       </header>
 
       <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          <div className="xl:col-span-3 space-y-6">
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <Button variant="outline" size="sm">
-                      <ChevronLeft className="w-4 h-4" />
-                    </Button>
-                    <CardTitle className="text-xl font-bold text-card-foreground capitalize">
-                      {currentMonth}
-                    </CardTitle>
-                    <Button variant="outline" size="sm">
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant={viewMode === 'dia' ? 'default' : 'outline'} 
-                      size="sm" 
-                      onClick={() => setViewMode('dia')}
-                      className={viewMode === 'dia' ? 'bg-primary text-primary-foreground' : ''}
-                    >
-                      Dia
-                    </Button>
-                    <Button 
-                      variant={viewMode === 'semana' ? 'default' : 'outline'} 
-                      size="sm" 
-                      onClick={() => setViewMode('semana')}
-                      className={viewMode === 'semana' ? 'bg-primary text-primary-foreground' : ''}
-                    >
-                      Semana
-                    </Button>
-                    <Button 
-                      variant={viewMode === 'mes' ? 'default' : 'outline'} 
-                      size="sm" 
-                      onClick={() => setViewMode('mes')}
-                      className={viewMode === 'mes' ? 'bg-primary text-primary-foreground' : ''}
-                    >
-                      Mês
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {viewMode === 'dia' && renderDayView()}
-                {viewMode === 'semana' && renderWeekView()}
-                {viewMode === 'mes' && renderMonthView()}
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="space-y-6">
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CalendarIcon className="w-5 h-5" />
-                  Próximos Agendamentos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {events.map((event) => (
-                  <div key={event.id} className="p-3 border border-border rounded-lg bg-background/50">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-sm text-card-foreground">{event.title}</h4>
-                          <Badge className={`text-xs ${event.teamColor} text-white border-0 px-2 py-1`}>
-                            {event.team}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-4 text-xs">
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <Clock className="w-3 h-3" />
-                            {event.time}
-                          </span>
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <Users className="w-3 h-3" />
-                            {event.assignee}
-                          </span>
-                          <span className={`${getDateStatus(event.dueDate).className}`}>
-                            {new Date(event.dueDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
-                          </span>
-                        </div>
-                      </div>
-                      <Badge className={`text-xs ${getEventColor(event.priority)}`}>
-                        {event.priority.charAt(0).toUpperCase() + event.priority.slice(1)}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle>Conectar Google Calendar</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center space-y-3">
-                  <div className="w-12 h-12 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto">
-                    <CalendarIcon className="w-6 h-6 text-yellow-600" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Google Calendar desconectado. Você está vendo apenas tarefas e lembretes locais.
-                  </p>
-                  <Button size="sm" className="bg-primary hover:bg-primary-hover text-primary-foreground">
-                    Conectar Google Calendar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        <div className="max-w-7xl mx-auto">
+          {viewMode === 'dia' && renderDayView()}
+          {viewMode === 'semana' && renderWeekView()}
+          {viewMode === 'mes' && renderMonthView()}
         </div>
       </div>
-    </div>
-  );
-};
 
-export default Calendario;
+      {/* Modal placeholder for future use */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Novo Agendamento</DialogTitle>
+          </DialogHeader>
+          <div className="p-4">
+            <p className="text-muted-foreground">Funcionalidade em desenvolvimento...</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+export default Calendario
