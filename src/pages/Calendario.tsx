@@ -3,12 +3,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CreateTaskModal } from "@/components/modals/CreateTaskModal"
+import { CreateMeetingModal } from "@/components/modals/CreateMeetingModal"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users, Video, CheckSquare } from "lucide-react"
 import { getDateStatus } from "@/utils/date-utils"
 import { useState, useEffect } from "react"
@@ -20,12 +17,14 @@ interface CalendarEvent {
   title: string
   time: string
   type: "task" | "meeting"
-  priority: "alta" | "media" | "baixa" | "urgente"
+  priority?: "alta" | "media" | "baixa" | "urgente"
   dueDate: string
-  team: string
-  teamColor: string
+  team?: string
+  teamColor?: string
   assignee: string
-  status: string
+  status?: string
+  duration?: number
+  participants?: string[]
 }
 
 const Calendario = () => {
@@ -35,6 +34,7 @@ const Calendario = () => {
   const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date())
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false)
+  const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false)
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
   
@@ -81,19 +81,20 @@ const Calendario = () => {
     }
   }
   
-  // Carregar tarefas da empresa
+  // Carregar tarefas e reuniões da empresa
   useEffect(() => {
     if (usuario?.empresa_id) {
-      loadTasks()
+      loadEvents()
     }
   }, [usuario?.empresa_id])
 
-  const loadTasks = async () => {
+  const loadEvents = async () => {
     if (!usuario?.empresa_id) return
     
     setLoading(true)
     try {
-      const { data: tarefas, error } = await supabase
+      // Carregar tarefas
+      const { data: tarefas, error: tarefasError } = await supabase
         .from('tarefas')
         .select(`
           *,
@@ -106,10 +107,27 @@ const Calendario = () => {
         .eq('arquivada', false)
         .order('data_conclusao', { ascending: true })
 
-      if (error) throw error
+      if (tarefasError) throw tarefasError
+
+      // Carregar reuniões
+      const { data: reunioes, error: reunioesError } = await supabase
+        .from('reunioes')
+        .select(`
+          *,
+          reunioes_participantes(
+            usuarios:usuario_id(nome),
+            equipes:equipe_id(nome)
+          )
+        `)
+        .eq('empresa_id', usuario.empresa_id)
+        .order('data_reuniao', { ascending: true })
+
+      if (reunioesError) throw reunioesError
+
+      const calendarEvents: CalendarEvent[] = []
 
       // Transform tasks to calendar events
-      const calendarEvents: CalendarEvent[] = tarefas?.map((tarefa: any) => {
+      tarefas?.forEach((tarefa: any) => {
         const responsaveis = tarefa.tarefas_responsaveis || []
         const usuarios = responsaveis.filter((r: any) => r.usuarios).map((r: any) => r.usuarios)
         const equipes = responsaveis.filter((r: any) => r.equipes).map((r: any) => r.equipes)
@@ -133,7 +151,7 @@ const Calendario = () => {
         const time = tarefa.horario_conclusao || '18:00:00'
         const timeFormatted = time.substring(0, 5) // HH:MM
 
-        return {
+        calendarEvents.push({
           id: tarefa.id,
           title: tarefa.titulo,
           time: timeFormatted,
@@ -144,12 +162,46 @@ const Calendario = () => {
           teamColor,
           assignee,
           status: tarefa.status
+        })
+      })
+
+      // Transform meetings to calendar events
+      reunioes?.forEach((reuniao: any) => {
+        const participantes = reuniao.reunioes_participantes || []
+        const usuarios = participantes.filter((p: any) => p.usuarios).map((p: any) => p.usuarios)
+        const equipes = participantes.filter((p: any) => p.equipes).map((p: any) => p.equipes)
+        
+        let assignee = 'Sem participantes'
+        const participantesNames: string[] = []
+        
+        usuarios.forEach((u: any) => participantesNames.push(u.nome))
+        equipes.forEach((e: any) => participantesNames.push(`Equipe: ${e.nome}`))
+        
+        if (participantesNames.length > 0) {
+          assignee = participantesNames.length > 2 
+            ? `${participantesNames.length} participantes`
+            : participantesNames.join(', ')
         }
-      }) || []
+
+        // Extract time from horario_inicio
+        const time = reuniao.horario_inicio || '09:00:00'
+        const timeFormatted = time.substring(0, 5) // HH:MM
+
+        calendarEvents.push({
+          id: reuniao.id,
+          title: reuniao.titulo,
+          time: timeFormatted,
+          type: 'meeting',
+          dueDate: reuniao.data_reuniao,
+          assignee,
+          duration: reuniao.duracao_minutos,
+          participants: participantesNames
+        })
+      })
 
       setEvents(calendarEvents)
     } catch (error) {
-      console.error('Error loading tasks:', error)
+      console.error('Error loading events:', error)
     } finally {
       setLoading(false)
     }
@@ -189,9 +241,9 @@ const Calendario = () => {
       <div className="space-y-4">
         <div className="text-center border-b border-border pb-4">
           <h3 className="text-2xl font-bold text-card-foreground capitalize mb-2">{dayName}</h3>
-          <p className="text-muted-foreground">
-            {loading ? 'Carregando tarefas...' : `${todayEvents.length} tarefa(s) agendada(s)`}
-          </p>
+            <p className="text-muted-foreground">
+              {loading ? 'Carregando agendamentos...' : `${todayEvents.length} agendamento(s) para hoje`}
+            </p>
         </div>
         
         <div className="max-h-[600px] overflow-y-auto">
@@ -534,10 +586,7 @@ const Calendario = () => {
             <div>
               <h1 className="text-2xl font-bold text-foreground">Agenda</h1>
               <p className="text-muted-foreground">
-                {loading 
-                  ? 'Carregando agenda...' 
-                  : `${events.length} tarefa(s) agendada(s)`
-                }
+                 {loading ? 'Carregando agenda...' : `${events.length} agendamento(s)`}
               </p>
             </div>
           </div>
@@ -567,133 +616,34 @@ const Calendario = () => {
                   <CheckSquare className="h-8 w-8" />
                   <span>Tarefa</span>
                 </Button>
-                <Button
-                  variant="outline"
-                  className="h-24 flex-col gap-2"
-                  onClick={() => {
-                    setIsTypeSelectionOpen(false)
-                    setIsModalOpen(true)
-                  }}
-                >
-                  <Video className="h-8 w-8" />
-                  <span>Reunião</span>
-                </Button>
+                  <Button
+                    variant="outline"
+                    className="h-24 flex-col gap-2"
+                    onClick={() => {
+                      setIsTypeSelectionOpen(false)
+                      setIsMeetingModalOpen(true)
+                    }}
+                  >
+                    <Video className="h-8 w-8" />
+                    <span>Reunião</span>
+                  </Button>
               </div>
             </DialogContent>
           </Dialog>
 
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Novo Agendamento</DialogTitle>
-              </DialogHeader>
-              <Tabs defaultValue="reuniao" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="reuniao" className="flex items-center gap-2">
-                    <Video className="w-4 h-4" />
-                    Reunião
-                  </TabsTrigger>
-                  <TabsTrigger value="tarefa" className="flex items-center gap-2">
-                    <CheckSquare className="w-4 h-4" />
-                    Tarefa
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="reuniao" className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="reuniao-titulo">Título da Reunião</Label>
-                    <Input id="reuniao-titulo" placeholder="Ex: Reunião de vendas" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="reuniao-data">Data</Label>
-                      <Input id="reuniao-data" type="date" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="reuniao-hora">Horário</Label>
-                      <Input id="reuniao-hora" type="time" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reuniao-participantes">Participantes</Label>
-                    <Input id="reuniao-participantes" placeholder="Digite os nomes dos participantes" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reuniao-local">Local/Link</Label>
-                    <Input id="reuniao-local" placeholder="Sala de reuniões ou link da videoconferência" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reuniao-descricao">Descrição</Label>
-                    <Textarea id="reuniao-descricao" placeholder="Descrição da reunião..." />
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={() => setIsModalOpen(false)}>
-                      Criar Reunião
-                    </Button>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="tarefa" className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="tarefa-titulo">Título da Tarefa</Label>
-                    <Input id="tarefa-titulo" placeholder="Ex: Preparar relatório mensal" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="tarefa-data">Data de Vencimento</Label>
-                      <Input id="tarefa-data" type="date" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="tarefa-prioridade">Prioridade</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a prioridade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="baixa">Baixa</SelectItem>
-                          <SelectItem value="media">Média</SelectItem>
-                          <SelectItem value="alta">Alta</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="tarefa-responsavel">Responsável</Label>
-                    <Input id="tarefa-responsavel" placeholder="Nome do responsável" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="tarefa-equipe">Equipe</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a equipe" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="vendas">Vendas</SelectItem>
-                        <SelectItem value="marketing">Marketing</SelectItem>
-                        <SelectItem value="comercial">Comercial</SelectItem>
-                        <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="tarefa-descricao">Descrição</Label>
-                    <Textarea id="tarefa-descricao" placeholder="Descrição da tarefa..." />
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={() => setIsModalOpen(false)}>
-                      Criar Tarefa
-                    </Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </DialogContent>
+            <CreateTaskModal
+              open={isModalOpen}
+              onOpenChange={setIsModalOpen}
+              onTaskCreated={loadEvents}
+            />
           </Dialog>
+
+          <CreateMeetingModal
+            open={isMeetingModalOpen}
+            onOpenChange={setIsMeetingModalOpen}
+            onMeetingCreated={loadEvents}
+          />
         </div>
       </header>
 
@@ -788,8 +738,17 @@ const Calendario = () => {
                           </span>
                         </div>
                       </div>
-                      <Badge className={`text-xs ${getEventColor(event.priority)}`}>
-                        {event.priority.charAt(0).toUpperCase() + event.priority.slice(1)}
+                      <Badge className={`text-xs ${
+                        event.type === 'task' && event.priority 
+                          ? getEventColor(event.priority) 
+                          : event.type === 'meeting' 
+                            ? 'bg-blue-500 text-white' 
+                            : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {event.type === 'task' 
+                          ? (event.priority?.charAt(0).toUpperCase() + event.priority?.slice(1) || 'Tarefa')
+                          : `${event.duration}min`
+                        }
                       </Badge>
                     </div>
                   </div>
@@ -807,7 +766,7 @@ const Calendario = () => {
                     <CalendarIcon className="w-6 h-6 text-yellow-600" />
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Google Calendar desconectado. Você está vendo apenas tarefas e lembretes locais.
+                    Conecte sua conta do Google para sincronizar eventos externos com as tarefas e reuniões do sistema.
                   </p>
                   <Button size="sm" className="bg-primary hover:bg-primary-hover text-primary-foreground">
                     Conectar Google Calendar

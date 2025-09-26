@@ -93,6 +93,80 @@ export type Database = {
           },
         ]
       }
+      reunioes: {
+        Row: {
+          created_at: string
+          criado_por: string
+          data_reuniao: string
+          descricao: string | null
+          duracao_minutos: number
+          empresa_id: string
+          horario_inicio: string
+          id: string
+          link_reuniao: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criado_por: string
+          data_reuniao: string
+          descricao?: string | null
+          duracao_minutos: number
+          empresa_id: string
+          horario_inicio: string
+          id?: string
+          link_reuniao?: string | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string
+          data_reuniao?: string
+          descricao?: string | null
+          duracao_minutos?: number
+          empresa_id?: string
+          horario_inicio?: string
+          id?: string
+          link_reuniao?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reunioes_participantes: {
+        Row: {
+          created_at: string
+          equipe_id: string | null
+          id: string
+          reuniao_id: string
+          usuario_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          equipe_id?: string | null
+          id?: string
+          reuniao_id: string
+          usuario_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          equipe_id?: string | null
+          id?: string
+          reuniao_id?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_reuniao"
+            columns: ["reuniao_id"]
+            isOneToOne: false
+            referencedRelation: "reunioes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tarefas: {
         Row: {
           arquivada: boolean

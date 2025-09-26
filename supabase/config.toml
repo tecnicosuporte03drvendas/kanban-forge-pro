@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.notify-user-deleted]
 verify_jwt = false
+
+[functions.notify-meeting-created]
+verify_jwt = false
