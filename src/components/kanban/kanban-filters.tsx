@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card"
 import { Search, Filter, X } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
+import { useAuth } from "@/contexts/AuthContext"
 import { Task } from "./kanban-board"
 
 interface KanbanFiltersProps {
@@ -29,27 +30,34 @@ export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
     dateTo: '',
     showOverdueOnly: false
   })
+  const { usuario } = useAuth()
   const [users, setUsers] = useState<Array<{id: string, nome: string}>>([])
   const [teams, setTeams] = useState<Array<{id: string, nome: string}>>([])
 
   useEffect(() => {
-    loadUsersAndTeams()
-  }, [])
+    if (usuario?.empresa_id) {
+      loadUsersAndTeams()
+    }
+  }, [usuario?.empresa_id])
 
   const loadUsersAndTeams = async () => {
-    // Load users (excluding master users)
+    if (!usuario?.empresa_id) return
+    
+    // Load users from the same company (excluding master users)
     const { data: usuarios } = await supabase
       .from('usuarios')
       .select('id, nome')
       .eq('ativo', true)
+      .eq('empresa_id', usuario.empresa_id)
       .neq('tipo_usuario', 'master')
     
     if (usuarios) setUsers(usuarios)
 
-    // Load teams
+    // Load teams from the same company
     const { data: equipes } = await supabase
       .from('equipes')
       .select('id, nome')
+      .eq('empresa_id', usuario.empresa_id)
     
     if (equipes) setTeams(equipes)
   }

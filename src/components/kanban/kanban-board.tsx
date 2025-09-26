@@ -41,6 +41,8 @@ export interface Task {
   tempo_fim?: string
   arquivada: boolean
   posicao_coluna?: number
+  responsaveis_ids: string[] // IDs de todos os usuários responsáveis
+  equipes_ids: string[] // IDs de todas as equipes responsáveis
 }
 
 interface KanbanBoardProps {
@@ -105,6 +107,10 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         const usuarios = responsaveis.filter((r: any) => r.usuarios).map((r: any) => r.usuarios)
         const equipes = responsaveis.filter((r: any) => r.equipes).map((r: any) => r.equipes)
         
+        // Get all responsible user and team IDs for filtering
+        const responsaveis_ids = usuarios.map((u: any) => u.id)
+        const equipes_ids = equipes.map((e: any) => e.id)
+        
         // Count total members (users + team members)
         let totalResponsaveis = usuarios.length
         // For now, assume each team has 1 member (could be enhanced to count actual team members)
@@ -155,6 +161,8 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
           tempo_fim: tarefa.tempo_fim,
           arquivada: tarefa.arquivada,
           posicao_coluna: tarefa.posicao_coluna || 0,
+          responsaveis_ids,
+          equipes_ids,
         }
       }) || []
 
@@ -396,14 +404,18 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         return false
       }
 
-      // Assignee filter - use assigneeId for comparison
-      if (filters.assignee && filters.assignee !== 'all' && task.assigneeId !== filters.assignee) {
-        return false
+      // Assignee filter - check if user is among task responsibles
+      if (filters.assignee && filters.assignee !== 'all') {
+        if (!task.responsaveis_ids.includes(filters.assignee)) {
+          return false
+        }
       }
 
-      // Team filter - use teamId for comparison
-      if (filters.team && filters.team !== 'all' && task.teamId !== filters.team) {
-        return false
+      // Team filter - check if team is among task responsibles
+      if (filters.team && filters.team !== 'all') {
+        if (!task.equipes_ids.includes(filters.team)) {
+          return false
+        }
       }
 
       // Date range filter
