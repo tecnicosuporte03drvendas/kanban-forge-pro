@@ -37,6 +37,7 @@ export interface Task {
   tempo_gasto_minutos?: number
   tempo_inicio?: string
   tempo_fim?: string
+  arquivada: boolean
 }
 
 interface KanbanBoardProps {
@@ -90,6 +91,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
           )
         `)
         .eq('empresa_id', usuario.empresa_id)
+        .eq('arquivada', false)
 
       if (error) throw error
 
@@ -139,6 +141,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
           tempo_gasto_minutos: tarefa.tempo_gasto_minutos,
           tempo_inicio: tarefa.tempo_inicio,
           tempo_fim: tarefa.tempo_fim,
+          arquivada: tarefa.arquivada,
         }
       }) || []
 

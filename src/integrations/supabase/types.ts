@@ -95,6 +95,7 @@ export type Database = {
       }
       tarefas: {
         Row: {
+          arquivada: boolean
           created_at: string
           criado_por: string
           data_conclusao: string
@@ -111,6 +112,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          arquivada?: boolean
           created_at?: string
           criado_por: string
           data_conclusao: string
@@ -127,6 +129,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          arquivada?: boolean
           created_at?: string
           criado_por?: string
           data_conclusao?: string
