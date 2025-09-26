@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, BarChart3, Tag, Archive, TrendingUp, Clock, Users, User, RefreshCw, Search } from "lucide-react"
+import { Plus, Tag, Archive, RefreshCw, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { TarefasList } from "@/components/TarefasList"
-import { ResponsiblePerformance } from "@/components/ResponsiblePerformance"
+import { TemporalAnalysis } from "@/components/temporal-analysis/TemporalAnalysis"
 
 
 const Tarefas = () => {
@@ -43,163 +43,7 @@ const Tarefas = () => {
           </TabsContent>
 
           <TabsContent value="analise" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-foreground">Análise Temporal</h2>
-                <p className="text-muted-foreground">Métricas de produtividade e tempo</p>
-              </div>
-              <Select defaultValue="esta-semana">
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="esta-semana">Esta Semana</SelectItem>
-                  <SelectItem value="este-mes">Este Mês</SelectItem>
-                  <SelectItem value="este-ano">Este Ano</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="border-border bg-card">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total de Tarefas</p>
-                      <p className="text-2xl font-bold text-foreground">4</p>
-                      <p className="text-xs text-muted-foreground">nesta semana</p>
-                    </div>
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <BarChart3 className="w-5 h-5 text-primary" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border bg-card">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Taxa de Conclusão</p>
-                      <p className="text-2xl font-bold text-foreground">25%</p>
-                      <div className="w-full bg-muted rounded-full h-2 mt-2">
-                        <div className="bg-primary h-2 rounded-full" style={{ width: '25%' }}></div>
-                      </div>
-                    </div>
-                    <div className="p-2 bg-blue-500/10 rounded-lg">
-                      <TrendingUp className="w-5 h-5 text-blue-500" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border bg-card">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Tempo Médio de Conclusão</p>
-                      <p className="text-2xl font-bold text-foreground">0.0h</p>
-                      <p className="text-xs text-muted-foreground">por tarefa</p>
-                    </div>
-                    <div className="p-2 bg-orange-500/10 rounded-lg">
-                      <Clock className="w-5 h-5 text-orange-500" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border bg-card">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Produtividade Média</p>
-                      <p className="text-2xl font-bold text-foreground">0%</p>
-                      <p className="text-xs text-muted-foreground">eficiência diária</p>
-                    </div>
-                    <div className="p-2 bg-green-500/10 rounded-lg">
-                      <TrendingUp className="w-5 h-5 text-green-500" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="border-border bg-card">
-                <CardHeader>
-                  <CardTitle>Distribuição de Prioridades</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                      <span className="text-sm text-foreground">Alta Prioridade</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-foreground">2</span>
-                      <span className="text-xs text-white bg-red-500 px-2 py-1 rounded">50%</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <span className="text-sm text-foreground">Média Prioridade</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-foreground">2</span>
-                      <span className="text-xs text-white bg-yellow-500 px-2 py-1 rounded">50%</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <span className="text-sm text-foreground">Baixa Prioridade</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-foreground">0</span>
-                      <span className="text-xs text-white bg-gray-500 px-2 py-1 rounded">0%</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border bg-card">
-                <CardHeader>
-                  <CardTitle>Visão Geral dos Status</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-foreground">Concluídas</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-foreground">1</span>
-                      <div className="w-20 bg-muted rounded-full h-2">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: '25%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-foreground">Em Execução</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-foreground">1</span>
-                      <div className="w-20 bg-muted rounded-full h-2">
-                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: '25%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-foreground">Pendentes</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-foreground">2</span>
-                      <div className="w-20 bg-muted rounded-full h-2">
-                        <div className="bg-orange-500 h-2 rounded-full" style={{ width: '50%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <ResponsiblePerformance />
+            <TemporalAnalysis />
           </TabsContent>
 
           <TabsContent value="tags" className="space-y-6">
