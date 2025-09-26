@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import type { TarefaComentario, TarefaAtividade } from '@/types/task'
 
 interface TaskActivityTabsProps {
@@ -133,45 +134,47 @@ export function TaskActivityTabs({
             </div>
           </TabsContent>
 
-          <TabsContent value="activity" className="p-4 space-y-4 mt-0">
-            {/* Activities List */}
-            <div className="space-y-4">
-              {activities.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8">
-                  <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>Nenhuma atividade ainda</p>
-                  <p className="text-xs">As atividades aparecerão aqui</p>
-                </div>
-              ) : (
-                activities.map((atividade) => (
-                  <div key={atividade.id} className="flex items-start gap-3">
-                    <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0",
-                      getActivityColor(atividade.acao)
-                    )}>
-                      <span className="text-xs">
-                        {getActivityIcon(atividade.acao)}
-                      </span>
-                    </div>
-                    <div className="flex-1 space-y-1 min-w-0">
-                      <div className="text-sm">
-                        <span className="font-medium">{atividade.usuario?.nome || 'Usuário'}</span>
-                        <span className="text-muted-foreground ml-1">{atividade.acao}</span>
-                        {atividade.descricao && (
-                          <>
-                            <span className="text-muted-foreground">: </span>
-                            <span className="text-muted-foreground">{atividade.descricao}</span>
-                          </>
-                        )}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {format(new Date(atividade.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
-                      </div>
-                    </div>
+          <TabsContent value="activity" className="p-4 space-y-4 mt-0 h-full">
+            <ScrollArea className="h-full">
+              {/* Activities List */}
+              <div className="space-y-4 pr-4">
+                {activities.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>Nenhuma atividade ainda</p>
+                    <p className="text-xs">As atividades aparecerão aqui</p>
                   </div>
-                ))
-              )}
-            </div>
+                ) : (
+                  activities.map((atividade) => (
+                    <div key={atividade.id} className="flex items-start gap-3">
+                      <div className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0",
+                        getActivityColor(atividade.acao)
+                      )}>
+                        <span className="text-xs">
+                          {getActivityIcon(atividade.acao)}
+                        </span>
+                      </div>
+                      <div className="flex-1 space-y-1 min-w-0">
+                        <div className="text-sm">
+                          <span className="font-medium">{atividade.usuario?.nome || 'Usuário'}</span>
+                          <span className="text-muted-foreground ml-1">{atividade.acao}</span>
+                          {atividade.descricao && (
+                            <>
+                              <span className="text-muted-foreground">: </span>
+                              <span className="text-muted-foreground">{atividade.descricao}</span>
+                            </>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(atividade.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
           </TabsContent>
         </Tabs>
       </div>
