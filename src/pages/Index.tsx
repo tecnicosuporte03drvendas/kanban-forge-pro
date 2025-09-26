@@ -90,6 +90,7 @@ const Index = () => {
         taskId={viewTaskId}
         open={!!viewTaskId}
         onOpenChange={(open) => !open && setViewTaskId(null)}
+        onTaskUpdated={handleTaskCreated}
       />
     </div>
   );
