@@ -149,7 +149,7 @@ export function TaskModal({
         data: atividadesData
       } = await supabase.from('tarefas_atividades').select(`
           *,
-          usuarios(nome)
+          usuario:usuarios(nome)
         `).eq('tarefa_id', taskId).order('created_at', {
         ascending: false
       });
