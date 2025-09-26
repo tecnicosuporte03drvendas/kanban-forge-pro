@@ -32,12 +32,53 @@ const Calendario = () => {
   const { usuario } = useAuth()
   const [viewMode, setViewMode] = useState<'dia' | 'semana' | 'mes'>('semana')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date())
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
   
   const currentDate = new Date()
-  const currentMonth = currentDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
+  
+  // Função para navegar entre períodos
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentViewDate)
+    
+    if (viewMode === 'dia') {
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1))
+    } else if (viewMode === 'semana') {
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7))
+    } else if (viewMode === 'mes') {
+      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1))
+    }
+    
+    setCurrentViewDate(newDate)
+  }
+
+  // Função para voltar ao dia atual
+  const goToToday = () => {
+    setCurrentViewDate(new Date())
+  }
+
+  // Função para obter o título dinâmico baseado na visualização
+  const getViewTitle = () => {
+    if (viewMode === 'dia') {
+      return currentViewDate.toLocaleDateString("pt-BR", { 
+        weekday: "long", 
+        day: "numeric", 
+        month: "long", 
+        year: "numeric" 
+      })
+    } else if (viewMode === 'semana') {
+      const startOfWeek = new Date(currentViewDate)
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay())
+      const endOfWeek = new Date(startOfWeek)
+      endOfWeek.setDate(endOfWeek.getDate() + 6)
+      
+      return `${startOfWeek.toLocaleDateString("pt-BR", { day: "numeric", month: "short" })} - ${endOfWeek.toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}`
+    } else {
+      return currentViewDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
+    }
+  }
   
   // Carregar tarefas da empresa
   useEffect(() => {
@@ -113,13 +154,19 @@ const Calendario = () => {
     }
   }
   
-  // Simulated calendar data
+  // Dados do calendário baseados na data de visualização atual
   const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
-  const dates = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date()
-    date.setDate(date.getDate() - date.getDay() + i)
-    return date
-  })
+  
+  // Calcular as datas da semana baseado na data de visualização atual
+  const getWeekDates = (baseDate: Date) => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(baseDate)
+      date.setDate(date.getDate() - date.getDay() + i)
+      return date
+    })
+  }
+  
+  const dates = getWeekDates(currentViewDate)
 
   const getEventColor = (priority: string) => {
     switch (priority) {
@@ -132,9 +179,9 @@ const Calendario = () => {
 
   // Função para renderizar visualização do dia
   const renderDayView = () => {
-    const today = selectedDate || currentDate
-    const dayName = today.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
-    const todayStr = today.toISOString().split('T')[0]
+    const viewDate = currentViewDate
+    const dayName = viewDate.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+    const todayStr = viewDate.toISOString().split('T')[0]
     const todayEvents = events.filter(event => event.dueDate === todayStr)
     
     return (
@@ -256,37 +303,44 @@ const Calendario = () => {
             
             return (
               <div key={hour} className="col-span-7 border-b border-border/20 py-2">
-                <div className="flex">
-                  <div className="w-16 text-xs text-muted-foreground">
-                    {hour.toString().padStart(2, '0')}:00
-                  </div>
-                  <div className="flex-1 grid grid-cols-7 gap-1">
-                    {dates.map((weekDate, dayIndex) => {
-                      const dateStr = weekDate.toISOString().split('T')[0]
-                      const dayHourEvents = events.filter(event => 
-                        event.dueDate === dateStr && parseInt(event.time.split(':')[0]) === hour
-                      )
+                  <div className="flex">
+                    <div className="w-16 text-xs text-muted-foreground">
+                      {hour.toString().padStart(2, '0')}:00
+                    </div>
+                    <div className="flex-1 grid grid-cols-7 gap-1">
+                      {dates.map((weekDate, dayIndex) => {
+                        const dateStr = weekDate.toISOString().split('T')[0]
+                        const dayHourEvents = events.filter(event => 
+                          event.dueDate === dateStr && parseInt(event.time.split(':')[0]) === hour
+                        )
                       
-                      return (
-                        <div key={dayIndex} className="min-h-[40px]">
-                          {dayHourEvents.map((event, eventIndex) => (
-                            <div
-                              key={eventIndex}
-                              className={`text-xs p-1 rounded border mb-1 ${
-                                event.priority === 'alta' || event.priority === 'urgente'
-                                  ? 'bg-priority-high/20 border-priority-high/30 text-priority-high'
-                                  : event.priority === 'media'
-                                  ? 'bg-priority-medium/20 border-priority-medium/30 text-priority-medium'
-                                  : 'bg-primary/20 border-primary/30 text-primary'
-                              }`}
-                              title={`${event.title} - ${event.assignee}`}
-                            >
-                              <div className="font-medium truncate">{event.time}</div>
-                              <div className="truncate">{event.title}</div>
-                            </div>
-                          ))}
-                        </div>
-                      )
+                        return (
+                          <div 
+                            key={dayIndex} 
+                            className="min-h-[40px] cursor-pointer hover:bg-accent/20 rounded"
+                            onClick={() => {
+                              setCurrentViewDate(weekDate)
+                              setViewMode('dia')
+                            }}
+                          >
+                            {dayHourEvents.map((event, eventIndex) => (
+                              <div
+                                key={eventIndex}
+                                className={`text-xs p-1 rounded border mb-1 ${
+                                  event.priority === 'alta' || event.priority === 'urgente'
+                                    ? 'bg-priority-high/20 border-priority-high/30 text-priority-high'
+                                    : event.priority === 'media'
+                                    ? 'bg-priority-medium/20 border-priority-medium/30 text-priority-medium'
+                                    : 'bg-primary/20 border-primary/30 text-primary'
+                                }`}
+                                title={`${event.title} - ${event.assignee}`}
+                              >
+                                <div className="font-medium truncate">{event.time}</div>
+                                <div className="truncate">{event.title}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )
                     })}
                   </div>
                 </div>
@@ -300,9 +354,9 @@ const Calendario = () => {
 
   // Função para renderizar visualização do mês
   const renderMonthView = () => {
-    const today = new Date()
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+    const viewDate = currentViewDate
+    const firstDayOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1)
+    const lastDayOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0)
     const startDate = new Date(firstDayOfMonth)
     startDate.setDate(startDate.getDate() - firstDayOfMonth.getDay())
     
@@ -336,7 +390,7 @@ const Calendario = () => {
         {/* Cabeçalho do mês */}
         <div className="text-center">
           <h3 className="text-2xl font-bold text-card-foreground capitalize mb-2">
-            {today.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
+            {viewDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
           </h3>
         </div>
 
@@ -355,8 +409,8 @@ const Calendario = () => {
           {weeks.map((week, weekIndex) => (
             <div key={weekIndex} className="grid grid-cols-7 border-t border-border">
               {week.map((date, dayIndex) => {
-                const isCurrentMonth = date.getMonth() === today.getMonth()
-                const isToday = date.toDateString() === today.toDateString()
+                const isCurrentMonth = date.getMonth() === viewDate.getMonth()
+                const isToday = date.toDateString() === currentDate.toDateString()
                 const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
                 const dayEvents = getEventsForDate(date)
                 
@@ -366,7 +420,11 @@ const Calendario = () => {
                     className={`min-h-[120px] p-2 border-r border-border last:border-r-0 cursor-pointer hover:bg-accent/30 transition-colors ${
                       !isCurrentMonth ? 'bg-muted/10 text-muted-foreground' : ''
                     } ${isSelected ? 'bg-primary/10 ring-2 ring-primary/20' : ''}`}
-                    onClick={() => setSelectedDate(date)}
+                    onClick={() => {
+                      setSelectedDate(date)
+                      setCurrentViewDate(date)
+                      setViewMode('dia')
+                    }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className={`text-sm font-medium ${
@@ -607,13 +665,18 @@ const Calendario = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => navigateDate('prev')}>
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
-                    <CardTitle className="text-xl font-bold text-card-foreground capitalize">
-                      {currentMonth}
-                    </CardTitle>
-                    <Button variant="outline" size="sm">
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-xl font-bold text-card-foreground capitalize">
+                        {getViewTitle()}
+                      </CardTitle>
+                      <Button variant="ghost" size="sm" onClick={goToToday} className="text-xs">
+                        Hoje
+                      </Button>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => navigateDate('next')}>
                       <ChevronRight className="w-4 h-4" />
                     </Button>
                   </div>
