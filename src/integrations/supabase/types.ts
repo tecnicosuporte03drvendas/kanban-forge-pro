@@ -104,6 +104,9 @@ export type Database = {
           id: string
           prioridade: Database["public"]["Enums"]["prioridade_tarefa"]
           status: Database["public"]["Enums"]["status_tarefa"]
+          tempo_fim: string | null
+          tempo_gasto_minutos: number | null
+          tempo_inicio: string | null
           titulo: string
           updated_at: string
         }
@@ -117,6 +120,9 @@ export type Database = {
           id?: string
           prioridade?: Database["public"]["Enums"]["prioridade_tarefa"]
           status?: Database["public"]["Enums"]["status_tarefa"]
+          tempo_fim?: string | null
+          tempo_gasto_minutos?: number | null
+          tempo_inicio?: string | null
           titulo: string
           updated_at?: string
         }
@@ -130,6 +136,9 @@ export type Database = {
           id?: string
           prioridade?: Database["public"]["Enums"]["prioridade_tarefa"]
           status?: Database["public"]["Enums"]["status_tarefa"]
+          tempo_fim?: string | null
+          tempo_gasto_minutos?: number | null
+          tempo_inicio?: string | null
           titulo?: string
           updated_at?: string
         }
@@ -366,6 +375,44 @@ export type Database = {
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tarefas_tempo_sessoes: {
+        Row: {
+          created_at: string
+          fim: string | null
+          id: string
+          inicio: string
+          minutos_trabalhados: number | null
+          tarefa_id: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          fim?: string | null
+          id?: string
+          inicio?: string
+          minutos_trabalhados?: number | null
+          tarefa_id: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          fim?: string | null
+          id?: string
+          inicio?: string
+          minutos_trabalhados?: number | null
+          tarefa_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_tempo_sessoes_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
             referencedColumns: ["id"]
           },
         ]
