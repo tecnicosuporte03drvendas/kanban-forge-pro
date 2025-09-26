@@ -20,6 +20,7 @@ interface AuthContextType {
   login: (email: string, senha: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
+  updateUsuario: (dadosAtualizados: Partial<Usuario>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -169,12 +170,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('usuario_logado');
   };
 
+  const updateUsuario = (dadosAtualizados: Partial<Usuario>) => {
+    if (usuario) {
+      const usuarioAtualizado = { ...usuario, ...dadosAtualizados };
+      setUsuario(usuarioAtualizado);
+      localStorage.setItem('usuario_logado', JSON.stringify(usuarioAtualizado));
+    }
+  };
+
   const value: AuthContextType = {
     usuario,
     loading,
     login,
     logout,
-    isAuthenticated: !!usuario
+    isAuthenticated: !!usuario,
+    updateUsuario
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

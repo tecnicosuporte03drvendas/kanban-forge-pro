@@ -38,7 +38,7 @@ import { useAuth } from "@/contexts/AuthContext"
 
 export default function Perfil() {
   const { toast } = useToast()
-  const { usuario } = useAuth()
+  const { usuario, updateUsuario } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [userData, setUserData] = useState({
@@ -185,7 +185,17 @@ export default function Perfil() {
 
       if (error) throw error
 
+      // Atualizar dados locais e no contexto
       setUserData(editData)
+      
+      // Atualizar o contexto de autenticação
+      updateUsuario({
+        nome: editData.name,
+        email: editData.email,
+        celular: editData.phone,
+        funcao_empresa: editData.department
+      })
+      
       setIsEditing(false)
       setShowProfileConfirmation(false)
       toast({
