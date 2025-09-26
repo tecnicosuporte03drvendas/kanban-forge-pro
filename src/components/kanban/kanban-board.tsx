@@ -29,7 +29,9 @@ export interface Task {
   priority: "alta" | "media" | "baixa" | "urgente"
   dueDate: string
   assignee: string
+  assigneeId?: string
   team: string
+  teamId?: string
   teamColor: string
   status: "criada" | "assumida" | "executando" | "concluida" | "validada"
   isCurrentUserAssigned?: boolean
@@ -112,6 +114,8 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         let team = ''
         let teamColor = 'bg-gray-500'
         let isCurrentUserAssigned = false
+        let assigneeId: string | undefined
+        let teamId: string | undefined
 
         // Check if current user is assigned
         if (usuario?.id) {
@@ -120,11 +124,15 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
 
         if (totalResponsaveis > 1) {
           assignee = `${totalResponsaveis} Responsáveis`
+          // For multiple responsibles, use the first user ID if available
+          assigneeId = usuarios.length > 0 ? usuarios[0].id : undefined
         } else if (usuarios.length > 0) {
           assignee = usuarios[0].nome
+          assigneeId = usuarios[0].id
         } else if (equipes.length > 0) {
           assignee = equipes[0].nome
           team = equipes[0].nome
+          teamId = equipes[0].id
           teamColor = 'bg-blue-500'
         }
 
@@ -135,7 +143,9 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
           priority: tarefa.prioridade,
           dueDate: tarefa.data_conclusao,
           assignee,
+          assigneeId,
           team,
+          teamId,
           teamColor,
           status: tarefa.status,
           isCurrentUserAssigned,
@@ -336,6 +346,21 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
 
       // Reload tasks to get updated time data
       loadTasks()
+
+      // If task completed, send webhook notification
+      if (status === 'concluida') {
+        try {
+          await supabase.functions.invoke('notify-task-completed', {
+            body: { 
+              taskId: taskId,
+              completedBy: user.id 
+            }
+          })
+        } catch (webhookError) {
+          console.warn('Failed to send task completion notification:', webhookError)
+          // Don't block the main functionality if webhook fails
+        }
+      }
     } catch (error) {
       console.error('Error updating task status:', error)
       // Revert local state on error
@@ -368,13 +393,13 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         return false
       }
 
-      // Assignee filter
-      if (filters.assignee && filters.assignee !== 'all' && task.assignee !== filters.assignee) {
+      // Assignee filter - use assigneeId for comparison
+      if (filters.assignee && filters.assignee !== 'all' && task.assigneeId !== filters.assignee) {
         return false
       }
 
-      // Team filter
-      if (filters.team && filters.team !== 'all' && task.team !== filters.team) {
+      // Team filter - use teamId for comparison
+      if (filters.team && filters.team !== 'all' && task.teamId !== filters.team) {
         return false
       }
 
