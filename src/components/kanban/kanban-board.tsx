@@ -278,11 +278,12 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       statusChanged: activeColumn !== finalStatus 
     })
     
+    // Sempre chama updateTaskStatus para lidar com tempo E posição
     if (activeColumn !== finalStatus) {
-      console.log('✅ Calling updateTaskStatus')
+      console.log('✅ Status changed - calling updateTaskStatus')
       updateTaskStatus(taskId, finalStatus)
     } else {
-      console.log('❌ Calling updateTaskPosition instead')
+      console.log('📍 Same status - updating only position')
       // Same column, just position change - save new order
       const tasksInColumn = getTasksByStatus(finalStatus)
       const targetIndex = tasksInColumn.findIndex(t => t.id === taskId)
@@ -300,16 +301,24 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       const oldTask = tasks.find(t => t.id === taskId)
       if (!oldTask) return
 
-      // Handle time tracking logic - lógica simplificada
+      // Handle time tracking logic - usar status original do drag
       const now = new Date().toISOString()
-      let updateFields: any = { status }
+      
+      // Calcular posição na nova coluna
+      const tasksInNewColumn = getTasksByStatus(status)
+      const newPosition = tasksInNewColumn.length // Posição no final da coluna
+      
+      let updateFields: any = { 
+        status,
+        posicao_coluna: newPosition 
+      }
 
       // Status change logic for time tracking
-      console.log('🔄 Status change:', { oldStatus: oldTask.status, newStatus: status, taskId })
+      console.log('🔄 Status change:', { oldStatus: activeColumn, newStatus: status, taskId })
       
-      if (oldTask.status !== status) {
+      if (activeColumn !== status) {
         // Saindo de "criada" pela primeira vez - registrar tempo_inicio
-        if (oldTask.status === 'criada' && (status === 'assumida' || status === 'executando')) {
+        if (activeColumn === 'criada' && (status === 'assumida' || status === 'executando')) {
           console.log('⏰ Setting tempo_inicio:', now)
           updateFields.tempo_inicio = now
         }
