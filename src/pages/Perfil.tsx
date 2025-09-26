@@ -60,6 +60,9 @@ export default function Perfil() {
     { label: "Tarefas Ativas", value: "0", icon: Calendar, color: "text-blue-600" },
     { label: "Taxa de Conclusão", value: "0%", icon: BarChart3, color: "text-purple-600" }
   ])
+  const [showProfileConfirmation, setShowProfileConfirmation] = useState(false)
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false)
+  const [profileChanges, setProfileChanges] = useState<string[]>([])
 
   // Carregar dados do usuário
   useEffect(() => {
@@ -133,6 +136,39 @@ export default function Perfil() {
   const handleSaveProfile = async () => {
     if (!usuario) return
 
+    // Verificar mudanças e mostrar confirmação
+    const changes: string[] = []
+    if (userData.name !== editData.name) {
+      changes.push(`Nome: "${userData.name}" → "${editData.name}"`)
+    }
+    if (userData.email !== editData.email) {
+      changes.push(`Email: "${userData.email}" → "${editData.email}"`)
+    }
+    if (userData.phone !== editData.phone) {
+      changes.push(`Telefone: "${userData.phone}" → "${editData.phone}"`)
+    }
+    if (userData.department !== editData.department) {
+      changes.push(`Departamento: "${userData.department}" → "${editData.department}"`)
+    }
+    if (userData.location !== editData.location) {
+      changes.push(`Localização: "${userData.location}" → "${editData.location}"`)
+    }
+
+    if (changes.length === 0) {
+      toast({
+        title: "Nenhuma alteração",
+        description: "Não há alterações para salvar.",
+      })
+      return
+    }
+
+    setProfileChanges(changes)
+    setShowProfileConfirmation(true)
+  }
+
+  const confirmSaveProfile = async () => {
+    if (!usuario) return
+
     try {
       setLoading(true)
 
@@ -151,6 +187,7 @@ export default function Perfil() {
 
       setUserData(editData)
       setIsEditing(false)
+      setShowProfileConfirmation(false)
       toast({
         title: "Perfil atualizado",
         description: "Suas informações foram salvas com sucesso.",
@@ -191,13 +228,28 @@ export default function Perfil() {
       return
     }
 
+    setShowPasswordConfirmation(true)
+  }
+
+  const confirmChangePassword = async () => {
     try {
+      setLoading(true)
+
+      // Primeiro, verificar se o usuário está autenticado
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      
+      if (userError || !user) {
+        throw new Error("Usuário não autenticado. Faça login novamente.")
+      }
+
+      // Atualizar senha
       const { error } = await supabase.auth.updateUser({
         password: passwordData.newPassword
       })
 
       if (error) throw error
 
+      setShowPasswordConfirmation(false)
       toast({
         title: "Senha alterada",
         description: "Sua senha foi alterada com sucesso.",
@@ -210,6 +262,8 @@ export default function Perfil() {
         description: error.message || "Ocorreu um erro ao alterar a senha.",
         variant: "destructive"
       })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -544,9 +598,97 @@ export default function Perfil() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            <TabsContent value="account">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-destructive">Zona de Perigo</CardTitle>
+                  <CardDescription>Ações irreversíveis para sua conta</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="border border-destructive/20 rounded-lg p-4">
+                    <h4 className="font-medium text-destructive mb-2">Excluir conta</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Esta ação solicitará a exclusão permanente da sua conta. 
+                      A solicitação será enviada ao gestor para aprovação.
+                    </p>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Solicitar Exclusão
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta ação enviará uma solicitação de exclusão da sua conta ao gestor. 
+                            Você receberá uma resposta em até 48 horas.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive hover:bg-destructive/90">
+                            Enviar Solicitação
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         </div>
       </div>
+
+      {/* Modal de confirmação para alteração do perfil */}
+      <AlertDialog open={showProfileConfirmation} onOpenChange={setShowProfileConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Alterações</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>Você está prestes a fazer as seguintes alterações em seu perfil:</p>
+              <div className="bg-muted p-3 rounded-md">
+                {profileChanges.map((change, index) => (
+                  <div key={index} className="text-sm font-medium">{change}</div>
+                ))}
+              </div>
+              <p>Deseja continuar com essas alterações?</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowProfileConfirmation(false)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSaveProfile}>
+              Confirmar Alterações
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Modal de confirmação para alteração de senha */}
+      <AlertDialog open={showPasswordConfirmation} onOpenChange={setShowPasswordConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Alteração de Senha</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você está prestes a alterar sua senha de acesso. Esta ação não pode ser desfeita.
+              Tem certeza que deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowPasswordConfirmation(false)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmChangePassword}>
+              Alterar Senha
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       </>
     )}
     </div>
