@@ -58,22 +58,24 @@ export function KanbanCard({ task, isDragging = false, onTaskClick }: KanbanCard
     }
   }
 
-  const [isDragActive, setIsDragActive] = useState(false)
+  const [isDragStarted, setIsDragStarted] = useState(false)
 
-  const handlePointerDown = () => {
-    setIsDragActive(false)
+  const handleMouseDown = () => {
+    setIsDragStarted(false)
   }
 
-  const handlePointerMove = () => {
-    setIsDragActive(true)
+  const handleDragStart = () => {
+    setIsDragStarted(true)
   }
 
   const handleClick = (e: React.MouseEvent) => {
-    // Only trigger click if not dragging and onTaskClick is provided
-    if (!isDragActive && !isDragging && !isSortableDragging && onTaskClick) {
-      e.stopPropagation()
-      onTaskClick(task.id)
-    }
+    // Small delay to allow drag to be detected
+    setTimeout(() => {
+      if (!isDragStarted && !isDragging && !isSortableDragging && onTaskClick) {
+        e.stopPropagation()
+        onTaskClick(task.id)
+      }
+    }, 10)
   }
 
   const dateStatus = getDateStatus(task.dueDate)
@@ -93,8 +95,8 @@ export function KanbanCard({ task, isDragging = false, onTaskClick }: KanbanCard
       className={cardClass}
       {...attributes}
       {...listeners}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
+      onMouseDown={handleMouseDown}
+      onDragStart={handleDragStart}
       onClick={handleClick}
     >
       <div className="space-y-3">

@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { CreateTaskModal } from "@/components/modals/CreateTaskModal"
-import { ViewTaskModal } from "@/components/modals/ViewTaskModal"
+import { TaskModal } from "@/components/modals/TaskModal"
 
 const Index = () => {
   const { usuario, logout } = useAuth();
@@ -90,7 +90,7 @@ const Index = () => {
         onTaskCreated={handleTaskCreated}
       />
 
-      <ViewTaskModal 
+      <TaskModal 
         taskId={viewTaskId}
         open={!!viewTaskId}
         onOpenChange={(open) => !open && setViewTaskId(null)}
