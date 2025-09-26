@@ -1,78 +1,64 @@
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { RefreshCw, Download, TrendingUp, Clock, Target, CheckSquare, CheckCircle } from "lucide-react"
-import { getDateStatus } from "@/utils/date-utils"
+import { useState, useEffect } from "react";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RefreshCw, Download } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { IndividualStats } from "@/components/performance/IndividualStats";
+import { TeamStats } from "@/components/performance/TeamStats";
+import { CompanyStats } from "@/components/performance/CompanyStats";
+import { RecentActivities } from "@/components/performance/RecentActivities";
+import { WeeklyChart } from "@/components/performance/WeeklyChart";
 
 const Desempenho = () => {
-  const performanceData = {
-    tasksCompleted: 1,
-    tasksPending: 3,
-    tasksOverdue: 0,
-    productivity: 25,
-    weeklyGoal: 4,
-    monthlyGoal: 16
-  }
+  const { usuario } = useAuth();
+  const [companyName, setCompanyName] = useState<string>('');
+  const [loading, setLoading] = useState(true);
 
-  const insights = [
-    {
-      type: "success",
-      title: "Excelente Performance!",
-      description: "Sua produtividade de 25% está acima da média da equipe (20%).",
-      icon: TrendingUp,
-      color: "text-kanban-completed"
-    },
-    {
-      type: "tip",
-      title: "Dica",
-      description: "Tente manter uma rotina consistente para melhorar ainda mais sua produtividade.",
-      icon: Target,
-      color: "text-primary"
+  useEffect(() => {
+    if (usuario?.empresa_id) {
+      loadCompanyInfo();
     }
-  ]
+  }, [usuario?.empresa_id]);
 
-  const weeklyProgress = [
-    { day: "Segunda", tasks: 0, goal: 1 },
-    { day: "Terça", tasks: 1, goal: 1 },
-    { day: "Quarta", tasks: 0, goal: 1 },
-    { day: "Quinta", tasks: 0, goal: 1 },
-    { day: "Sexta", tasks: 0, goal: 1 },
-    { day: "Sábado", tasks: 0, goal: 0 },
-    { day: "Domingo", tasks: 0, goal: 0 }
-  ]
+  const loadCompanyInfo = async () => {
+    try {
+      const { data: empresa } = await supabase
+        .from('empresas')
+        .select('nome_fantasia')
+        .eq('id', usuario?.empresa_id)
+        .single();
 
-  const recentActivities = [
-    {
-      id: 1,
-      action: "Tarefa concluída",
-      task: "Análise de vendas Q4",
-      time: "2 horas atrás",
-      team: "Vendas",
-      teamColor: "bg-blue-500",
-      dueDate: "2025-01-20"
-    },
-    {
-      id: 2,
-      action: "Nova tarefa criada",
-      task: "Reunião com cliente ABC",
-      time: "4 horas atrás",
-      team: "Comercial",
-      teamColor: "bg-green-500",
-      dueDate: "2025-01-22"
-    },
-    {
-      id: 3,
-      action: "Tarefa atualizada",
-      task: "Campanha de marketing",
-      time: "1 dia atrás",
-      team: "Marketing",
-      teamColor: "bg-purple-500",
-      dueDate: "2025-01-25"
+      if (empresa) {
+        setCompanyName(empresa.nome_fantasia);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar informações da empresa:', error);
+    } finally {
+      setLoading(false);
     }
-  ]
+  };
+
+  // Determinar título e tabs baseado no tipo de usuário
+  const isCollaborator = usuario?.tipo_usuario === 'colaborador';
+  const pageTitle = isCollaborator ? 'Meu Desempenho' : 'Desempenho';
+  
+  const getAvailableTabs = () => {
+    if (isCollaborator) {
+      return ['performance', 'metas'];
+    }
+    return ['performance', 'equipe', 'empresa', 'metas'];
+  };
+
+  const refreshData = () => {
+    loadCompanyInfo();
+    // Forçar refresh dos componentes filhos
+    window.location.reload();
+  };
 
   return (
     <div className="flex flex-col h-screen">
@@ -81,12 +67,17 @@ const Desempenho = () => {
           <div className="flex items-center gap-4">
             <SidebarTrigger className="lg:hidden" />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Meu Desempenho</h1>
-              <p className="text-muted-foreground">Acompanhe sua produtividade e performance no workspace atual</p>
+              <h1 className="text-2xl font-bold text-foreground">{pageTitle}</h1>
+              <p className="text-muted-foreground">
+                {isCollaborator 
+                  ? 'Acompanhe sua produtividade e performance pessoal'
+                  : 'Acompanhe a produtividade e performance da equipe'
+                }
+              </p>
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={refreshData}>
               <RefreshCw className="w-4 h-4 mr-2" />
               Atualizar
             </Button>
@@ -105,142 +96,60 @@ const Desempenho = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    DrVendas - Workspace
-                    <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-                      Ativo
-                    </Badge>
+                    {loading ? (
+                      <div className="h-6 bg-muted animate-pulse rounded w-40"></div>
+                    ) : (
+                      <>
+                        {companyName} - Ambiente Corporativo
+                        <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                          Ativo
+                        </Badge>
+                      </>
+                    )}
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">Workspace Ativo</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {isCollaborator ? 'Sua Performance Individual' : 'Visão Geral da Empresa'}
+                  </p>
                 </div>
                 <Avatar className="w-12 h-12">
                   <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground font-medium text-lg">
-                    DV
+                    {companyName ? companyName.substring(0, 2).toUpperCase() : 'TC'}
                   </AvatarFallback>
                 </Avatar>
               </div>
             </CardHeader>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="border-border bg-card">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Tarefas Concluídas
-                </CardTitle>
-                <CheckSquare className="h-4 w-4 text-kanban-completed" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">{performanceData.tasksCompleted}</div>
-                <p className="text-xs text-muted-foreground">de 4 tarefas</p>
-                <div className="mt-2 w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-kanban-completed h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(performanceData.tasksCompleted / 4) * 100}%` }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border bg-card">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Tarefas Pendentes
-                </CardTitle>
-                <Clock className="h-4 w-4 text-kanban-executing" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">{performanceData.tasksPending}</div>
-                <p className="text-xs text-muted-foreground">aguardando conclusão</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border bg-card">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Tarefas Atrasadas
-                </CardTitle>
-                <Target className="h-4 w-4 text-destructive" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">{performanceData.tasksOverdue}</div>
-                <p className="text-xs text-muted-foreground">fora do prazo</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border bg-card">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Produtividade
-                </CardTitle>
-                <TrendingUp className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">{performanceData.productivity}%</div>
-                <p className="text-xs text-muted-foreground">+5% da semana</p>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Estatísticas baseadas no tipo de usuário */}
+          <IndividualStats userId={isCollaborator ? usuario?.id : undefined} />
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2 space-y-6">
               <Tabs defaultValue="performance" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-4 bg-card">
-                  <TabsTrigger value="performance">Minha Performance</TabsTrigger>
-                  <TabsTrigger value="equipe">Equipe</TabsTrigger>
-                  <TabsTrigger value="empresa">Empresa</TabsTrigger>
+                <TabsList className={`grid w-full ${isCollaborator ? 'grid-cols-2' : 'grid-cols-4'} bg-card`}>
+                  <TabsTrigger value="performance">
+                    {isCollaborator ? 'Minha Performance' : 'Performance Individual'}
+                  </TabsTrigger>
+                  {!isCollaborator && <TabsTrigger value="equipe">Equipe</TabsTrigger>}
+                  {!isCollaborator && <TabsTrigger value="empresa">Empresa</TabsTrigger>}
                   <TabsTrigger value="metas">Metas</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="performance">
-                  <Card className="border-border bg-card">
-                    <CardHeader>
-                      <CardTitle>Histórico de Performance</CardTitle>
-                      <p className="text-sm text-muted-foreground">Acompanhe sua evolução ao longo do tempo</p>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {weeklyProgress.map((day, index) => (
-                          <div key={index} className="flex items-center gap-4">
-                            <div className="w-20 text-sm font-medium text-muted-foreground">{day.day}</div>
-                            <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                              <div 
-                                className={`h-full transition-all duration-300 ${
-                                  day.tasks >= day.goal ? 'bg-kanban-completed' : 'bg-kanban-executing'
-                                }`}
-                                style={{ width: day.goal > 0 ? `${(day.tasks / day.goal) * 100}%` : '0%' }}
-                              />
-                            </div>
-                            <div className="w-16 text-sm font-medium text-card-foreground">
-                              {day.tasks}/{day.goal}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <WeeklyChart userId={isCollaborator ? usuario?.id : undefined} />
                 </TabsContent>
 
-                <TabsContent value="equipe">
-                  <Card className="border-border bg-card">
-                    <CardHeader>
-                      <CardTitle>Performance da Equipe</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">Comparação com outros membros da equipe.</p>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+{!isCollaborator && (
+                  <TabsContent value="equipe">
+                    <TeamStats />
+                  </TabsContent>
+                )}
 
-                <TabsContent value="empresa">
-                  <Card className="border-border bg-card">
-                    <CardHeader>
-                      <CardTitle>Performance da Empresa</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">Métricas e indicadores da empresa.</p>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+{!isCollaborator && (
+                  <TabsContent value="empresa">
+                    <CompanyStats />
+                  </TabsContent>
+                )}
 
                 <TabsContent value="metas">
                   <Card className="border-border bg-card">
@@ -256,84 +165,7 @@ const Desempenho = () => {
             </div>
 
             <div className="space-y-6">
-              <Card className="border-border bg-card">
-                <CardHeader>
-                  <CardTitle>Insights de Performance</CardTitle>
-                  <p className="text-sm text-muted-foreground">Análises baseadas no seu desempenho</p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {insights.map((insight, index) => {
-                    const IconComponent = insight.icon
-                    return (
-                      <div key={index} className="p-3 border border-border rounded-lg bg-background/50">
-                        <div className="flex items-start gap-3">
-                          <div className={`p-2 rounded-lg ${insight.type === 'success' ? 'bg-green-500/10' : 'bg-blue-500/10'}`}>
-                            <IconComponent className={`w-4 h-4 ${insight.color}`} />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-sm text-card-foreground">{insight.title}</h4>
-                            <p className="text-xs text-muted-foreground mt-1">{insight.description}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </CardContent>
-              </Card>
-
-              <Card className="border-border bg-card">
-                <CardHeader>
-                  <CardTitle>Métricas de Engajamento</CardTitle>
-                  <p className="text-sm text-muted-foreground">Indicadores de atividade do workspace</p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span>Tarefas criadas hoje</span>
-                    <Badge>142</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Tarefas concluídas hoje</span>
-                    <Badge>98</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Novos usuários (semana)</span>
-                    <Badge>27</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Taxa de conclusão</span>
-                    <Badge>73.2%</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border bg-card">
-                <CardHeader>
-                  <CardTitle>Atividades Recentes</CardTitle>
-                  <p className="text-sm text-muted-foreground">Suas últimas ações no sistema</p>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {recentActivities.map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3 p-3 border-l-2 border-primary/20 bg-accent/30 rounded-r-lg">
-                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-sm">{activity.action}</p>
-                          <Badge className={`text-xs ${activity.teamColor} text-white border-0 px-2 py-1`}>
-                            {activity.team}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-foreground mb-1">{activity.task}</p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{activity.time}</span>
-                          <span className={getDateStatus(activity.dueDate).className}>
-                            • Vencimento: {new Date(activity.dueDate).toLocaleDateString("pt-BR")}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+              <RecentActivities userId={isCollaborator ? usuario?.id : undefined} />
             </div>
           </div>
         </div>

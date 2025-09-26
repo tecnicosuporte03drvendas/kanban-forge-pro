@@ -38,13 +38,13 @@ import { useTheme } from "@/components/theme-provider"
 import { useAuth } from "@/contexts/AuthContext"
 import { supabase } from "@/integrations/supabase/client"
 
-const menuItems = [
+const getMenuItems = (tipoUsuario: string) => [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Tarefas", url: "/tarefas", icon: CheckSquare },
   { title: "Calendário", url: "/calendario", icon: Calendar },
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
   { title: "Empresa", url: "/empresa", icon: Users },
-  { title: "Meu Desempenho", url: "/desempenho", icon: User },
+  { title: tipoUsuario === 'colaborador' ? "Meu Desempenho" : "Desempenho", url: "/desempenho", icon: User },
   { title: "Integrações", url: "/integracoes", icon: Settings },
   { title: "Central de Ajuda", url: "/ajuda", icon: HelpCircle },
   { title: "Administração", url: "/adminmasterauth", icon: Shield },
@@ -135,7 +135,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => {
+              {getMenuItems(usuario?.tipo_usuario || '').map((item) => {
                 // Ocultar "Administração" para usuários que não sejam master
                 if (item.title === "Administração" && usuario?.tipo_usuario !== 'master') {
                   return null;
