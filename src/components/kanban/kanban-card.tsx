@@ -4,6 +4,7 @@ import { Task } from "./kanban-board"
 import { Calendar, User, AlertCircle, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { getDateStatus, formatDate } from "@/utils/date-utils"
+import { useState } from "react"
 
 interface KanbanCardProps {
   task: Task
@@ -26,6 +27,7 @@ export function KanbanCard({ task, isDragging = false, onTaskClick }: KanbanCard
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    touchAction: 'none' as const, // Prevent default drag behavior to fix conflict with click
   }
 
   const getPriorityColor = (priority: Task["priority"]) => {
@@ -56,9 +58,19 @@ export function KanbanCard({ task, isDragging = false, onTaskClick }: KanbanCard
     }
   }
 
+  const [isDragActive, setIsDragActive] = useState(false)
+
+  const handlePointerDown = () => {
+    setIsDragActive(false)
+  }
+
+  const handlePointerMove = () => {
+    setIsDragActive(true)
+  }
+
   const handleClick = (e: React.MouseEvent) => {
     // Only trigger click if not dragging and onTaskClick is provided
-    if (!isDragging && !isSortableDragging && onTaskClick) {
+    if (!isDragActive && !isDragging && !isSortableDragging && onTaskClick) {
       e.stopPropagation()
       onTaskClick(task.id)
     }
@@ -81,35 +93,37 @@ export function KanbanCard({ task, isDragging = false, onTaskClick }: KanbanCard
       className={cardClass}
       {...attributes}
       {...listeners}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
       onClick={handleClick}
     >
       <div className="space-y-3">
-        <div className="space-y-2">
-          <div className="flex items-start justify-between">
-            <h4 className="font-medium text-card-foreground text-sm leading-tight flex-1">
-              {task.title}
-            </h4>
-            {task.isCurrentUserAssigned && (
-              <div className="w-2 h-2 bg-green-500 rounded-full ml-2 mt-1 flex-shrink-0" title="Você está nesta tarefa" />
-            )}
-          </div>
-          <div className="flex items-center gap-1 flex-wrap">
-            {task.team && (
+          <div className="space-y-2">
+            <div className="flex items-start justify-between">
+              <h4 className="font-medium text-card-foreground text-sm leading-tight flex-1">
+                {task.title}
+              </h4>
+              {task.isCurrentUserAssigned && (
+                <div className="w-2 h-2 bg-green-500 rounded-full ml-2 mt-1 flex-shrink-0" title="Você está nesta tarefa" />
+              )}
+            </div>
+            <div className="flex items-center gap-1 flex-wrap">
+              {task.team && (
+                <Badge 
+                  variant="secondary" 
+                  className={`text-xs ${task.teamColor} text-white border-0 px-2 py-1`}
+                >
+                  {task.team}
+                </Badge>
+              )}
               <Badge 
                 variant="secondary" 
-                className={`text-xs ${task.teamColor} text-white border-0 px-2 py-1`}
+                className={`text-xs ${getPriorityColor(task.priority)} border-0 flex items-center gap-1`}
               >
-                {task.team}
+                {getPriorityIcon(task.priority)}
+                {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
               </Badge>
-            )}
-            <Badge 
-              variant="secondary" 
-              className={`text-xs ${getPriorityColor(task.priority)} border-0 flex items-center gap-1`}
-            >
-              {getPriorityIcon(task.priority)}
-              {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-            </Badge>
-          </div>
+            </div>
         </div>
 
         <p className="text-xs text-muted-foreground leading-relaxed">

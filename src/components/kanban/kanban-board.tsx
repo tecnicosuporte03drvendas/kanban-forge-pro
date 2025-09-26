@@ -1,6 +1,17 @@
 import { useState, useMemo, useEffect } from "react"
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners } from "@dnd-kit/core"
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { 
+  DndContext, 
+  DragEndEvent, 
+  DragOverlay, 
+  DragStartEvent, 
+  closestCenter,
+  DragOverEvent
+} from "@dnd-kit/core"
+import { 
+  SortableContext, 
+  verticalListSortingStrategy,
+  arrayMove
+} from "@dnd-kit/sortable"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { KanbanColumn } from "./kanban-column"
@@ -43,6 +54,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(false)
   const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const [activeColumn, setActiveColumn] = useState<string | null>(null)
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     assignee: 'all',
@@ -132,53 +144,90 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
 
   const handleDragStart = (event: DragStartEvent) => {
     const task = tasks.find(t => t.id === event.active.id)
-    setActiveTask(task || null)
+    if (task) {
+      setActiveTask(task)
+      setActiveColumn(task.status)
+    }
+  }
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event
+    
+    if (!over) return
+    
+    const activeId = active.id as string
+    const overId = over.id as string
+    
+    // Find the active task
+    const activeTask = tasks.find(t => t.id === activeId)
+    if (!activeTask) return
+    
+    // Check if over a column or another task
+    const isOverColumn = columns.some(col => col.id === overId)
+    const overTask = tasks.find(t => t.id === overId)
+    
+    if (isOverColumn) {
+      // Dragging over a column
+      const newStatus = overId as StatusTarefa
+      if (activeTask.status !== newStatus) {
+        setTasks(prev => 
+          prev.map(task =>
+            task.id === activeId ? { ...task, status: newStatus } : task
+          )
+        )
+      }
+    } else if (overTask && activeTask.status === overTask.status) {
+      // Dragging over another task in the same column - reorder
+      const activeIndex = tasks.findIndex(t => t.id === activeId)
+      const overIndex = tasks.findIndex(t => t.id === overId)
+      
+      if (activeIndex !== overIndex) {
+        setTasks(prev => arrayMove(prev, activeIndex, overIndex))
+      }
+    } else if (overTask && activeTask.status !== overTask.status) {
+      // Dragging over a task in a different column - move to that column
+      setTasks(prev => 
+        prev.map(task =>
+          task.id === activeId ? { ...task, status: overTask.status } : task
+        )
+      )
+    }
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     
+    setActiveTask(null)
+    setActiveColumn(null)
+    
     if (!over) return
 
     const taskId = active.id as string
-    
-    // Get the correct status from the column id
-    let newStatus: StatusTarefa
     const overId = over.id as string
     
-    // Map column IDs to status values
-    switch (overId) {
-      case 'criada':
-        newStatus = 'criada'
-        break
-      case 'assumida':
-        newStatus = 'assumida'
-        break
-      case 'executando':
-        newStatus = 'executando'
-        break
-      case 'concluida':
-        newStatus = 'concluida'
-        break
-      case 'validada':
-        newStatus = 'validada'
-        break
-      default:
-        console.error('Invalid column id:', overId)
-        return
-    }
-
-    // Update local state immediately
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === taskId ? { ...task, status: newStatus } : task
-      )
-    )
-
-    // Update in database
-    updateTaskStatus(taskId, newStatus)
+    // Find the task that was moved
+    const movedTask = tasks.find(t => t.id === taskId)
+    if (!movedTask) return
     
-    setActiveTask(null)
+    // Determine the final status
+    let finalStatus: StatusTarefa = movedTask.status
+    
+    // Check if dropped on a column
+    const isOverColumn = columns.some(col => col.id === overId)
+    if (isOverColumn) {
+      finalStatus = overId as StatusTarefa
+    } else {
+      // Check if dropped on another task
+      const overTask = tasks.find(t => t.id === overId)
+      if (overTask) {
+        finalStatus = overTask.status
+      }
+    }
+    
+    // Update in database if status changed
+    if (movedTask.status !== finalStatus) {
+      updateTaskStatus(taskId, finalStatus)
+    }
   }
 
   const updateTaskStatus = async (taskId: string, status: StatusTarefa) => {
@@ -269,27 +318,29 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         </div>
       ) : (
         <DndContext
-          collisionDetection={closestCorners}
+          collisionDetection={closestCenter}
           onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
           <div className="flex gap-6 overflow-x-auto pb-4 min-h-[calc(100vh-400px)]">
             {columns.map((column) => {
               const columnTasks = getTasksByStatus(column.id as Task["status"])
               return (
-                <SortableContext
-                  key={column.id}
-                  items={columnTasks.map(task => task.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <KanbanColumn
-                    id={column.id}
-                    title={column.title}
-                    tasks={columnTasks}
-                    color={column.color}
-                    onTaskClick={onTaskClick}
-                  />
-                </SortableContext>
+                <div key={column.id}>
+                  <SortableContext
+                    items={columnTasks.map(task => task.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <KanbanColumn
+                      id={column.id}
+                      title={column.title}
+                      tasks={columnTasks}
+                      color={column.color}
+                      onTaskClick={onTaskClick}
+                    />
+                  </SortableContext>
+                </div>
               )
             })}
           </div>

@@ -52,7 +52,7 @@ export function KanbanColumn({ id, title, tasks, color, onTaskClick }: KanbanCol
 
       <div
         ref={setNodeRef}
-        className="flex-1 p-4 space-y-3"
+        className="flex-1 p-4 space-y-3 min-h-40"
       >
         {tasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-center">
@@ -69,11 +69,11 @@ export function KanbanColumn({ id, title, tasks, color, onTaskClick }: KanbanCol
             </Button>
           </div>
         ) : (
-          <SortableContext items={tasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
+          <>
             {tasks.map((task) => (
               <KanbanCard key={task.id} task={task} onTaskClick={onTaskClick} />
             ))}
-          </SortableContext>
+          </>
         )}
       </div>
     </div>
