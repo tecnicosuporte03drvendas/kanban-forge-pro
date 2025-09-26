@@ -18,6 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from '@/hooks/use-toast'
+import { useAuth } from '@/contexts/AuthContext'
 import type { PrioridadeTarefa } from '@/types/task'
 
 interface Usuario {
@@ -59,6 +60,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
   const [responsibleOptions, setResponsibleOptions] = useState<ResponsibleOption[]>([])
   const [selectedResponsibles, setSelectedResponsibles] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+  const { usuario } = useAuth()
 
   const form = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
@@ -133,20 +135,12 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
   const onSubmit = async (values: z.infer<typeof taskSchema>) => {
     setLoading(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      if (!usuario) {
         toast({ title: 'Erro', description: 'Usuário não autenticado', variant: 'destructive' })
         return
       }
 
-      // Get user's empresa_id
-      const { data: usuario } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single()
-
-      if (!usuario?.empresa_id) {
+      if (!usuario.empresa_id) {
         toast({ title: 'Erro', description: 'Empresa não encontrada', variant: 'destructive' })
         return
       }
@@ -161,7 +155,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
           data_conclusao: format(values.data_conclusao, 'yyyy-MM-dd'),
           horario_conclusao: values.horario_conclusao,
           empresa_id: usuario.empresa_id,
-          criado_por: user.id,
+          criado_por: usuario.id,
         })
         .select()
         .single()
@@ -190,7 +184,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
       // Create activity record
       await supabase.from('tarefas_atividades').insert({
         tarefa_id: tarefa.id,
-        usuario_id: user.id,
+        usuario_id: usuario.id,
         acao: 'criou',
         descricao: 'Tarefa criada',
       })
