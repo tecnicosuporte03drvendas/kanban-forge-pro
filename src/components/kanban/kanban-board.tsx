@@ -349,15 +349,18 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
 
       // If task completed, send webhook notification
       if (status === 'concluida') {
+        console.log('Task completed! Sending webhook notification...')
+        console.log('TaskId:', taskId, 'CompletedBy:', user.id)
         try {
-          await supabase.functions.invoke('notify-task-completed', {
+          const result = await supabase.functions.invoke('notify-task-completed', {
             body: { 
               taskId: taskId,
               completedBy: user.id 
             }
           })
+          console.log('Webhook response:', result)
         } catch (webhookError) {
-          console.warn('Failed to send task completion notification:', webhookError)
+          console.error('Failed to send task completion notification:', webhookError)
           // Don't block the main functionality if webhook fails
         }
       }

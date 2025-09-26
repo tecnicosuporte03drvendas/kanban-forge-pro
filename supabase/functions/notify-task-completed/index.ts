@@ -44,31 +44,17 @@ serve(async (req) => {
       );
     }
 
+    console.log('Received request for taskId:', taskId, 'completedBy:', completedBy);
+
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch complete task data with related information
+    // Fetch complete task data
     const { data: taskData, error: taskError } = await supabase
       .from('tarefas')
-      .select(`
-        id,
-        titulo,
-        descricao,
-        prioridade,
-        data_conclusao,
-        horario_conclusao,
-        status,
-        tempo_inicio,
-        tempo_fim,
-        tempo_gasto_minutos,
-        created_at,
-        updated_at,
-        criado_por,
-        empresa_id,
-        empresas!inner(nome_fantasia, razao_social)
-      `)
+      .select('*')
       .eq('id', taskId)
       .single();
 
@@ -82,6 +68,8 @@ serve(async (req) => {
         }
       );
     }
+
+    console.log('Task data fetched:', taskData);
 
     // Fetch user who completed the task
     const { data: userData, error: userError } = await supabase
@@ -101,29 +89,16 @@ serve(async (req) => {
       );
     }
 
-    // Fetch task responsibles
-    const { data: responsibles } = await supabase
-      .from('tarefas_responsaveis')
-      .select(`
-        usuario_id,
-        equipe_id,
-        usuarios(nome, email, funcao_empresa),
-        equipes(nome, descricao)
-      `)
-      .eq('tarefa_id', taskId);
+    console.log('User data fetched:', userData);
 
-    // Fetch recent activities for context
-    const { data: activities } = await supabase
-      .from('tarefas_atividades')
-      .select(`
-        acao,
-        descricao,
-        created_at,
-        usuarios(nome)
-      `)
-      .eq('tarefa_id', taskId)
-      .order('created_at', { ascending: false })
-      .limit(5);
+    // Fetch company data
+    const { data: companyData } = await supabase
+      .from('empresas')
+      .select('id, nome_fantasia, razao_social')
+      .eq('id', taskData.empresa_id)
+      .single();
+
+    console.log('Company data fetched:', companyData);
 
     // Prepare notification data
     const notificationData = {
@@ -150,26 +125,9 @@ serve(async (req) => {
       },
       empresa: {
         id: taskData.empresa_id,
-        nome_fantasia: taskData.empresas?.[0]?.nome_fantasia,
-        razao_social: taskData.empresas?.[0]?.razao_social
-      },
-      responsibles: responsibles?.map(r => ({
-        usuario: r.usuarios?.[0] ? {
-          nome: r.usuarios[0].nome,
-          email: r.usuarios[0].email,
-          funcao_empresa: r.usuarios[0].funcao_empresa
-        } : null,
-        equipe: r.equipes?.[0] ? {
-          nome: r.equipes[0].nome,
-          descricao: r.equipes[0].descricao
-        } : null
-      })) || [],
-      recent_activities: activities?.map(a => ({
-        acao: a.acao,
-        descricao: a.descricao,
-        created_at: a.created_at,
-        usuario_nome: a.usuarios?.[0]?.nome
-      })) || []
+        nome_fantasia: companyData?.nome_fantasia || 'N/A',
+        razao_social: companyData?.razao_social || 'N/A'
+      }
     };
 
     console.log('Sending task completion notification to n8n:', JSON.stringify(notificationData, null, 2));
