@@ -21,6 +21,8 @@ export interface Task {
   team: string
   teamColor: string
   status: "criada" | "assumida" | "executando" | "concluida" | "validada"
+  isCurrentUserAssigned?: boolean
+  totalResponsaveis?: number
 }
 
 interface KanbanBoardProps {
@@ -76,19 +78,33 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
 
       // Transform Supabase data to Task format
       const transformedTasks: Task[] = tarefas?.map((tarefa: any) => {
-        // Get responsible name (first user or team)
+        const responsaveis = tarefa.tarefas_responsaveis || []
+        const usuarios = responsaveis.filter((r: any) => r.usuarios).map((r: any) => r.usuarios)
+        const equipes = responsaveis.filter((r: any) => r.equipes).map((r: any) => r.equipes)
+        
+        // Count total members (users + team members)
+        let totalResponsaveis = usuarios.length
+        // For now, assume each team has 1 member (could be enhanced to count actual team members)
+        totalResponsaveis += equipes.length
+        
         let assignee = 'Não atribuído'
-        let team = 'Sem equipe'
+        let team = ''
         let teamColor = 'bg-gray-500'
+        let isCurrentUserAssigned = false
 
-        if (tarefa.tarefas_responsaveis?.length > 0) {
-          const responsible = tarefa.tarefas_responsaveis[0]
-          if (responsible.usuarios) {
-            assignee = responsible.usuarios.nome
-          } else if (responsible.equipes) {
-            assignee = responsible.equipes.nome
-            team = responsible.equipes.nome
-          }
+        // Check if current user is assigned
+        if (usuario?.id) {
+          isCurrentUserAssigned = usuarios.some((u: any) => u.id === usuario.id)
+        }
+
+        if (totalResponsaveis > 1) {
+          assignee = `${totalResponsaveis} Responsáveis`
+        } else if (usuarios.length > 0) {
+          assignee = usuarios[0].nome
+        } else if (equipes.length > 0) {
+          assignee = equipes[0].nome
+          team = equipes[0].nome
+          teamColor = 'bg-blue-500'
         }
 
         return {
@@ -101,6 +117,8 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
           team,
           teamColor,
           status: tarefa.status,
+          isCurrentUserAssigned,
+          totalResponsaveis,
         }
       }) || []
 
@@ -123,7 +141,32 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     if (!over) return
 
     const taskId = active.id as string
-    const newStatus = over.id as StatusTarefa
+    
+    // Get the correct status from the column id
+    let newStatus: StatusTarefa
+    const overId = over.id as string
+    
+    // Map column IDs to status values
+    switch (overId) {
+      case 'criada':
+        newStatus = 'criada'
+        break
+      case 'assumida':
+        newStatus = 'assumida'
+        break
+      case 'executando':
+        newStatus = 'executando'
+        break
+      case 'concluida':
+        newStatus = 'concluida'
+        break
+      case 'validada':
+        newStatus = 'validada'
+        break
+      default:
+        console.error('Invalid column id:', overId)
+        return
+    }
 
     // Update local state immediately
     setTasks(prev =>

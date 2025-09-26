@@ -350,7 +350,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) => date < new Date()}
+                          disabled={false}
                           initialFocus
                           className={cn("p-3 pointer-events-auto")}
                         />

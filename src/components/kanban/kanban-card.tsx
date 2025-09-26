@@ -85,16 +85,23 @@ export function KanbanCard({ task, isDragging = false, onTaskClick }: KanbanCard
     >
       <div className="space-y-3">
         <div className="space-y-2">
-          <h4 className="font-medium text-card-foreground text-sm leading-tight">
-            {task.title}
-          </h4>
-          <div className="flex items-center gap-1">
-            <Badge 
-              variant="secondary" 
-              className={`text-xs ${task.teamColor} text-white border-0 px-2 py-1`}
-            >
-              {task.team}
-            </Badge>
+          <div className="flex items-start justify-between">
+            <h4 className="font-medium text-card-foreground text-sm leading-tight flex-1">
+              {task.title}
+            </h4>
+            {task.isCurrentUserAssigned && (
+              <div className="w-2 h-2 bg-green-500 rounded-full ml-2 mt-1 flex-shrink-0" title="Você está nesta tarefa" />
+            )}
+          </div>
+          <div className="flex items-center gap-1 flex-wrap">
+            {task.team && (
+              <Badge 
+                variant="secondary" 
+                className={`text-xs ${task.teamColor} text-white border-0 px-2 py-1`}
+              >
+                {task.team}
+              </Badge>
+            )}
             <Badge 
               variant="secondary" 
               className={`text-xs ${getPriorityColor(task.priority)} border-0 flex items-center gap-1`}

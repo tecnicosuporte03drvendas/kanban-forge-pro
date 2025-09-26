@@ -49,6 +49,10 @@ const Index = () => {
     setViewTaskId(taskId);
   };
 
+  const handleTaskUpdated = () => {
+    setRefreshTasks(prev => prev + 1);
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -90,7 +94,7 @@ const Index = () => {
         taskId={viewTaskId}
         open={!!viewTaskId}
         onOpenChange={(open) => !open && setViewTaskId(null)}
-        onTaskUpdated={handleTaskCreated}
+        onTaskUpdated={handleTaskUpdated}
       />
     </div>
   );
