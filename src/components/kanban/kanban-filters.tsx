@@ -1,9 +1,10 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { Search, Filter, X } from "lucide-react"
+import { supabase } from "@/integrations/supabase/client"
 import { Task } from "./kanban-board"
 
 interface KanbanFiltersProps {
@@ -28,6 +29,30 @@ export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
     dateTo: '',
     showOverdueOnly: false
   })
+  const [users, setUsers] = useState<Array<{id: string, nome: string}>>([])
+  const [teams, setTeams] = useState<Array<{id: string, nome: string}>>([])
+
+  useEffect(() => {
+    loadUsersAndTeams()
+  }, [])
+
+  const loadUsersAndTeams = async () => {
+    // Load users (excluding master users)
+    const { data: usuarios } = await supabase
+      .from('usuarios')
+      .select('id, nome')
+      .eq('ativo', true)
+      .neq('tipo_usuario', 'master')
+    
+    if (usuarios) setUsers(usuarios)
+
+    // Load teams
+    const { data: equipes } = await supabase
+      .from('equipes')
+      .select('id, nome')
+    
+    if (equipes) setTeams(equipes)
+  }
 
   const updateFilters = (newFilters: Partial<FilterState>) => {
     const updatedFilters = { ...filters, ...newFilters }
@@ -78,9 +103,11 @@ export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="Sergio Ricardo">Sergio Ricardo</SelectItem>
-                <SelectItem value="Ana Silva">Ana Silva</SelectItem>
-                <SelectItem value="João Santos">João Santos</SelectItem>
+                {users.map((user) => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.nome}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -90,10 +117,11 @@ export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="Vendas">Vendas</SelectItem>
-                <SelectItem value="Comercial">Comercial</SelectItem>
-                <SelectItem value="Marketing">Marketing</SelectItem>
-                <SelectItem value="Suporte">Suporte</SelectItem>
+                {teams.map((team) => (
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.nome}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 

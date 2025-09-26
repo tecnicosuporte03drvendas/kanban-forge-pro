@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from "react"
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { Plus } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { KanbanColumn } from "./kanban-column"
 import { KanbanCard } from "./kanban-card"
 import { KanbanFilters, FilterState } from "./kanban-filters"
@@ -23,6 +25,7 @@ export interface Task {
 
 interface KanbanBoardProps {
   onTaskClick?: (taskId: string) => void;
+  onCreateTask?: () => void;
 }
 
 const columns = [
@@ -33,7 +36,7 @@ const columns = [
   { id: "validada", title: "Validada", tasks: 0, color: "kanban-validated" }
 ]
 
-export function KanbanBoard({ onTaskClick }: KanbanBoardProps) {
+export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
   const { usuario } = useAuth()
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(false)
@@ -209,6 +212,10 @@ export function KanbanBoard({ onTaskClick }: KanbanBoardProps) {
           <h2 className="text-2xl font-bold text-foreground">Minhas Tarefas e da Equipe</h2>
           <p className="text-muted-foreground">Visualize e gerencie suas tarefas e da sua equipe</p>
         </div>
+        <Button onClick={onCreateTask} className="bg-primary text-primary-foreground hover:bg-primary-hover">
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Tarefa
+        </Button>
       </div>
 
       <KanbanFilters onFiltersChange={setFilters} />

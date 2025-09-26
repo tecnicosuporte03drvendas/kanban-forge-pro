@@ -63,10 +63,6 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button onClick={() => setCreateTaskOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Tarefa
-            </Button>
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="w-4 h-4 mr-2" />
               Sair
@@ -77,7 +73,11 @@ const Index = () => {
 
       <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
         <DashboardStats />
-        <KanbanBoard key={refreshTasks} onTaskClick={handleTaskClick} />
+        <KanbanBoard 
+          key={refreshTasks} 
+          onTaskClick={handleTaskClick}
+          onCreateTask={() => setCreateTaskOpen(true)}
+        />
       </div>
 
       <CreateTaskModal 
