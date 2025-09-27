@@ -56,7 +56,7 @@ const Index = () => {
   return (
     <div className="flex flex-col h-screen">
       <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center justify-between h-full px-6">
+        <div className="flex items-center justify-between h-full px-6 pt-5">
           <div className="flex items-center gap-4">
             <SidebarTrigger className="lg:hidden" />
             <div>
