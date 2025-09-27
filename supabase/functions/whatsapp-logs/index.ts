@@ -116,23 +116,38 @@ serve(async (req) => {
     console.log('✅ Log salvo com sucesso:', data);
 
     // Se os dados contém informações da instância, tentar atualizar também
-    if (instancia_id && (body.status || body.qr_code || body.dados_retorno?.status || body.dados_retorno?.qrCode)) {
+    if (instancia_id) {
       const updateData: any = {};
       
+      // Processar dados de retorno da Evolution API
+      const evolutionData = body.dados_retorno || body;
+      
       // Atualizar status se disponível
-      if (body.status || body.dados_retorno?.status) {
-        updateData.status = body.status || body.dados_retorno?.status;
+      if (body.status || evolutionData.status || evolutionData.instance?.state) {
+        updateData.status = body.status || evolutionData.status || evolutionData.instance?.state || 'conectando';
       }
       
-      // Atualizar QR code se disponível
-      if (body.qr_code || body.dados_retorno?.qrCode || body.dados_retorno?.qr_code) {
-        updateData.qr_code = body.qr_code || body.dados_retorno?.qrCode || body.dados_retorno?.qr_code;
+      // Atualizar QR code se disponível (múltiplos formatos possíveis)
+      const qrCode = body.qr_code || 
+                    evolutionData.qrCode || 
+                    evolutionData.qr_code || 
+                    evolutionData.base64 ||
+                    evolutionData.instance?.qr ||
+                    evolutionData.instance?.qrcode;
+                    
+      if (qrCode) {
+        // Garantir que o QR code está no formato correto (data:image)
+        updateData.qr_code = qrCode.startsWith('data:image') ? qrCode : `data:image/png;base64,${qrCode}`;
+        console.log('📱 QR Code recebido e formatado');
       }
       
       if (Object.keys(updateData).length > 0) {
         updateData.updated_at = new Date().toISOString();
         
-        console.log('🔄 Atualizando instância:', instancia_id, updateData);
+        console.log('🔄 Atualizando instância com dados completos:', instancia_id, {
+          ...updateData,
+          qr_code: updateData.qr_code ? '[QR_CODE_DATA]' : 'null'
+        });
         
         const { error: updateError } = await supabase
           .from('instancias_whatsapp')
@@ -140,9 +155,9 @@ serve(async (req) => {
           .eq('id', instancia_id);
         
         if (updateError) {
-          console.error('⚠️ Erro ao atualizar instância (continuando):', updateError);
+          console.error('⚠️ Erro ao atualizar instância:', updateError);
         } else {
-          console.log('✅ Instância atualizada');
+          console.log('✅ Instância atualizada com sucesso');
         }
       }
     }

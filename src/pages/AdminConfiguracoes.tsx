@@ -281,27 +281,71 @@ export const AdminConfiguracoes: React.FC = () => {
         throw new Error(`Erro do proxy: ${error.message}`);
       }
 
-      console.log('✅ Resposta N8N ao conectar:', data);
-
-      // Aguardar um pouco para a Edge Function processar os logs
-      setTimeout(async () => {
-        await carregarInstancias();
-        
-        // Buscar instância atualizada
-        const instanciaAtualizada = instancias.find(i => i.id === instancia.id);
-        
-        // Se tem QR code, mostrar modal
-        if (instanciaAtualizada?.qr_code) {
-          setCurrentQrCode(instanciaAtualizada.qr_code);
-          setCurrentInstanceName(instanciaAtualizada.nome);
-          setQrModalOpen(true);
-        }
-      }, 2000);
+      console.log('✅ N8N disparado com sucesso:', data);
 
       toast({
         title: "Conexão iniciada",
-        description: "Aguardando QR Code para conexão...",
+        description: "Aguardando dados da Evolution API...",
       });
+
+      // Aguardar a Edge Function processar os dados e atualizar a instância
+      let tentativas = 0;
+      const maxTentativas = 15; // 30 segundos (15 * 2s)
+      
+      const aguardarQrCode = async () => {
+        try {
+          const { data: instanciaAtualizada, error: fetchError } = await supabase
+            .from('instancias_whatsapp')
+            .select('*')
+            .eq('id', instancia.id)
+            .single();
+
+          if (fetchError) {
+            console.error('Erro ao buscar instância:', fetchError);
+            return;
+          }
+
+          console.log('🔍 Verificando instância atualizada:', instanciaAtualizada);
+
+          // Atualizar estado local
+          setInstancias(prev => prev.map(inst => 
+            inst.id === instancia.id ? instanciaAtualizada : inst
+          ));
+
+          // Se recebeu QR code, mostrar modal
+          if (instanciaAtualizada.qr_code) {
+            console.log('📱 QR Code detectado, abrindo modal');
+            setCurrentQrCode(instanciaAtualizada.qr_code);
+            setCurrentInstanceName(instanciaAtualizada.nome);
+            setQrModalOpen(true);
+            
+            toast({
+              title: "QR Code gerado",
+              description: "Escaneie o código para conectar sua instância",
+            });
+            return;
+          }
+
+          // Se ainda não tem QR code e não atingiu o limite, tentar novamente
+          tentativas++;
+          if (tentativas < maxTentativas) {
+            console.log(`🔄 Tentativa ${tentativas}/${maxTentativas} - aguardando QR code...`);
+            setTimeout(aguardarQrCode, 2000);
+          } else {
+            console.log('⏰ Timeout aguardando QR code');
+            toast({
+              title: "Timeout",
+              description: "QR Code não foi gerado no tempo esperado",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error('Erro ao verificar QR code:', error);
+        }
+      };
+
+      // Iniciar verificação após 1 segundo
+      setTimeout(aguardarQrCode, 1000);
 
     } catch (error: any) {
       console.error('❌ Erro ao conectar instância:', error);
