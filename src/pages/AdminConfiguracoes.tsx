@@ -189,13 +189,14 @@ export const AdminConfiguracoes: React.FC = () => {
 
       console.log('✅ Resposta completa do N8N:', data);
 
-      // Aguardar resposta do nó de BUSCA da instância (não do nó de criação)
       // O N8N deve retornar os dados reais da Evolution via nó de busca
-      if (!data || !data.instanceData) {
-        throw new Error('N8N não retornou dados da instância. Verifique se o nó de busca está configurado corretamente.');
+      // Aceitar tanto dados diretos quanto estrutura aninhada
+      const instanceData = data.instanceData || data;
+      
+      if (!instanceData) {
+        throw new Error('N8N não retornou dados da instância. Verifique se o nó de busca está retornando dados.');
       }
 
-      const instanceData = data.instanceData;
       console.log('📊 Dados da instância retornados pelo N8N:', instanceData);
 
       // Usar APENAS os dados retornados pelo N8N (nó de busca)
