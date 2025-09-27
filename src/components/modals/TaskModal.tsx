@@ -4,18 +4,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar as CalendarIcon, Clock, User, Users, MessageSquare, Activity, CheckSquare, AlertCircle, Zap, Plus, Calendar, Paperclip, X, MoreHorizontal } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, User, Users, MessageSquare, Activity, CheckSquare, AlertCircle, Zap, Plus, Calendar, Paperclip, X, MoreHorizontal, Archive } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEffectiveUser } from '@/hooks/use-effective-user';
 import { TaskResponsibles } from './TaskResponsibles';
 import { TaskAttachments } from './TaskAttachments';
 import { TaskDatePicker } from './TaskDatePicker';
@@ -61,6 +63,7 @@ export function TaskModal({
   const {
     usuario
   } = useAuth();
+  const { usuario: usuarioEfetivo } = useEffectiveUser();
   const [tarefa, setTarefa] = useState<TarefaCompleta | null>(null);
   const [loading, setLoading] = useState(false);
   const [novoComentario, setNovoComentario] = useState('');
@@ -69,6 +72,7 @@ export function TaskModal({
   const [saving, setSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
 
   // Edit states for inline editing
   const [editingTitle, setEditingTitle] = useState(false);
@@ -381,6 +385,43 @@ export function TaskModal({
     }
     onOpenChange(false);
   };
+
+  const handleArchiveTask = async () => {
+    if (!tarefa || !usuarioEfetivo) return;
+    
+    try {
+      const { error } = await supabase
+        .from('tarefas')
+        .update({ arquivada: true })
+        .eq('id', tarefa.id);
+
+      if (error) throw error;
+
+      // Add activity log
+      await supabase.from('tarefas_atividades').insert({
+        tarefa_id: tarefa.id,
+        usuario_id: usuarioEfetivo.id,
+        acao: 'arquivou',
+        descricao: 'Tarefa arquivada'
+      });
+
+      setShowArchiveModal(false);
+      onOpenChange(false);
+      onTaskUpdated?.();
+
+      toast({
+        title: 'Sucesso',
+        description: 'Tarefa arquivada com sucesso'
+      });
+    } catch (error) {
+      console.error('Error archiving task:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao arquivar tarefa',
+        variant: 'destructive'
+      });
+    }
+  };
   const getPriorityIcon = (priority: PrioridadeTarefa) => {
     switch (priority) {
       case 'urgente':
@@ -436,9 +477,21 @@ export function TaskModal({
           <div className="flex items-center gap-2">
             {hasUnsavedChanges && <span className="text-sm text-amber-600">Alterações não salvas</span>}
             {saving && <span className="text-sm text-muted-foreground">Salvando...</span>}
-            <Button variant="ghost" size="sm">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
+            {(usuarioEfetivo?.tipo_usuario === 'proprietario' || usuarioEfetivo?.tipo_usuario === 'gestor') && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setShowArchiveModal(true)}>
+                    <Archive className="h-4 w-4 mr-2" />
+                    Arquivar tarefa
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <Button variant="ghost" size="sm" onClick={handleClose}>
               <X className="h-4 w-4" />
             </Button>
@@ -521,5 +574,35 @@ export function TaskModal({
           </div>
         </div>
       </DialogContent>
+
+      {/* Archive Confirmation Modal */}
+      <Dialog open={showArchiveModal} onOpenChange={setShowArchiveModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Archive className="h-5 w-5 text-amber-600" />
+              Arquivar Tarefa
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza de que deseja arquivar esta tarefa? Ela será movida para a seção de tarefas arquivadas e não será mais visível no quadro principal.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-muted/50 border border-border rounded-lg p-4">
+            <h4 className="font-medium text-foreground mb-2">{tarefa?.titulo}</h4>
+            <p className="text-sm text-muted-foreground">
+              Esta ação pode ser desfeita através da seção de tarefas arquivadas.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowArchiveModal(false)}>
+              Cancelar
+            </Button>
+            <Button variant="default" onClick={handleArchiveTask}>
+              <Archive className="h-4 w-4 mr-2" />
+              Arquivar Tarefa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>;
 }
