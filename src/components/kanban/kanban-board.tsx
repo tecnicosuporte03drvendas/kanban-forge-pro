@@ -292,58 +292,45 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     const movedTask = tasks.find(t => t.id === taskId)
     if (!movedTask) return
     
-    // Determine the final status
+    // Determine the final status and position
     let finalStatus: StatusTarefa = movedTask.status
+    let newPosition = 0
     
     // Check if dropped on a column
     const isOverColumn = columns.some(col => col.id === overId)
     if (isOverColumn) {
       finalStatus = overId as StatusTarefa
+      // When dropped on column, position at the end
+      const tasksInColumn = tasks.filter(t => t.status === finalStatus && t.id !== taskId)
+      newPosition = tasksInColumn.length
     } else {
       // Check if dropped on another task
       const overTask = tasks.find(t => t.id === overId)
       if (overTask) {
         finalStatus = overTask.status
+        // Get position based on where it was dropped relative to other task
+        const tasksInColumn = tasks.filter(t => t.status === finalStatus)
+        const overTaskIndex = tasksInColumn.findIndex(t => t.id === overId)
+        newPosition = overTaskIndex !== -1 ? overTaskIndex : tasksInColumn.length
       }
     }
     
-    // Update in database if status changed or position changed
-    console.log('🔍 Drag end check:', { 
-      taskId, 
-      originalStatus: activeColumn, // Status original guardado no dragStart
-      finalStatus, 
-      statusChanged: activeColumn !== finalStatus 
-    })
+    console.log('🔍 Drag end:', { taskId, originalStatus: activeColumn, finalStatus, newPosition })
     
-    // Sempre chama updateTaskStatus para lidar com tempo E posição
-    if (activeColumn !== finalStatus) {
-      console.log('✅ Status changed - calling updateTaskStatus')
-      updateTaskStatus(taskId, finalStatus)
-    } else {
-      console.log('📍 Same status - updating only position')
-      // Same column, just position change - save new order
-      const tasksInColumn = getTasksByStatus(finalStatus)
-      const targetIndex = tasksInColumn.findIndex(t => t.id === taskId)
-      if (targetIndex !== -1) {
-        updateTaskPosition(taskId, finalStatus, targetIndex)
-      }
-    }
+    // Update task in database with correct position
+    updateTaskStatusAndPosition(taskId, finalStatus, newPosition)
   }
 
-  const updateTaskStatus = async (taskId: string, status: StatusTarefa) => {
+  const updateTaskStatusAndPosition = async (taskId: string, status: StatusTarefa, newPosition: number) => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user || !usuario?.empresa_id) return
 
       const oldTask = tasks.find(t => t.id === taskId)
       if (!oldTask) return
 
-      // Handle time tracking logic - usar status original do drag
+      // Handle time tracking logic
       const now = new Date().toISOString()
-      
-      // Calcular posição na nova coluna
-      const tasksInNewColumn = getTasksByStatus(status)
-      const newPosition = tasksInNewColumn.length // Posição no final da coluna
       
       let updateFields: any = { 
         status,
@@ -351,7 +338,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       }
 
       // Status change logic for time tracking
-      console.log('🔄 Status change:', { oldStatus: activeColumn, newStatus: status, taskId })
+      console.log('🔄 Status change:', { oldStatus: activeColumn, newStatus: status, taskId, newPosition })
       
       if (activeColumn !== status) {
         // Saindo de "criada" pela primeira vez - registrar tempo_inicio
@@ -359,22 +346,81 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
           console.log('⏰ Setting tempo_inicio:', now)
           updateFields.tempo_inicio = now
         }
-        
-        // Mantém tempo_inicio se saindo de "assumida" para "executando"
-        // (não precisa fazer nada aqui, apenas manter o tempo existente)
 
         // Concluindo tarefa - registrar tempo_fim
         if (status === 'concluida') {
           console.log('🏁 Setting tempo_fim:', now)
           updateFields.tempo_fim = now
         }
-
-        // Voltando para "criada" - o trigger do banco resetará os tempos automaticamente
       }
       
       console.log('📝 Update fields:', updateFields)
 
-      // Update task status and time fields
+      // First, update positions of other tasks in the target column
+      if (oldTask.status !== status) {
+        // Moving to different column - get tasks that need position shift
+        const { data: tasksToShift } = await supabase
+          .from('tarefas')
+          .select('id, posicao_coluna')
+          .eq('empresa_id', usuario.empresa_id)
+          .eq('status', status)
+          .gte('posicao_coluna', newPosition)
+          .neq('id', taskId)
+
+        // Update positions one by one
+        if (tasksToShift) {
+          for (const task of tasksToShift) {
+            await supabase
+              .from('tarefas')
+              .update({ posicao_coluna: (task.posicao_coluna || 0) + 1 })
+              .eq('id', task.id)
+          }
+        }
+      } else {
+        // Same column reorder - update positions
+        const currentPosition = oldTask.posicao_coluna || 0
+        if (newPosition > currentPosition) {
+          // Moving down - get tasks to shift up
+          const { data: tasksToShift } = await supabase
+            .from('tarefas')
+            .select('id, posicao_coluna')
+            .eq('empresa_id', usuario.empresa_id)
+            .eq('status', status)
+            .gt('posicao_coluna', currentPosition)
+            .lte('posicao_coluna', newPosition)
+            .neq('id', taskId)
+
+          if (tasksToShift) {
+            for (const task of tasksToShift) {
+              await supabase
+                .from('tarefas')
+                .update({ posicao_coluna: (task.posicao_coluna || 0) - 1 })
+                .eq('id', task.id)
+            }
+          }
+        } else if (newPosition < currentPosition) {
+          // Moving up - get tasks to shift down
+          const { data: tasksToShift } = await supabase
+            .from('tarefas')
+            .select('id, posicao_coluna')
+            .eq('empresa_id', usuario.empresa_id)
+            .eq('status', status)
+            .gte('posicao_coluna', newPosition)
+            .lt('posicao_coluna', currentPosition)
+            .neq('id', taskId)
+
+          if (tasksToShift) {
+            for (const task of tasksToShift) {
+              await supabase
+                .from('tarefas')
+                .update({ posicao_coluna: (task.posicao_coluna || 0) + 1 })
+                .eq('id', task.id)
+            }
+          }
+        }
+      }
+
+      // Update the moved task
       const { error } = await supabase
         .from('tarefas')
         .update(updateFields)
@@ -384,55 +430,40 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
 
       // Create activity record only if not in stealth mode
       if (!shouldSuppressLogs) {
+        const action = oldTask.status !== status ? 'alterou status' : 'reordenou posição'
+        const description = oldTask.status !== status 
+          ? `Status alterado para: ${status}` 
+          : `Posição alterada para: ${newPosition + 1}`
+          
         await supabase.from('tarefas_atividades').insert({
           tarefa_id: taskId,
           usuario_id: user.id,
-          acao: 'alterou status',
-          descricao: `Status alterado para: ${status}`,
+          acao: action,
+          descricao: description,
         })
       }
 
-      // Reload tasks to get updated time data
+      // Reload tasks to get updated data
       loadTasks()
 
       // If task completed, send webhook notification
-      if (status === 'concluida') {
+      if (status === 'concluida' && oldTask.status !== 'concluida') {
         console.log('Task completed! Sending webhook notification...')
-        console.log('TaskId:', taskId, 'CompletedBy:', user.id)
         try {
-          const result = await supabase.functions.invoke('notify-task-completed', {
+          await supabase.functions.invoke('notify-task-completed', {
             body: { 
               taskId: taskId,
               completedBy: user.id 
             }
           })
-          console.log('Webhook response:', result)
         } catch (webhookError) {
           console.error('Failed to send task completion notification:', webhookError)
-          // Don't block the main functionality if webhook fails
         }
       }
     } catch (error) {
-      console.error('Error updating task status:', error)
+      console.error('Error updating task:', error)
       // Revert local state on error
       loadTasks()
-    }
-  }
-
-  const updateTaskPosition = async (taskId: string, newStatus: StatusTarefa, newPosition: number) => {
-    try {
-      const { error } = await supabase
-        .from('tarefas')
-        .update({ 
-          status: newStatus,
-          posicao_coluna: newPosition
-        })
-        .eq('id', taskId)
-
-      if (error) throw error
-    } catch (error) {
-      console.error('Error updating task position:', error)
-      throw error
     }
   }
 
