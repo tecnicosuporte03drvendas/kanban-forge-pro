@@ -85,11 +85,14 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
   const loadResponsibleOptions = async () => {
     const options: ResponsibleOption[] = []
     
+    if (!usuario?.empresa_id) return
+    
     // Load users (excluding master users)
     const { data: usersData } = await supabase
       .from('usuarios')
       .select('id, nome, email')
       .eq('ativo', true)
+      .eq('empresa_id', usuario.empresa_id)
       .neq('tipo_usuario', 'master')
     
     if (usersData) {
