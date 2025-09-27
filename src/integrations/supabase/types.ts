@@ -153,6 +153,45 @@ export type Database = {
         }
         Relationships: []
       }
+      instancias_whatsapp_logs: {
+        Row: {
+          acao: string
+          created_at: string
+          dados_entrada: Json | null
+          dados_retorno: Json | null
+          id: string
+          instancia_id: string | null
+          mensagem_erro: string | null
+          origem: string | null
+          status: string | null
+          sucesso: boolean | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          dados_entrada?: Json | null
+          dados_retorno?: Json | null
+          id?: string
+          instancia_id?: string | null
+          mensagem_erro?: string | null
+          origem?: string | null
+          status?: string | null
+          sucesso?: boolean | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          dados_entrada?: Json | null
+          dados_retorno?: Json | null
+          id?: string
+          instancia_id?: string | null
+          mensagem_erro?: string | null
+          origem?: string | null
+          status?: string | null
+          sucesso?: boolean | null
+        }
+        Relationships: []
+      }
       reunioes: {
         Row: {
           created_at: string
