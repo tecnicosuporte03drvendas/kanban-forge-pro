@@ -166,10 +166,11 @@ export const AdminConfiguracoes: React.FC = () => {
 
     setLoading(true);
     try {
-      console.log('🚀 Criando instância via proxy...');
+      console.log('🚀 Criando instância via N8N...');
       console.log('📍 URL do webhook:', urlInstancias);
+      console.log('📤 Dados enviados:', { nome: formInstance.nome, telefone: formInstance.telefone });
 
-      // Usar Edge Function como proxy para evitar CORS
+      // Disparar webhook N8N que executa criação + busca da instância
       const { data, error } = await supabase.functions.invoke('n8n-proxy', {
         body: {
           webhookUrl: urlInstancias,
@@ -186,37 +187,45 @@ export const AdminConfiguracoes: React.FC = () => {
         throw new Error(`Erro do proxy: ${error.message}`);
       }
 
-      console.log('✅ Resposta do N8N via proxy:', data);
+      console.log('✅ Resposta completa do N8N:', data);
 
-      // data já contém a resposta do N8N
+      // Aguardar resposta do nó de BUSCA da instância (não do nó de criação)
+      // O N8N deve retornar os dados reais da Evolution via nó de busca
+      if (!data || !data.instanceData) {
+        throw new Error('N8N não retornou dados da instância. Verifique se o nó de busca está configurado corretamente.');
+      }
 
-      // Se o N8N retornou sucesso, salvar no Supabase apenas para exibir
+      const instanceData = data.instanceData;
+      console.log('📊 Dados da instância retornados pelo N8N:', instanceData);
+
+      // Usar APENAS os dados retornados pelo N8N (nó de busca)
       const novaInstancia = {
-        id: data.instanceId || crypto.randomUUID(),
-        nome: formInstance.nome,
-        telefone: formInstance.telefone,
-        status: data.status || 'desconectada',
-        qr_code: data.qrCode || null,
+        id: instanceData.id || instanceData.instanceId || crypto.randomUUID(),
+        nome: instanceData.nome || instanceData.name || formInstance.nome,
+        telefone: instanceData.telefone || instanceData.phone || formInstance.telefone,
+        status: instanceData.status || 'desconectada',
+        qr_code: instanceData.qrCode || instanceData.qr_code || null,
         webhook_url: urlInstancias,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        created_at: instanceData.created_at || new Date().toISOString(),
+        updated_at: instanceData.updated_at || new Date().toISOString()
       };
 
+      // Salvar no Supabase apenas para persistência local
       const { error: dbError } = await supabase
         .from('instancias_whatsapp')
         .insert(novaInstancia);
 
       if (dbError) {
-        console.error('Erro ao salvar instância no Supabase:', dbError);
-        // Não falhar aqui, pois a instância foi criada no N8N
+        console.error('❌ Erro ao salvar instância no Supabase:', dbError);
+        // Continuar mesmo com erro no Supabase, pois a instância existe no N8N/Evolution
       }
 
-      // Atualizar lista local com dados reais do N8N
+      // Atualizar lista local com dados REAIS do N8N
       setInstancias(prev => [novaInstancia, ...prev]);
 
       toast({
         title: "Instância criada com sucesso",
-        description: `Instância ${formInstance.nome} foi criada via N8N`,
+        description: `Instância ${novaInstancia.nome} criada e validada pelo N8N/Evolution`,
       });
 
       // Limpar formulário e fechar modal
@@ -224,10 +233,10 @@ export const AdminConfiguracoes: React.FC = () => {
       setModalAberto(false);
 
     } catch (error: any) {
-      console.error('Erro ao criar instância:', error);
+      console.error('❌ Erro ao criar instância:', error);
       toast({
         title: "Erro ao criar instância",
-        description: error.message || "Erro de comunicação com N8N", 
+        description: error.message || "Erro de comunicação com N8N/Evolution", 
         variant: "destructive",
       });
     } finally {
@@ -247,9 +256,10 @@ export const AdminConfiguracoes: React.FC = () => {
 
     setLoading(true);
     try {
-      console.log('🔌 Conectando instância via proxy...');
+      console.log('🔌 Conectando instância via N8N...');
+      console.log('📍 Instância a conectar:', { id: instancia.id, nome: instancia.nome });
       
-      // Usar Edge Function como proxy para evitar CORS
+      // Disparar webhook N8N para conectar instância
       const { data, error } = await supabase.functions.invoke('n8n-proxy', {
         body: {
           webhookUrl: urlInstancias,
@@ -267,49 +277,59 @@ export const AdminConfiguracoes: React.FC = () => {
         throw new Error(`Erro do proxy: ${error.message}`);
       }
 
-      console.log('✅ Resposta N8N ao conectar via proxy:', data);
+      console.log('✅ Resposta N8N ao conectar:', data);
 
-      // Atualizar status e QR code no Supabase baseado na resposta do N8N
+      // Usar apenas dados retornados pelo N8N/Evolution
+      if (!data) {
+        throw new Error('N8N não retornou dados de conexão da instância');
+      }
+
       const updateData: any = {
-        status: data.status || 'conectando',
+        status: data.status || data.instanceStatus || 'conectando',
         updated_at: new Date().toISOString()
       };
 
-      if (data.qrCode) {
-        updateData.qr_code = data.qrCode;
+      // QR Code vem do N8N/Evolution
+      if (data.qrCode || data.qr_code) {
+        updateData.qr_code = data.qrCode || data.qr_code;
       }
 
+      // Atualizar no Supabase apenas para persistência
       const { error: updateError } = await supabase
         .from('instancias_whatsapp')
         .update(updateData)
         .eq('id', instancia.id);
 
       if (updateError) {
-        console.error('Erro ao atualizar instância no Supabase:', updateError);
+        console.error('❌ Erro ao atualizar instância no Supabase:', updateError);
       }
 
-      // Atualizar instância localmente com dados reais do N8N
+      // Atualizar localmente com dados REAIS do N8N
       setInstancias(prev => prev.map(inst => 
         inst.id === instancia.id 
-          ? { ...inst, status: data.status || 'conectando', qr_code: data.qrCode }
+          ? { 
+              ...inst, 
+              status: data.status || data.instanceStatus || 'conectando', 
+              qr_code: data.qrCode || data.qr_code || inst.qr_code 
+            }
           : inst
       ));
 
-      // Mostrar QR Code se disponível
-      if (data.qrCode) {
+      // Exibir QR Code se retornado pelo N8N
+      if (data.qrCode || data.qr_code) {
         setQrCodeVisible(prev => ({ ...prev, [instancia.id]: true }));
       }
 
       toast({
-        title: "Conectando instância",
-        description: `Status: ${data.status || 'conectando'}`,
+        title: "Status atualizado",
+        description: `Status: ${data.status || data.instanceStatus || 'conectando'}`,
       });
 
     } catch (error: any) {
-      console.error('Erro ao conectar instância:', error);
+      console.error('❌ Erro ao conectar instância:', error);
       toast({
         title: "Erro ao conectar instância",
-        description: error.message || "Erro de comunicação com N8N",
+        description: error.message || "Erro de comunicação com N8N/Evolution",
         variant: "destructive",
       });
     } finally {
