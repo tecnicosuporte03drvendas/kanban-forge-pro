@@ -6,9 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface CompanyDeactivatedData {
+interface CompanyActionData {
   empresaId: string;
   deactivatedBy: string;
+  action?: string; // 'deactivated' (default) or 'reactivated'
 }
 
 serve(async (req) => {
@@ -31,7 +32,7 @@ serve(async (req) => {
       );
     }
 
-    const { empresaId, deactivatedBy }: CompanyDeactivatedData = await req.json();
+    const { empresaId, deactivatedBy, action = 'deactivated' }: CompanyActionData = await req.json();
 
     if (!empresaId || !deactivatedBy) {
       return new Response(
@@ -43,7 +44,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('Received company deactivation request for empresaId:', empresaId);
+    console.log(`Received company ${action} request for empresaId:`, empresaId);
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -86,17 +87,19 @@ serve(async (req) => {
     console.log('Owner data fetched:', ownerData);
 
     // Prepare notification data
+    const isReactivated = action === 'reactivated';
     const notificationData = {
-      event: 'company_deactivated',
+      event: isReactivated ? 'company_reactivated' : 'company_deactivated',
       timestamp: new Date().toISOString(),
-      deactivated_by: deactivatedBy,
+      action_by: deactivatedBy,
       empresa: {
         id: companyData.id,
         nome_fantasia: companyData.nome_fantasia,
         razao_social: companyData.razao_social,
         cnpj: companyData.cnpj,
         created_at: companyData.created_at,
-        deactivated_at: new Date().toISOString()
+        ativa: companyData.ativa,
+        [isReactivated ? 'reactivated_at' : 'deactivated_at']: new Date().toISOString()
       },
       proprietario: ownerData ? {
         id: ownerData.id,
@@ -120,7 +123,7 @@ serve(async (req) => {
 
     notificationData.metadata.total_users_affected = usersCount?.length || 0;
 
-    console.log('Sending company deactivation notification to n8n:', JSON.stringify(notificationData, null, 2));
+    console.log(`Sending company ${action} notification to n8n:`, JSON.stringify(notificationData, null, 2));
 
     // Send to n8n webhook
     const webhookResponse = await fetch(webhookUrl, {
@@ -154,7 +157,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Company deactivation notification sent successfully',
+        message: `Company ${action} notification sent successfully`,
         webhook_response: webhookResult 
       }), 
       { 
