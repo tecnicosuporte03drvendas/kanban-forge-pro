@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Search, FileText, HelpCircle, MessageSquare, Clock, ExternalLink } from "lucide-react"
+import { CreateSupportTicketModal } from "@/components/modals/CreateSupportTicketModal"
 
 const quickGuides = [
   {
@@ -252,9 +253,7 @@ const Ajuda = () => {
                   <p className="text-sm text-muted-foreground mb-4">
                     Descreva seu problema ou dúvida e nossa equipe de suporte entrará em contato em até 24 horas.
                   </p>
-                  <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
-                    Criar Ticket de Suporte
-                  </Button>
+                  <CreateSupportTicketModal />
                 </CardContent>
               </Card>
             </TabsContent>

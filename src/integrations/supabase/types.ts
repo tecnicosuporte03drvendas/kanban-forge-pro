@@ -511,6 +511,45 @@ export type Database = {
           },
         ]
       }
+      tickets_suporte: {
+        Row: {
+          categoria: string
+          created_at: string
+          descricao: string
+          empresa_id: string
+          id: string
+          prioridade: string
+          status: string
+          titulo: string
+          updated_at: string
+          usuario_id: string
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          descricao: string
+          empresa_id: string
+          id?: string
+          prioridade?: string
+          status?: string
+          titulo: string
+          updated_at?: string
+          usuario_id: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          descricao?: string
+          empresa_id?: string
+          id?: string
+          prioridade?: string
+          status?: string
+          titulo?: string
+          updated_at?: string
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       usuarios: {
         Row: {
           ativo: boolean | null
