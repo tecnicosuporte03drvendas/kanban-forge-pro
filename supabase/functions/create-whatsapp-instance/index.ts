@@ -28,27 +28,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Chamar webhook do N8N para criar instância
-    const n8nResponse = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'create_instance',
-        nome,
-        telefone,
-      }),
-    });
-
-    if (!n8nResponse.ok) {
-      throw new Error(`N8N webhook failed: ${n8nResponse.status}`);
-    }
-
-    const n8nData = await n8nResponse.json();
-    console.log('N8N response:', n8nData);
-
-    // Salvar instância no banco
+    // Primeiro salvar instância no banco
     const { data: instancia, error: dbError } = await supabase
       .from('instancias_whatsapp')
       .insert({
@@ -63,6 +43,36 @@ serve(async (req) => {
     if (dbError) {
       console.error('Database error:', dbError);
       throw new Error(`Erro ao salvar no banco: ${dbError.message}`);
+    }
+
+    console.log('Instance saved to database:', instancia);
+
+    // Tentar chamar webhook do N8N (não crítico para o funcionamento)
+    try {
+      console.log('Calling N8N webhook:', webhookUrl);
+      
+      const n8nResponse = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'create_instance',
+          instanceId: instancia.id,
+          nome,
+          telefone,
+        }),
+      });
+
+      if (n8nResponse.ok) {
+        const n8nData = await n8nResponse.json();
+        console.log('N8N response success:', n8nData);
+      } else {
+        console.warn(`N8N webhook returned ${n8nResponse.status}:`, await n8nResponse.text());
+      }
+    } catch (n8nError) {
+      console.warn('N8N webhook failed (not critical):', (n8nError as Error).message || 'Unknown error');
+      // Continua sem falhar - N8N é opcional neste momento
     }
 
     console.log('Instance created successfully:', instancia);
