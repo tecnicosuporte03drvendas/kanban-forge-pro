@@ -7,14 +7,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-
 export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  const { login, isAuthenticated, usuario } = useAuth();
+  const {
+    login,
+    isAuthenticated,
+    usuario
+  } = useAuth();
   const navigate = useNavigate();
 
   // Se já está logado, redirecionar para o painel apropriado
@@ -26,26 +28,22 @@ export default function Login() {
         return <Navigate to="/dashboard" replace />;
     }
   }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     if (!email || !senha) {
       setError('Por favor, preencha todos os campos');
       setLoading(false);
       return;
     }
-
     const result = await login(email, senha);
-    
     if (result.success) {
       toast({
         title: "Login realizado com sucesso!",
-        description: "Redirecionando...",
+        description: "Redirecionando..."
       });
-      
+
       // Redirecionar baseado no tipo de usuário após login bem-sucedido
       const usuarioLogado = JSON.parse(localStorage.getItem('usuario_logado') || '{}');
       switch (usuarioLogado.tipo_usuario) {
@@ -61,15 +59,12 @@ export default function Login() {
       toast({
         title: "Erro no login",
         description: result.error || 'Verifique suas credenciais',
-        variant: "destructive",
+        variant: "destructive"
       });
     }
-    
     setLoading(false);
   };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+  return <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
@@ -81,52 +76,27 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
+            {error && <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+              </Alert>}
             
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="senha">Senha</Label>
-              <Input
-                id="senha"
-                type="password"
-                placeholder="Digite sua senha"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                required
-              />
+              <Input id="senha" type="password" placeholder="Digite sua senha" value={senha} onChange={e => setSenha(e.target.value)} required />
             </div>
             
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={loading}
-            >
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
           
-          <div className="mt-6 text-sm text-muted-foreground text-center">
-            <p>Credenciais para teste:</p>
-            <p><strong>Master:</strong> master@sistema.com / master123</p>
-            <p><strong>Proprietário:</strong> proprietario@empresa.com / senha1234</p>
-          </div>
+          
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 }
