@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffectiveUser } from '@/hooks/use-effective-user';
 export default function Perfil() {
   const {
     toast
@@ -19,7 +20,7 @@ export default function Perfil() {
   const {
     usuario,
     updateUsuario
-  } = useAuth();
+  } = useEffectiveUser();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState({

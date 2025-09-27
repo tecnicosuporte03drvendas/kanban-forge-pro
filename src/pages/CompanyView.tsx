@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ArrowLeft, Users, Plus, Building2, Search, MoreVertical, Trash2, AlertTriangle, Eye } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEffectiveUser } from '@/hooks/use-effective-user';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { CreateUserModal } from '@/components/modals/CreateUserModal';
@@ -39,7 +40,7 @@ export default function CompanyView() {
   const navigate = useNavigate();
   const {
     usuario
-  } = useAuth();
+  } = useEffectiveUser();
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);

@@ -17,6 +17,7 @@ import { CreateUserModal } from "@/components/modals/CreateUserModal"
 import { EditUserModal } from "@/components/modals/EditUserModal"
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal"
 import { useAuth } from "@/contexts/AuthContext"
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { formatCelularForDisplay } from "@/lib/utils"
@@ -45,7 +46,7 @@ interface Equipe {
 }
 
 const Empresa = () => {
-  const { usuario } = useAuth();
+  const { usuario } = useEffectiveUser();
   const { toast } = useToast();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);

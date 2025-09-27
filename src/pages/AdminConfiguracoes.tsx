@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEffectiveUser } from '@/hooks/use-effective-user';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,7 +33,7 @@ interface CreateInstanceForm {
 }
 
 export const AdminConfiguracoes: React.FC = () => {
-  const { usuario } = useAuth();
+  const { usuario } = useEffectiveUser();
   const { toast } = useToast();
   
   const [urlMensagens, setUrlMensagens] = useState('');

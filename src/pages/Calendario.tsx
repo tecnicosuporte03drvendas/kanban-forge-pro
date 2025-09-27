@@ -13,6 +13,7 @@ import { getDateStatus } from "@/utils/date-utils"
 import { useState, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 
 interface CalendarEvent {
   id: string
@@ -30,7 +31,7 @@ interface CalendarEvent {
 }
 
 const Calendario = () => {
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const [viewMode, setViewMode] = useState<'dia' | 'semana' | 'mes'>('semana')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date())

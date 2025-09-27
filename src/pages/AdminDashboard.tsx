@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Building2, Users, Plus, LogOut, Eye, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEffectiveUser } from '@/hooks/use-effective-user';
 import { useNavigate } from 'react-router-dom';
 import { CreateCompanyModal } from '@/components/modals/CreateCompanyModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,7 +21,7 @@ interface Empresa {
 }
 
 export function AdminDashboard() {
-  const { usuario, logout } = useAuth();
+  const { usuario, logout } = useEffectiveUser();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);

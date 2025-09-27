@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RefreshCw, Download } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffectiveUser } from '@/hooks/use-effective-user';
 import { supabase } from "@/integrations/supabase/client";
 import { IndividualStats } from "@/components/performance/IndividualStats";
 import { TeamStats } from "@/components/performance/TeamStats";
@@ -15,7 +16,7 @@ import { RecentActivities } from "@/components/performance/RecentActivities";
 import { WeeklyChart } from "@/components/performance/WeeklyChart";
 
 const Desempenho = () => {
-  const { usuario } = useAuth();
+  const { usuario } = useEffectiveUser();
   const [companyName, setCompanyName] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
