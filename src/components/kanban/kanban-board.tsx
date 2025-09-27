@@ -352,8 +352,8 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     ))
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      // Usar usuario do contexto de autenticação customizado
+      if (!usuario?.id) {
         throw new Error('Usuário não autenticado')
       }
 
@@ -405,7 +405,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       if (!shouldSuppressLogs) {
         await supabase.from('tarefas_atividades').insert({
           tarefa_id: taskId,
-          usuario_id: user.id,
+          usuario_id: usuario.id,
           acao: 'alterou status',
           descricao: `Status alterado de ${originalStatus} para ${newStatus}`,
         })
@@ -427,7 +427,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
           const result = await supabase.functions.invoke('notify-task-completed', {
             body: { 
               taskId: taskId,
-              completedBy: user.id 
+              completedBy: usuario.id 
             }
           })
           console.log('Webhook response:', result)
