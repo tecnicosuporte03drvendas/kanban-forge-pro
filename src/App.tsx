@@ -77,9 +77,23 @@ const App = () => (
                           <Routes>
                             <Route path="/" element={<Index />} />
                             <Route path="/dashboard" element={<Index />} />
-                            <Route path="/tarefas" element={<Tarefas />} />
+                            <Route 
+                              path="/tarefas" 
+                              element={
+                                <ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
+                                  <Tarefas />
+                                </ProtectedRoute>
+                              } 
+                            />
                             <Route path="/calendario" element={<Calendario />} />
-                            <Route path="/relatorios" element={<Relatorios />} />
+                            <Route 
+                              path="/relatorios" 
+                              element={
+                                <ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
+                                  <Relatorios />
+                                </ProtectedRoute>
+                              } 
+                            />
                             <Route path="/empresa" element={<Empresa />} />
                             <Route path="/desempenho" element={<Desempenho />} />
                             <Route path="/integracoes" element={<Integracoes />} />
@@ -106,9 +120,23 @@ const App = () => (
                           <Routes>
                             <Route path="/" element={<Index />} />
                             <Route path="/dashboard" element={<Index />} />
-                            <Route path="/tarefas" element={<Tarefas />} />
+                            <Route 
+                              path="/tarefas" 
+                              element={
+                                <ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
+                                  <Tarefas />
+                                </ProtectedRoute>
+                              } 
+                            />
                             <Route path="/calendario" element={<Calendario />} />
-                            <Route path="/relatorios" element={<Relatorios />} />
+                            <Route 
+                              path="/relatorios" 
+                              element={
+                                <ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
+                                  <Relatorios />
+                                </ProtectedRoute>
+                              } 
+                            />
                             <Route path="/empresa" element={<Empresa />} />
                             <Route path="/desempenho" element={<Desempenho />} />
                             <Route path="/integracoes" element={<Integracoes />} />

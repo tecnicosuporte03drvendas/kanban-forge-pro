@@ -42,7 +42,7 @@ import { supabase } from "@/integrations/supabase/client"
 const getMenuItems = (tipoUsuario: string, isStealthMode: boolean, empresaId?: string) => {
   const baseUrl = isStealthMode && empresaId ? `/empresa/${empresaId}` : '';
   
-  return [
+  const allItems = [
     { title: "Dashboard", url: `${baseUrl}/`, icon: LayoutDashboard },
     { title: "Tarefas", url: `${baseUrl}/tarefas`, icon: CheckSquare },
     { title: "Calendário", url: `${baseUrl}/calendario`, icon: Calendar },
@@ -53,6 +53,15 @@ const getMenuItems = (tipoUsuario: string, isStealthMode: boolean, empresaId?: s
     { title: "Central de Ajuda", url: `${baseUrl}/ajuda`, icon: HelpCircle },
     { title: "Administração", url: "/admin", icon: Shield },
   ];
+
+  // Filter out Tarefas and Relatórios for colaborador users
+  if (tipoUsuario === 'colaborador') {
+    return allItems.filter(item => 
+      item.title !== "Tarefas" && item.title !== "Relatórios"
+    );
+  }
+
+  return allItems;
 }
 
 export function AppSidebar() {
