@@ -166,38 +166,29 @@ export const AdminConfiguracoes: React.FC = () => {
 
     setLoading(true);
     try {
-      console.log('🚀 Criando instância...');
+      console.log('🚀 Criando instância via proxy...');
       console.log('📍 URL do webhook:', urlInstancias);
-      console.log('📤 Dados sendo enviados:', {
-        action: 'create_instance',
-        nome: formInstance.nome,
-        telefone: formInstance.telefone,
+
+      // Usar Edge Function como proxy para evitar CORS
+      const { data, error } = await supabase.functions.invoke('n8n-proxy', {
+        body: {
+          webhookUrl: urlInstancias,
+          data: {
+            action: 'create_instance',
+            nome: formInstance.nome,
+            telefone: formInstance.telefone,
+          }
+        }
       });
 
-      // Chamar webhook N8N diretamente para criar instância
-      const response = await fetch(urlInstancias, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'create_instance',
-          nome: formInstance.nome,
-          telefone: formInstance.telefone,
-        }),
-      });
-
-      console.log('📥 Resposta do N8N - Status:', response.status);
-      console.log('📥 Resposta do N8N - Headers:', Object.fromEntries(response.headers.entries()));
-
-      if (!response.ok) {
-        const responseText = await response.text();
-        console.log('❌ Resposta de erro do N8N:', responseText);
-        throw new Error(`Erro do N8N: ${response.status} - ${responseText}`);
+      if (error) {
+        console.log('❌ Erro do proxy:', error);
+        throw new Error(`Erro do proxy: ${error.message}`);
       }
 
-      const data = await response.json();
-      console.log('✅ Resposta N8N ao criar instância:', data);
+      console.log('✅ Resposta do N8N via proxy:', data);
+
+      // data já contém a resposta do N8N
 
       // Se o N8N retornou sucesso, salvar no Supabase apenas para exibir
       const novaInstancia = {
@@ -256,26 +247,27 @@ export const AdminConfiguracoes: React.FC = () => {
 
     setLoading(true);
     try {
-      // Chamar webhook N8N diretamente para conectar instância
-      const response = await fetch(urlInstancias, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'connect_instance',
-          instanceId: instancia.id,
-          nome: instancia.nome,
-          telefone: instancia.telefone,
-        }),
+      console.log('🔌 Conectando instância via proxy...');
+      
+      // Usar Edge Function como proxy para evitar CORS
+      const { data, error } = await supabase.functions.invoke('n8n-proxy', {
+        body: {
+          webhookUrl: urlInstancias,
+          data: {
+            action: 'connect_instance',
+            instanceId: instancia.id,
+            nome: instancia.nome,
+            telefone: instancia.telefone,
+          }
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`Erro do N8N: ${response.status}`);
+      if (error) {
+        console.log('❌ Erro do proxy ao conectar:', error);
+        throw new Error(`Erro do proxy: ${error.message}`);
       }
 
-      const data = await response.json();
-      console.log('Resposta N8N ao conectar instância:', data);
+      console.log('✅ Resposta N8N ao conectar via proxy:', data);
 
       // Atualizar status e QR code no Supabase baseado na resposta do N8N
       const updateData: any = {
