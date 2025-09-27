@@ -211,6 +211,40 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     }
   }
 
+  // Função para validar se o movimento é permitido
+  const canMoveTask = (task: Task, fromStatus: StatusTarefa, toStatus: StatusTarefa): boolean => {
+    // Gestores e proprietários podem mover livremente
+    if (usuario?.tipo_usuario === 'gestor' || usuario?.tipo_usuario === 'proprietario') {
+      return true
+    }
+
+    // Colaboradores têm restrições
+    if (usuario?.tipo_usuario === 'colaborador') {
+      // Não podem mover tarefas concluídas ou validadas
+      if (fromStatus === 'concluida' || fromStatus === 'validada') {
+        return false
+      }
+
+      // Só podem mover se forem responsáveis pela tarefa
+      if (!task.isCurrentUserAssigned) {
+        return false
+      }
+
+      // Regras de movimento válidas para colaboradores:
+      const validMovements: Record<StatusTarefa, StatusTarefa[]> = {
+        'criada': ['assumida', 'executando', 'concluida'],
+        'assumida': ['executando', 'concluida', 'criada'],
+        'executando': ['concluida', 'assumida'],
+        'concluida': [], // Colaboradores não podem mover tarefas concluídas
+        'validada': []  // Colaboradores não podem mover tarefas validadas
+      }
+
+      return validMovements[fromStatus]?.includes(toStatus) || false
+    }
+
+    return true
+  }
+
   const handleDragStart = (event: DragStartEvent) => {
     const task = tasks.find(t => t.id === event.active.id)
     if (task) {
@@ -222,53 +256,17 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
   }
 
   const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event
-    
-    if (!over) return
-    
-    const activeId = active.id as string
-    const overId = over.id as string
-    
-    // Find the active task
-    const activeTask = tasks.find(t => t.id === activeId)
-    if (!activeTask) return
-    
-    // Check if over a column or another task
-    const isOverColumn = columns.some(col => col.id === overId)
-    const overTask = tasks.find(t => t.id === overId)
-    
-    if (isOverColumn) {
-      // Dragging over a column
-      const newStatus = overId as StatusTarefa
-      if (activeTask.status !== newStatus) {
-        setTasks(prev => 
-          prev.map(task =>
-            task.id === activeId ? { ...task, status: newStatus } : task
-          )
-        )
-      }
-    } else if (overTask && activeTask.status === overTask.status) {
-      // Dragging over another task in the same column - reorder
-      const activeIndex = tasks.findIndex(t => t.id === activeId)
-      const overIndex = tasks.findIndex(t => t.id === overId)
-      
-      if (activeIndex !== overIndex) {
-        setTasks(prev => arrayMove(prev, activeIndex, overIndex))
-      }
-    } else if (overTask && activeTask.status !== overTask.status) {
-      // Dragging over a task in a different column - move to that column
-      setTasks(prev => 
-        prev.map(task =>
-          task.id === activeId ? { ...task, status: overTask.status } : task
-        )
-      )
-    }
+    // Mantém visual simples durante drag - não atualiza estado
+    return
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     const dragEndTime = Date.now()
     const dragDuration = dragStartTime ? dragEndTime - dragStartTime : 0
+    
+    // Captura o status original ANTES de resetar activeColumn
+    const originalStatus = activeColumn as StatusTarefa
     
     setActiveTask(null)
     setActiveColumn(null)
@@ -283,7 +281,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       return
     }
 
-    if (!over) return
+    if (!over || !originalStatus) return
 
     const taskId = active.id as string
     const overId = over.id as string
@@ -293,7 +291,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     if (!movedTask) return
     
     // Determine the final status
-    let finalStatus: StatusTarefa = movedTask.status
+    let finalStatus: StatusTarefa = originalStatus
     
     // Check if dropped on a column
     const isOverColumn = columns.some(col => col.id === overId)
@@ -307,70 +305,91 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       }
     }
     
-    // Update in database if status changed or position changed
-    console.log('🔍 Drag end check:', { 
-      taskId, 
-      originalStatus: activeColumn, // Status original guardado no dragStart
-      finalStatus, 
-      statusChanged: activeColumn !== finalStatus 
-    })
+    // Validar se o movimento é permitido
+    if (!canMoveTask(movedTask, originalStatus, finalStatus)) {
+      toast({
+        title: "Movimento não permitido",
+        description: "Você não tem permissão para mover esta tarefa para este status.",
+        variant: "destructive"
+      })
+      return
+    }
     
-    // Sempre chama updateTaskStatus para lidar com tempo E posição
-    if (activeColumn !== finalStatus) {
-      console.log('✅ Status changed - calling updateTaskStatus')
-      updateTaskStatus(taskId, finalStatus)
+    // Update in database if status changed
+    if (originalStatus !== finalStatus) {
+      console.log('✅ Status changed - updating task')
+      updateTaskStatusAndPosition(taskId, originalStatus, finalStatus)
     } else {
       console.log('📍 Same status - updating only position')
-      // Same column, just position change - save new order
+      // Same column, just position change - calculate new position
       const tasksInColumn = getTasksByStatus(finalStatus)
-      const targetIndex = tasksInColumn.findIndex(t => t.id === taskId)
-      if (targetIndex !== -1) {
-        updateTaskPosition(taskId, finalStatus, targetIndex)
+      const currentIndex = tasksInColumn.findIndex(t => t.id === taskId)
+      let newPosition = 0
+      
+      // Calculate position based on drop target
+      if (overId !== taskId) {
+        const overTask = tasks.find(t => t.id === overId)
+        if (overTask && overTask.status === finalStatus) {
+          const overIndex = tasksInColumn.findIndex(t => t.id === overId)
+          newPosition = overIndex >= 0 ? overIndex : tasksInColumn.length
+        } else {
+          newPosition = tasksInColumn.length
+        }
+      } else {
+        newPosition = currentIndex >= 0 ? currentIndex : tasksInColumn.length
+      }
+      
+      if (currentIndex !== newPosition) {
+        updateTaskPosition(taskId, finalStatus, newPosition)
       }
     }
   }
 
-  const updateTaskStatus = async (taskId: string, status: StatusTarefa) => {
+  const updateTaskStatusAndPosition = async (taskId: string, originalStatus: StatusTarefa, newStatus: StatusTarefa) => {
+    // Otimistic update - atualiza estado local primeiro
+    setTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, status: newStatus } : task
+    ))
+
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        throw new Error('Usuário não autenticado')
+      }
 
       const oldTask = tasks.find(t => t.id === taskId)
-      if (!oldTask) return
+      if (!oldTask) {
+        throw new Error('Tarefa não encontrada')
+      }
 
-      // Handle time tracking logic - usar status original do drag
+      // Handle time tracking logic
       const now = new Date().toISOString()
       
-      // Calcular posição na nova coluna
-      const tasksInNewColumn = getTasksByStatus(status)
-      const newPosition = tasksInNewColumn.length // Posição no final da coluna
+      // Calcular posição na nova coluna (sem incluir a própria tarefa)
+      const tasksInNewColumn = tasks.filter(t => t.status === newStatus && t.id !== taskId)
+      const newPosition = tasksInNewColumn.length
       
       let updateFields: any = { 
-        status,
+        status: newStatus,
         posicao_coluna: newPosition 
       }
 
       // Status change logic for time tracking
-      console.log('🔄 Status change:', { oldStatus: activeColumn, newStatus: status, taskId })
+      console.log('🔄 Status change:', { oldStatus: originalStatus, newStatus, taskId })
       
-      if (activeColumn !== status) {
-        // Saindo de "criada" pela primeira vez - registrar tempo_inicio
-        if (activeColumn === 'criada' && (status === 'assumida' || status === 'executando')) {
-          console.log('⏰ Setting tempo_inicio:', now)
-          updateFields.tempo_inicio = now
-        }
-        
-        // Mantém tempo_inicio se saindo de "assumida" para "executando"
-        // (não precisa fazer nada aqui, apenas manter o tempo existente)
-
-        // Concluindo tarefa - registrar tempo_fim
-        if (status === 'concluida') {
-          console.log('🏁 Setting tempo_fim:', now)
-          updateFields.tempo_fim = now
-        }
-
-        // Voltando para "criada" - o trigger do banco resetará os tempos automaticamente
+      // Saindo de "criada" pela primeira vez - registrar tempo_inicio
+      if (originalStatus === 'criada' && (newStatus === 'assumida' || newStatus === 'executando')) {
+        console.log('⏰ Setting tempo_inicio:', now)
+        updateFields.tempo_inicio = now
       }
+      
+      // Concluindo tarefa - registrar tempo_fim
+      if (newStatus === 'concluida') {
+        console.log('🏁 Setting tempo_fim:', now)
+        updateFields.tempo_fim = now
+      }
+
+      // Voltando para "criada" - o trigger do banco resetará os tempos automaticamente
       
       console.log('📝 Update fields:', updateFields)
 
@@ -388,17 +407,22 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
           tarefa_id: taskId,
           usuario_id: user.id,
           acao: 'alterou status',
-          descricao: `Status alterado para: ${status}`,
+          descricao: `Status alterado de ${originalStatus} para ${newStatus}`,
         })
       }
 
-      // Reload tasks to get updated time data
-      loadTasks()
+      // Reload tasks to get updated data
+      await loadTasks()
+
+      // Show success toast
+      toast({
+        title: "Status atualizado",
+        description: `Tarefa movida para ${columns.find(c => c.id === newStatus)?.title}`,
+      })
 
       // If task completed, send webhook notification
-      if (status === 'concluida') {
+      if (newStatus === 'concluida') {
         console.log('Task completed! Sending webhook notification...')
-        console.log('TaskId:', taskId, 'CompletedBy:', user.id)
         try {
           const result = await supabase.functions.invoke('notify-task-completed', {
             body: { 
@@ -414,25 +438,54 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       }
     } catch (error) {
       console.error('Error updating task status:', error)
-      // Revert local state on error
-      loadTasks()
+      
+      // Rollback - revert local state
+      setTasks(prev => prev.map(task => 
+        task.id === taskId ? { ...task, status: originalStatus } : task
+      ))
+      
+      // Show error toast
+      toast({
+        title: "Erro ao atualizar status",
+        description: "Não foi possível mover a tarefa. Tente novamente.",
+        variant: "destructive"
+      })
+      
+      // Reload tasks to ensure consistency
+      await loadTasks()
     }
   }
 
-  const updateTaskPosition = async (taskId: string, newStatus: StatusTarefa, newPosition: number) => {
+  const updateTaskPosition = async (taskId: string, status: StatusTarefa, newPosition: number) => {
     try {
+      // Update position in database
       const { error } = await supabase
         .from('tarefas')
         .update({ 
-          status: newStatus,
           posicao_coluna: newPosition
         })
         .eq('id', taskId)
 
       if (error) throw error
+
+      // Reload tasks to reflect new positions
+      await loadTasks()
+
+      toast({
+        title: "Posição atualizada",
+        description: "Ordem das tarefas atualizada com sucesso",
+      })
     } catch (error) {
       console.error('Error updating task position:', error)
-      throw error
+      
+      toast({
+        title: "Erro ao reordenar",
+        description: "Não foi possível alterar a posição da tarefa.",
+        variant: "destructive"
+      })
+      
+      // Reload tasks to ensure consistency
+      await loadTasks()
     }
   }
 
