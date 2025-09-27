@@ -19,7 +19,7 @@ import { KanbanCard } from "./kanban-card"
 import { KanbanFilters, FilterState } from "./kanban-filters"
 import { isOverdue } from "@/utils/date-utils"
 import { supabase } from "@/integrations/supabase/client"
-import { useAuth } from "@/contexts/AuthContext"
+import { useEffectiveUser } from "@/hooks/use-effective-user"
 import { useStealth } from "@/hooks/use-stealth"
 import { toast } from "@/hooks/use-toast"
 import type { Tarefa, StatusTarefa } from "@/types/task"
@@ -61,7 +61,7 @@ const columns = [
 ]
 
 export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const { shouldSuppressLogs } = useStealth()
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(false)

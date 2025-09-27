@@ -9,6 +9,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { StealthIndicator } from "@/components/StealthIndicator";
+import { StealthUserProvider } from "@/components/StealthUserProvider";
 import Index from "./pages/Index";
 import Tarefas from "./pages/Tarefas";
 import Calendario from "./pages/Calendario";
@@ -66,16 +67,30 @@ const App = () => (
               
               {/* Rota stealth para master acessar ambiente da empresa */}
               <Route
-                path="/empresa/:empresaId"
+                path="/empresa/:empresaId/*"
                 element={
-                  <SidebarProvider defaultOpen={true}>
-                    <div className="min-h-screen flex w-full bg-background">
-                      <AppSidebar />
-                      <main className="flex-1 overflow-hidden">
-                        <Index />
-                      </main>
-                    </div>
-                  </SidebarProvider>
+                  <StealthUserProvider>
+                    <SidebarProvider defaultOpen={true}>
+                      <div className="min-h-screen flex w-full bg-background">
+                        <AppSidebar />
+                        <main className="flex-1 overflow-hidden">
+                          <Routes>
+                            <Route path="/" element={<Index />} />
+                            <Route path="/dashboard" element={<Index />} />
+                            <Route path="/tarefas" element={<Tarefas />} />
+                            <Route path="/calendario" element={<Calendario />} />
+                            <Route path="/relatorios" element={<Relatorios />} />
+                            <Route path="/empresa" element={<Empresa />} />
+                            <Route path="/desempenho" element={<Desempenho />} />
+                            <Route path="/integracoes" element={<Integracoes />} />
+                            <Route path="/ajuda" element={<Ajuda />} />
+                            <Route path="/perfil" element={<Perfil />} />
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </main>
+                      </div>
+                    </SidebarProvider>
+                  </StealthUserProvider>
                 }
               />
               

@@ -35,7 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTheme } from "@/components/theme-provider"
-import { useAuth } from "@/contexts/AuthContext"
+import { useEffectiveUser } from "@/hooks/use-effective-user"
 import { supabase } from "@/integrations/supabase/client"
 
 const getMenuItems = (tipoUsuario: string) => [
@@ -55,7 +55,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed"
   const location = useLocation()
   const { theme, setTheme } = useTheme()
-  const { usuario } = useAuth()
+  const { usuario, logout } = useEffectiveUser()
   const currentPath = location.pathname
   
   const [perfilUsuario, setPerfilUsuario] = useState<{

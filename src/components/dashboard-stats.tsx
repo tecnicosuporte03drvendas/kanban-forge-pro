@@ -2,10 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckSquare, Clock, Target, TrendingUp } from "lucide-react"
 import { useState, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
-import { useAuth } from "@/contexts/AuthContext"
+import { useEffectiveUser } from "@/hooks/use-effective-user"
 
 export function DashboardStats() {
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const [stats, setStats] = useState({
     total: 0,
     concluidas: 0,

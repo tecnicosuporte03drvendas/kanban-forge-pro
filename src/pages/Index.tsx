@@ -3,7 +3,7 @@ import { KanbanBoard } from "@/components/kanban/kanban-board"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { LogOut, Plus } from "lucide-react"
-import { useAuth } from "@/contexts/AuthContext"
+import { useEffectiveUser } from "@/hooks/use-effective-user"
 import { useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { supabase } from "@/integrations/supabase/client"
@@ -11,7 +11,7 @@ import { CreateTaskModal } from "@/components/modals/CreateTaskModal"
 import { TaskModal } from "@/components/modals/TaskModal"
 
 const Index = () => {
-  const { usuario, logout } = useAuth();
+  const { usuario, logout, isStealthMode } = useEffectiveUser();
   const navigate = useNavigate();
   const [empresa, setEmpresa] = useState<any>(null);
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
@@ -67,10 +67,12 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
-            </Button>
+            {!isStealthMode && (
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
+              </Button>
+            )}
           </div>
         </div>
       </header>
