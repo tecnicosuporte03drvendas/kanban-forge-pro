@@ -270,6 +270,9 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     const dragEndTime = Date.now()
     const dragDuration = dragStartTime ? dragEndTime - dragStartTime : 0
     
+    // Capture original status before resetting state
+    const originalStatus = activeColumn as StatusTarefa
+    
     setActiveTask(null)
     setActiveColumn(null)
     setIsDragInProgress(false)
@@ -290,38 +293,71 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     
     // Find the task that was moved
     const movedTask = tasks.find(t => t.id === taskId)
-    if (!movedTask) return
+    if (!movedTask || !originalStatus) return
     
-    // Determine the final status and position
+    // Determine the final status and position first to use in validation
     let finalStatus: StatusTarefa = movedTask.status
     let newPosition = 0
     
     // Check if dropped on a column
     const isOverColumn = columns.some(col => col.id === overId)
     if (isOverColumn) {
-      finalStatus = overId as StatusTarefa
-      // When dropped on column, position at the end
-      const tasksInColumn = tasks.filter(t => t.status === finalStatus && t.id !== taskId)
-      newPosition = tasksInColumn.length
+      // Validate that overId is a valid StatusTarefa
+      const validStatuses: StatusTarefa[] = ['criada', 'assumida', 'executando', 'concluida', 'validada']
+      if (validStatuses.includes(overId as StatusTarefa)) {
+        finalStatus = overId as StatusTarefa
+        // When dropped on column, position at the end
+        const tasksInColumn = tasks.filter(t => t.status === finalStatus && t.id !== taskId)
+        newPosition = tasksInColumn.length
+      }
     } else {
       // Check if dropped on another task
       const overTask = tasks.find(t => t.id === overId)
       if (overTask) {
         finalStatus = overTask.status
         // Get position based on where it was dropped relative to other task
-        const tasksInColumn = tasks.filter(t => t.status === finalStatus)
+        const tasksInColumn = tasks.filter(t => t.status === finalStatus && t.id !== taskId)
         const overTaskIndex = tasksInColumn.findIndex(t => t.id === overId)
         newPosition = overTaskIndex !== -1 ? overTaskIndex : tasksInColumn.length
       }
     }
     
-    console.log('🔍 Drag end:', { taskId, originalStatus: activeColumn, finalStatus, newPosition })
+    // Validate movement for colaboradores
+    if (usuario?.tipo_usuario === 'colaborador') {
+      const isValidMove = validateTaskMovement(originalStatus, finalStatus)
+      if (!isValidMove) {
+        toast({
+          title: "Movimento não permitido",
+          description: "Você não tem permissão para fazer este movimento.",
+          variant: "destructive"
+        })
+        // Revert the visual state
+        loadTasks()
+        return
+      }
+    }
+    
+    console.log('🔍 Drag end:', { taskId, originalStatus, finalStatus, newPosition })
     
     // Update task in database with correct position
-    updateTaskStatusAndPosition(taskId, finalStatus, newPosition)
+    updateTaskStatusAndPosition(taskId, finalStatus, newPosition, originalStatus)
   }
 
-  const updateTaskStatusAndPosition = async (taskId: string, status: StatusTarefa, newPosition: number) => {
+  // Validation function for task movement rules
+  const validateTaskMovement = (fromStatus: StatusTarefa, toStatus: StatusTarefa): boolean => {
+    // Rules for colaboradores
+    const allowedMovements: Record<StatusTarefa, StatusTarefa[]> = {
+      'criada': ['assumida', 'executando', 'concluida'],
+      'assumida': ['executando', 'concluida'],
+      'executando': ['concluida'],
+      'concluida': [], // Cannot move from completed
+      'validada': []  // Cannot move from validated
+    }
+    
+    return allowedMovements[fromStatus]?.includes(toStatus) || false
+  }
+
+  const updateTaskStatusAndPosition = async (taskId: string, status: StatusTarefa, newPosition: number, originalStatus: StatusTarefa) => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user || !usuario?.empresa_id) return
@@ -338,11 +374,11 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       }
 
       // Status change logic for time tracking
-      console.log('🔄 Status change:', { oldStatus: activeColumn, newStatus: status, taskId, newPosition })
+      console.log('🔄 Status change:', { oldStatus: originalStatus, newStatus: status, taskId, newPosition })
       
-      if (activeColumn !== status) {
+      if (originalStatus !== status) {
         // Saindo de "criada" pela primeira vez - registrar tempo_inicio
-        if (activeColumn === 'criada' && (status === 'assumida' || status === 'executando')) {
+        if (originalStatus === 'criada' && (status === 'assumida' || status === 'executando')) {
           console.log('⏰ Setting tempo_inicio:', now)
           updateFields.tempo_inicio = now
         }
@@ -428,11 +464,13 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
 
       if (error) throw error
 
+      console.log('✅ Task updated successfully:', { taskId, status, newPosition })
+
       // Create activity record only if not in stealth mode
       if (!shouldSuppressLogs) {
-        const action = oldTask.status !== status ? 'alterou status' : 'reordenou posição'
-        const description = oldTask.status !== status 
-          ? `Status alterado para: ${status}` 
+        const action = originalStatus !== status ? 'alterou status' : 'reordenou posição'
+        const description = originalStatus !== status 
+          ? `Status alterado de "${originalStatus}" para "${status}"` 
           : `Posição alterada para: ${newPosition + 1}`
           
         await supabase.from('tarefas_atividades').insert({
@@ -443,11 +481,19 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         })
       }
 
+      // Show success toast
+      toast({
+        title: "Tarefa atualizada",
+        description: originalStatus !== status 
+          ? `Status alterado para ${status}` 
+          : "Posição da tarefa atualizada",
+      })
+
       // Reload tasks to get updated data
       loadTasks()
 
       // If task completed, send webhook notification
-      if (status === 'concluida' && oldTask.status !== 'concluida') {
+      if (status === 'concluida' && originalStatus !== 'concluida') {
         console.log('Task completed! Sending webhook notification...')
         try {
           await supabase.functions.invoke('notify-task-completed', {
@@ -461,7 +507,15 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         }
       }
     } catch (error) {
-      console.error('Error updating task:', error)
+      console.error('❌ Error updating task:', error)
+      
+      // Show error toast
+      toast({
+        title: "Erro ao atualizar tarefa",
+        description: "Ocorreu um erro ao salvar as alterações. Tente novamente.",
+        variant: "destructive"
+      })
+      
       // Revert local state on error
       loadTasks()
     }
