@@ -221,6 +221,40 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     }
   }
 
+  // Function to check if status change is allowed for collaborators
+  const isStatusChangeAllowed = (currentStatus: StatusTarefa, newStatus: StatusTarefa): boolean => {
+    // Proprietarios and gestores can move freely
+    if (usuario?.tipo_usuario === 'proprietario' || usuario?.tipo_usuario === 'gestor') {
+      return true
+    }
+    
+    // Colaboradores have restrictions
+    if (usuario?.tipo_usuario === 'colaborador') {
+      // If task is completed, can't move anywhere
+      if (currentStatus === 'concluida') {
+        return false
+      }
+      
+      // Never allow moving to 'validada'
+      if (newStatus === 'validada') {
+        return false
+      }
+      
+      // Define allowed transitions for colaboradores
+      const allowedTransitions: Record<StatusTarefa, StatusTarefa[]> = {
+        'criada': ['assumida', 'executando'],
+        'assumida': ['criada', 'executando'],
+        'executando': ['criada', 'assumida', 'concluida'],
+        'concluida': [], // Can't move from completed
+        'validada': [] // Can't move from validated
+      }
+      
+      return allowedTransitions[currentStatus]?.includes(newStatus) || false
+    }
+    
+    return true
+  }
+
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event
     
@@ -241,11 +275,14 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       // Dragging over a column
       const newStatus = overId as StatusTarefa
       if (activeTask.status !== newStatus) {
-        setTasks(prev => 
-          prev.map(task =>
-            task.id === activeId ? { ...task, status: newStatus } : task
+        // Check if status change is allowed
+        if (isStatusChangeAllowed(activeTask.status, newStatus)) {
+          setTasks(prev => 
+            prev.map(task =>
+              task.id === activeId ? { ...task, status: newStatus } : task
+            )
           )
-        )
+        }
       }
     } else if (overTask && activeTask.status === overTask.status) {
       // Dragging over another task in the same column - reorder
@@ -257,11 +294,37 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       }
     } else if (overTask && activeTask.status !== overTask.status) {
       // Dragging over a task in a different column - move to that column
-      setTasks(prev => 
-        prev.map(task =>
-          task.id === activeId ? { ...task, status: overTask.status } : task
+      // Check if status change is allowed
+      if (isStatusChangeAllowed(activeTask.status, overTask.status)) {
+        setTasks(prev => 
+          prev.map(task =>
+            task.id === activeId ? { ...task, status: overTask.status } : task
+          )
         )
-      )
+      } else {
+        // Show error message for invalid move
+        if (usuario?.tipo_usuario === 'colaborador') {
+          if (activeTask.status === 'concluida') {
+            toast({
+              title: "Movimento não permitido",
+              description: "Tarefas concluídas não podem ser movidas.",
+              variant: "destructive"
+            })
+          } else if (overTask.status === 'validada') {
+            toast({
+              title: "Movimento não permitido",
+              description: "Apenas gestores podem validar tarefas.", 
+              variant: "destructive"
+            })
+          } else {
+            toast({
+              title: "Movimento não permitido",
+              description: "Esta transição de status não é permitida.",
+              variant: "destructive"
+            })
+          }
+        }
+      }
     }
   }
 
@@ -298,12 +361,19 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     // Check if dropped on a column
     const isOverColumn = columns.some(col => col.id === overId)
     if (isOverColumn) {
-      finalStatus = overId as StatusTarefa
+      const proposedStatus = overId as StatusTarefa
+      // Only change status if allowed
+      if (isStatusChangeAllowed(movedTask.status, proposedStatus)) {
+        finalStatus = proposedStatus
+      }
     } else {
       // Check if dropped on another task
       const overTask = tasks.find(t => t.id === overId)
       if (overTask) {
-        finalStatus = overTask.status
+        // Only change status if allowed
+        if (isStatusChangeAllowed(movedTask.status, overTask.status)) {
+          finalStatus = overTask.status
+        }
       }
     }
     
@@ -314,6 +384,47 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       finalStatus, 
       statusChanged: activeColumn !== finalStatus 
     })
+    
+    // Check if status change was blocked
+    if (activeColumn !== finalStatus && activeColumn !== null) {
+      // Get the proposed status from the drop target
+      let proposedStatus: StatusTarefa | null = null
+      
+      if (isOverColumn) {
+        proposedStatus = overId as StatusTarefa
+      } else {
+        const overTask = tasks.find(t => t.id === overId)
+        if (overTask) {
+          proposedStatus = overTask.status
+        }
+      }
+      
+      // Status didn't change due to restrictions, show appropriate message
+      if (proposedStatus && activeColumn && !isStatusChangeAllowed(activeColumn as StatusTarefa, proposedStatus)) {
+        if (usuario?.tipo_usuario === 'colaborador') {
+          if (activeColumn === 'concluida') {
+            toast({
+              title: "Movimento não permitido",
+              description: "Tarefas concluídas não podem ser movidas.",
+              variant: "destructive"
+            })
+          } else if (proposedStatus === 'validada') {
+            toast({
+              title: "Movimento não permitido",
+              description: "Apenas gestores podem validar tarefas.",
+              variant: "destructive"
+            })
+          } else {
+            toast({
+              title: "Movimento não permitido",
+              description: "Esta transição de status não é permitida.",
+              variant: "destructive"
+            })
+          }
+        }
+        return // Don't update database
+      }
+    }
     
     // Sempre chama updateTaskStatus para lidar com tempo E posição
     if (activeColumn !== finalStatus) {
