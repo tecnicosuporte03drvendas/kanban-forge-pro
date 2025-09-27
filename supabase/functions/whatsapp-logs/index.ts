@@ -1,6 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+interface LogRequestBody {
+  acao?: string;
+  instancia_id?: string;
+  status?: string;
+  qr_code?: string;
+  dados_retorno?: any;
+  dados_entrada?: any;
+  sucesso?: boolean;
+  mensagem_erro?: string;
+  error?: string;
+  origem?: string;
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -24,8 +37,38 @@ serve(async (req) => {
       );
     }
 
-    const body = await req.json();
-    console.log('📨 Log recebido do N8n:', JSON.stringify(body, null, 2));
+    // Check if request has content
+    const contentType = req.headers.get('content-type');
+    console.log('📋 Content-Type recebido:', contentType);
+
+    let body: LogRequestBody = {};
+    
+    // Try to parse JSON body if content exists
+    try {
+      const textBody = await req.text();
+      console.log('📄 Body raw recebido:', textBody);
+      
+      if (textBody && textBody.trim() !== '') {
+        body = JSON.parse(textBody) as LogRequestBody;
+        console.log('📨 Log recebido do N8n:', JSON.stringify(body, null, 2));
+      } else {
+        console.log('⚠️ Body vazio recebido, usando objeto padrão');
+        body = { acao: 'ping', origem: 'n8n-test' };
+      }
+    } catch (parseError) {
+      console.error('❌ Erro ao fazer parse do JSON:', parseError);
+      const errorMessage = parseError instanceof Error ? parseError.message : 'Erro desconhecido';
+      return new Response(
+        JSON.stringify({ 
+          error: 'JSON inválido no body da requisição',
+          details: errorMessage
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     // Validar campos obrigatórios
     const { acao, instancia_id } = body;
