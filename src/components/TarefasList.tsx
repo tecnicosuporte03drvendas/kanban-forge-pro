@@ -138,7 +138,41 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
   }
 
   const handleTaskAction = async (taskId: string, action: string) => {
-    await handleBulkAction(action)
+    try {
+      if (action === 'archive') {
+        await supabase
+          .from('tarefas')
+          .update({ arquivada: true })
+          .eq('id', taskId)
+      } else if (action === 'unarchive') {
+        await supabase
+          .from('tarefas')
+          .update({ arquivada: false })
+          .eq('id', taskId)
+      } else if (action === 'delete') {
+        await supabase
+          .from('tarefas')
+          .delete()
+          .eq('id', taskId)
+      } else {
+        // Status changes
+        const statusMap: Record<string, string> = {
+          'pending': 'criada',
+          'executing': 'executando',
+          'completed': 'concluida'
+        }
+        if (statusMap[action]) {
+          await supabase
+            .from('tarefas')
+            .update({ status: statusMap[action] as any })
+            .eq('id', taskId)
+        }
+      }
+      
+      loadTasks()
+    } catch (error) {
+      console.error('Error executing task action:', error)
+    }
   }
 
   const getResponsibleName = (task: Tarefa) => {
