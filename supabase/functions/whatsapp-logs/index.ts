@@ -118,20 +118,33 @@ serve(async (req) => {
     // Processar dados de retorno para resposta
     const evolutionData = body.dados_retorno || body;
     let qrCodeProcessado = null;
-    let statusProcessado = body.status || evolutionData.status || evolutionData.instance?.state;
+    let statusProcessado = body.status || 'conectando';
 
-    // Processar QR code se disponível
-    const qrCode = body.qr_code || 
-                  evolutionData.qrCode || 
-                  evolutionData.qr_code || 
-                  evolutionData.base64 ||
-                  evolutionData.instance?.qr ||
-                  evolutionData.instance?.qrcode;
-                  
-    if (qrCode) {
-      // Garantir que o QR code está no formato correto (data:image)
-      qrCodeProcessado = qrCode.startsWith('data:image') ? qrCode : `data:image/png;base64,${qrCode}`;
-      console.log('📱 QR Code processado para resposta');
+    // Verificar se é resposta da Evolution API com estrutura específica
+    if (evolutionData.success && evolutionData.data) {
+      // Extrair QR code da estrutura Evolution: data.base64
+      if (evolutionData.data.base64) {
+        qrCodeProcessado = evolutionData.data.base64; // Já vem formatado
+        console.log('📱 QR Code extraído da Evolution API');
+      }
+      
+      // Status baseado na presença do QR code
+      statusProcessado = evolutionData.data.base64 ? 'conectando' : 'desconectada';
+    } else {
+      // Processar outros formatos (fallback)
+      const qrCode = body.qr_code || 
+                    evolutionData.qrCode || 
+                    evolutionData.qr_code || 
+                    evolutionData.base64 ||
+                    evolutionData.instance?.qr ||
+                    evolutionData.instance?.qrcode;
+                    
+      if (qrCode) {
+        qrCodeProcessado = qrCode.startsWith('data:image') ? qrCode : `data:image/png;base64,${qrCode}`;
+        console.log('📱 QR Code processado (formato alternativo)');
+      }
+      
+      statusProcessado = body.status || evolutionData.status || evolutionData.instance?.state || 'conectando';
     }
 
     // Se os dados contém informações da instância, tentar atualizar também
