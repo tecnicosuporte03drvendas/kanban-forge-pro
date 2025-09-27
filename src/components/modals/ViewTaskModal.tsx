@@ -202,11 +202,10 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
       })
 
       // Create activity
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user && tarefa) {
+      if (usuario && tarefa) {
         await supabase.from('tarefas_atividades').insert({
           tarefa_id: tarefa.id,
-          usuario_id: user.id,
+          usuario_id: usuario.id,
           acao: concluido ? 'desmarcou' : 'marcou',
           descricao: `Item do checklist ${concluido ? 'desmarcado' : 'marcado'}`,
         })
@@ -340,15 +339,14 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
 
     setEnviandoComentario(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      if (!usuario) {
         toast({ title: 'Erro', description: 'Usuário não autenticado', variant: 'destructive' })
         return
       }
 
       const { error } = await supabase.from('tarefas_comentarios').insert({
         tarefa_id: tarefa.id,
-        usuario_id: user.id,
+        usuario_id: usuario.id,
         comentario: novoComentario.trim(),
       })
 
@@ -357,7 +355,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
       // Create activity
       await supabase.from('tarefas_atividades').insert({
         tarefa_id: tarefa.id,
-        usuario_id: user.id,
+        usuario_id: usuario.id,
         acao: 'comentou',
         descricao: 'Adicionou um comentário',
       })
