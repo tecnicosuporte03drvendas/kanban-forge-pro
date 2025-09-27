@@ -6,6 +6,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { CreateTaskModal } from "@/components/modals/CreateTaskModal"
 import { CreateMeetingModal } from "@/components/modals/CreateMeetingModal"
 import { EditMeetingModal } from "@/components/modals/EditMeetingModal"
+import { ViewTaskModal } from "@/components/modals/ViewTaskModal"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users, Video, CheckSquare } from "lucide-react"
 import { getDateStatus } from "@/utils/date-utils"
@@ -38,6 +39,8 @@ const Calendario = () => {
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false)
   const [isEditMeetingModalOpen, setIsEditMeetingModalOpen] = useState(false)
   const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null)
+  const [isViewTaskModalOpen, setIsViewTaskModalOpen] = useState(false)
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
   
@@ -88,6 +91,12 @@ const Calendario = () => {
   const handleMeetingClick = (meetingId: string) => {
     setSelectedMeetingId(meetingId)
     setIsEditMeetingModalOpen(true)
+  }
+
+  // Função para abrir modal detalhado da tarefa
+  const handleTaskClick = (taskId: string) => {
+    setSelectedTaskId(taskId)
+    setIsViewTaskModalOpen(true)
   }
   
   // Carregar tarefas e reuniões da empresa
@@ -310,8 +319,8 @@ const Calendario = () => {
                       return (
                         <div 
                           key={index} 
-                          className={`mb-2 p-3 rounded-r border-l-4 ${eventStyle.background} ${event.type === 'meeting' ? 'cursor-pointer hover:opacity-80' : ''}`}
-                          onClick={() => event.type === 'meeting' ? handleMeetingClick(event.id) : undefined}
+                          className={`mb-2 p-3 rounded-r border-l-4 ${eventStyle.background} ${event.type === 'meeting' ? 'cursor-pointer hover:opacity-80' : event.type === 'task' ? 'cursor-pointer hover:opacity-80' : ''}`}
+                          onClick={() => event.type === 'meeting' ? handleMeetingClick(event.id) : event.type === 'task' ? handleTaskClick(event.id) : undefined}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -432,12 +441,12 @@ const Calendario = () => {
                               return (
                                 <div
                                   key={eventIndex}
-                                  className={`text-xs p-1 rounded border mb-1 ${eventStyle.background.replace('/10', '/20')} ${eventStyle.text} ${event.type === 'meeting' ? 'cursor-pointer hover:opacity-80' : ''}`}
-                                  title={`${event.title} - ${event.assignee}${event.type === 'meeting' && event.duration ? ` (${event.duration}min)` : ''}`}
+                                  className={`text-xs p-1 rounded border mb-1 ${eventStyle.background.replace('/10', '/20')} ${eventStyle.text} ${event.type === 'meeting' ? 'cursor-pointer hover:opacity-80' : event.type === 'task' ? 'cursor-pointer hover:opacity-80' : ''}`}
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    if (event.type === 'meeting') handleMeetingClick(event.id)
+                                    event.type === 'meeting' ? handleMeetingClick(event.id) : event.type === 'task' ? handleTaskClick(event.id) : undefined
                                   }}
+                                  title={`${event.title} - ${event.assignee}${event.type === 'meeting' && event.duration ? ` (${event.duration}min)` : ''}`}
                                 >
                                    <div className="truncate">{event.title}</div>
                                    <div className="flex items-center gap-1">
@@ -608,8 +617,8 @@ const Calendario = () => {
                   return (
                     <div 
                       key={event.id} 
-                      className={`p-4 border border-border rounded-lg bg-background/50 hover:bg-background/80 transition-colors ${event.type === 'meeting' ? 'cursor-pointer' : ''}`}
-                      onClick={() => event.type === 'meeting' ? handleMeetingClick(event.id) : undefined}
+                      className={`p-4 border border-border rounded-lg bg-background/50 hover:bg-background/80 transition-colors ${event.type === 'meeting' ? 'cursor-pointer' : event.type === 'task' ? 'cursor-pointer' : ''}`}
+                      onClick={() => event.type === 'meeting' ? handleMeetingClick(event.id) : event.type === 'task' ? handleTaskClick(event.id) : undefined}
                     >
                       <div className="flex items-center justify-between gap-3">
                          <div className="flex items-center gap-4">
@@ -731,6 +740,13 @@ const Calendario = () => {
             open={isEditMeetingModalOpen}
             onOpenChange={setIsEditMeetingModalOpen}
             onMeetingUpdated={loadEvents}
+          />
+
+          <ViewTaskModal
+            taskId={selectedTaskId}
+            open={isViewTaskModalOpen}
+            onOpenChange={setIsViewTaskModalOpen}
+            onTaskUpdated={loadEvents}
           />
         </div>
       </header>
