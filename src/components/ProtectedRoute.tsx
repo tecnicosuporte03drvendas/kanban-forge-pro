@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth, TipoUsuario } from '@/contexts/AuthContext';
+import { useEffectiveUser } from '@/hooks/use-effective-user';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,7 +13,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   allowedRoles = ['master', 'proprietario', 'gestor', 'colaborador'],
   requireAuth = true 
 }) => {
-  const { usuario, loading, isAuthenticated } = useAuth();
+  const { usuario, loading, isAuthenticated, isStealthMode } = useEffectiveUser();
 
   if (loading) {
     return (
@@ -29,6 +30,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Se usuário está logado mas não tem permissão para acessar a rota
   if (isAuthenticated && usuario && !allowedRoles.includes(usuario.tipo_usuario)) {
+    // No modo stealth, não redirecionar automaticamente
+    if (isStealthMode) {
+      return <>{children}</>;
+    }
+    
     // Redirecionar baseado no tipo de usuário
     switch (usuario.tipo_usuario) {
       case 'master':

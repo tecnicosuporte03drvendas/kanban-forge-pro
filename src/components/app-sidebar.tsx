@@ -41,16 +41,18 @@ import { supabase } from "@/integrations/supabase/client"
 
 const getMenuItems = (tipoUsuario: string, isStealthMode: boolean, empresaId?: string) => {
   const baseUrl = isStealthMode && empresaId ? `/empresa/${empresaId}` : '';
+  const stealthParams = isStealthMode && empresaId ? 
+    `?stealth=true&master_id=${new URLSearchParams(window.location.search).get('master_id')}` : '';
   
   const allItems = [
-    { title: "Dashboard", url: `${baseUrl}/`, icon: LayoutDashboard },
-    { title: "Tarefas", url: `${baseUrl}/tarefas`, icon: CheckSquare },
-    { title: "Calendário", url: `${baseUrl}/calendario`, icon: Calendar },
-    { title: "Relatórios", url: `${baseUrl}/relatorios`, icon: BarChart3 },
-    { title: "Empresa", url: `${baseUrl}/empresa`, icon: Users },
-    { title: tipoUsuario === 'colaborador' ? "Meu Desempenho" : "Desempenho", url: `${baseUrl}/desempenho`, icon: User },
-    { title: "Integrações", url: `${baseUrl}/integracoes`, icon: Settings },
-    { title: "Central de Ajuda", url: `${baseUrl}/ajuda`, icon: HelpCircle },
+    { title: "Dashboard", url: `${baseUrl}/${stealthParams}`, icon: LayoutDashboard },
+    { title: "Tarefas", url: `${baseUrl}/tarefas${stealthParams}`, icon: CheckSquare },
+    { title: "Calendário", url: `${baseUrl}/calendario${stealthParams}`, icon: Calendar },
+    { title: "Relatórios", url: `${baseUrl}/relatorios${stealthParams}`, icon: BarChart3 },
+    { title: "Empresa", url: `${baseUrl}/empresa${stealthParams}`, icon: Users },
+    { title: tipoUsuario === 'colaborador' ? "Meu Desempenho" : "Desempenho", url: `${baseUrl}/desempenho${stealthParams}`, icon: User },
+    { title: "Integrações", url: `${baseUrl}/integracoes${stealthParams}`, icon: Settings },
+    { title: "Central de Ajuda", url: `${baseUrl}/ajuda${stealthParams}`, icon: HelpCircle },
     { title: "Administração", url: "/admin", icon: Shield },
   ];
 
@@ -214,7 +216,13 @@ export function AppSidebar() {
           </DropdownMenu>
           
           {!collapsed && (
-            <NavLink to={isStealthMode && empresaId ? `/empresa/${empresaId}/perfil` : "/perfil"} className="flex-1">
+            <NavLink 
+              to={isStealthMode && empresaId ? 
+                `/empresa/${empresaId}/perfil?stealth=true&master_id=${new URLSearchParams(window.location.search).get('master_id')}` : 
+                "/perfil"
+              } 
+              className="flex-1"
+            >
               <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
                 <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
                   <span className="text-xs font-medium text-sidebar-accent-foreground">
@@ -234,7 +242,13 @@ export function AppSidebar() {
           )}
           
           {collapsed && (
-            <NavLink to="/perfil" className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-sidebar-accent/50 transition-colors">
+            <NavLink 
+              to={isStealthMode && empresaId ? 
+                `/empresa/${empresaId}/perfil?stealth=true&master_id=${new URLSearchParams(window.location.search).get('master_id')}` : 
+                "/perfil"
+              } 
+              className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-sidebar-accent/50 transition-colors"
+            >
               <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
                 <span className="text-xs font-medium text-sidebar-accent-foreground">
                   {perfilUsuario?.iniciais || 'U'}

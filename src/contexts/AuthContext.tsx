@@ -75,13 +75,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     checkStealthMode();
     
-    // Listener para mudanças de URL
-    window.addEventListener('popstate', checkStealthMode);
+    // Listener para mudanças de URL (incluindo navegação por React Router)
+    const handleLocationChange = () => {
+      checkStealthMode();
+    };
+    
+    window.addEventListener('popstate', handleLocationChange);
+    // Interceptar mudanças de URL do React Router
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+    
+    history.pushState = function(...args) {
+      originalPushState.apply(history, args);
+      setTimeout(handleLocationChange, 0);
+    };
+    
+    history.replaceState = function(...args) {
+      originalReplaceState.apply(history, args);
+      setTimeout(handleLocationChange, 0);
+    };
     
     setLoading(false);
     
     return () => {
-      window.removeEventListener('popstate', checkStealthMode);
+      window.removeEventListener('popstate', handleLocationChange);
+      history.pushState = originalPushState;
+      history.replaceState = originalReplaceState;
     };
   }, []);
 
