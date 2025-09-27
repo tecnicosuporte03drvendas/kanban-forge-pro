@@ -13,7 +13,6 @@ import { CreateUserModal } from '@/components/modals/CreateUserModal';
 import { DeactivateCompanyModal } from '@/components/modals/DeactivateCompanyModal';
 import { ReactivateCompanyModal } from '@/components/modals/ReactivateCompanyModal';
 import { DeleteUserModal } from '@/components/modals/DeleteUserModal';
-import { CompanyInspectorModal } from '@/components/modals/CompanyInspectorModal';
 interface Empresa {
   id: string;
   cnpj: string | null;
@@ -48,7 +47,6 @@ export default function CompanyView() {
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
   const [isReactivateModalOpen, setIsReactivateModalOpen] = useState(false);
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
-  const [isInspectorModalOpen, setIsInspectorModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
   const fetchEmpresa = async () => {
     if (!empresaId) return;
@@ -111,7 +109,8 @@ export default function CompanyView() {
     setIsDeleteUserModalOpen(true);
   };
   const handleInspectCompany = () => {
-    setIsInspectorModalOpen(true);
+    // Navegar para o ambiente corporativo da empresa
+    navigate(`/empresa/${empresaId}`);
   };
 
   const handleCompanyReactivated = async () => {
@@ -349,7 +348,5 @@ export default function CompanyView() {
       <ReactivateCompanyModal open={isReactivateModalOpen} onOpenChange={setIsReactivateModalOpen} onCompanyReactivated={handleCompanyReactivated} company={empresa} />
 
       <DeleteUserModal open={isDeleteUserModalOpen} onOpenChange={setIsDeleteUserModalOpen} onUserDeleted={handleUserDeleted} user={selectedUser} companyName={empresa.nome_fantasia} />
-
-      <CompanyInspectorModal open={isInspectorModalOpen} onOpenChange={setIsInspectorModalOpen} company={empresa} />
     </div>;
 }
