@@ -128,10 +128,10 @@ serve(async (req) => {
         console.log('📱 QR Code extraído da Evolution API');
       }
       
-      // Status baseado no success: se true = conectado, se tem QR = conectando, senão desconectada
+      // Status baseado no success: se true = conectada, se tem QR = conectando, senão desconectada
       if (evolutionData.success === true) {
-        statusProcessado = 'conectado';
-        console.log('✅ Status definido como conectado (success = true)');
+        statusProcessado = 'conectada';
+        console.log('✅ Status definido como conectada (success = true)');
       } else {
         statusProcessado = evolutionData.data.base64 ? 'conectando' : 'desconectada';
       }
