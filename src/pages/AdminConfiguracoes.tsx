@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Plus, Wifi, WifiOff, QrCode } from 'lucide-react';
+import { Settings, Plus, Wifi, WifiOff, QrCode, X, Trash2, RotateCcw } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 
 interface Configuracao {
@@ -359,6 +359,241 @@ export const AdminConfiguracoes: React.FC = () => {
     }
   };
 
+  const desconectarInstancia = async (instancia: InstanciaWhatsApp) => {
+    if (!urlInstancias.trim()) {
+      toast({
+        title: "Erro",
+        description: "Configure o webhook de instâncias antes de desconectar",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log('🔌 Desconectando instância via N8N...');
+      console.log('📍 Instância a desconectar:', { id: instancia.id, nome: instancia.nome });
+      
+      // Disparar webhook N8N para desconectar instância
+      const { data, error } = await supabase.functions.invoke('n8n-proxy', {
+        body: {
+          webhookUrl: urlInstancias,
+          data: {
+            action: 'disconnect_instance',
+            instanceId: instancia.id,
+            nome: instancia.nome,
+            telefone: instancia.telefone,
+          }
+        }
+      });
+
+      if (error) {
+        console.log('❌ Erro do proxy ao desconectar:', error);
+        throw new Error(`Erro do proxy: ${error.message}`);
+      }
+
+      console.log('✅ Desconexão processada pelo N8N:', data);
+
+      // Atualizar status local para desconectada
+      setInstancias(prev => prev.map(inst => 
+        inst.id === instancia.id ? { ...inst, status: 'desconectada', qr_code: null } : inst
+      ));
+
+      // Atualizar no Supabase
+      await supabase
+        .from('instancias_whatsapp')
+        .update({ status: 'desconectada', qr_code: null })
+        .eq('id', instancia.id);
+
+      toast({
+        title: "Instância desconectada",
+        description: `${instancia.nome} foi desconectada com sucesso`,
+      });
+
+    } catch (error: any) {
+      console.error('❌ Erro ao desconectar instância:', error);
+      toast({
+        title: "Erro ao desconectar instância",
+        description: error.message || "Erro de comunicação com N8N/Evolution",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deletarInstancia = async (instancia: InstanciaWhatsApp) => {
+    if (!urlInstancias.trim()) {
+      toast({
+        title: "Erro",
+        description: "Configure o webhook de instâncias antes de deletar",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!confirm(`Tem certeza que deseja deletar a instância "${instancia.nome}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log('🗑️ Deletando instância via N8N...');
+      console.log('📍 Instância a deletar:', { id: instancia.id, nome: instancia.nome });
+      
+      // Disparar webhook N8N para deletar instância
+      const { data, error } = await supabase.functions.invoke('n8n-proxy', {
+        body: {
+          webhookUrl: urlInstancias,
+          data: {
+            action: 'delete_instance',
+            instanceId: instancia.id,
+            nome: instancia.nome,
+            telefone: instancia.telefone,
+          }
+        }
+      });
+
+      if (error) {
+        console.log('❌ Erro do proxy ao deletar:', error);
+        throw new Error(`Erro do proxy: ${error.message}`);
+      }
+
+      console.log('✅ Deleção processada pelo N8N:', data);
+
+      // Remover da lista local
+      setInstancias(prev => prev.filter(inst => inst.id !== instancia.id));
+
+      // Remover do Supabase
+      await supabase
+        .from('instancias_whatsapp')
+        .delete()
+        .eq('id', instancia.id);
+
+      toast({
+        title: "Instância deletada",
+        description: `${instancia.nome} foi deletada com sucesso`,
+      });
+
+    } catch (error: any) {
+      console.error('❌ Erro ao deletar instância:', error);
+      toast({
+        title: "Erro ao deletar instância",
+        description: error.message || "Erro de comunicação com N8N/Evolution",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const atualizarQrCode = async (instanciaId: string, nomeInstancia: string) => {
+    if (!urlInstancias.trim()) {
+      toast({
+        title: "Erro",
+        description: "Configure o webhook de instâncias antes de atualizar QR Code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log('🔄 Atualizando QR Code via N8N...');
+      console.log('📍 Instância:', { id: instanciaId, nome: nomeInstancia });
+      
+      // Disparar webhook N8N para gerar novo QR Code
+      const { data, error } = await supabase.functions.invoke('n8n-proxy', {
+        body: {
+          webhookUrl: urlInstancias,
+          data: {
+            action: 'refresh_qr_code',
+            instanceId: instanciaId,
+          }
+        }
+      });
+
+      if (error) {
+        console.log('❌ Erro do proxy ao atualizar QR:', error);
+        throw new Error(`Erro do proxy: ${error.message}`);
+      }
+
+      console.log('✅ Atualização de QR processada pelo N8N:', data);
+
+      toast({
+        title: "QR Code atualizado",
+        description: "Aguardando novo QR Code...",
+      });
+
+      // Aguardar novo QR Code (similar ao fluxo de conexão)
+      let tentativas = 0;
+      const maxTentativas = 15;
+      
+      const aguardarNovoQrCode = async () => {
+        try {
+          const { data: instanciaAtualizada, error: fetchError } = await supabase
+            .from('instancias_whatsapp')
+            .select('*')
+            .eq('id', instanciaId)
+            .single();
+
+          if (fetchError) {
+            console.error('Erro ao buscar instância:', fetchError);
+            return;
+          }
+
+          console.log('🔍 Verificando novo QR Code:', instanciaAtualizada);
+
+          // Atualizar estado local
+          setInstancias(prev => prev.map(inst => 
+            inst.id === instanciaId ? instanciaAtualizada : inst
+          ));
+
+          // Se recebeu novo QR code, atualizar modal
+          if (instanciaAtualizada.qr_code && instanciaAtualizada.qr_code !== currentQrCode) {
+            console.log('📱 Novo QR Code detectado');
+            setCurrentQrCode(instanciaAtualizada.qr_code);
+            
+            toast({
+              title: "Novo QR Code gerado",
+              description: "QR Code atualizado com sucesso",
+            });
+            return;
+          }
+
+          // Se ainda não tem novo QR code e não atingiu o limite, tentar novamente
+          tentativas++;
+          if (tentativas < maxTentativas) {
+            console.log(`🔄 Tentativa ${tentativas}/${maxTentativas} - aguardando novo QR code...`);
+            setTimeout(aguardarNovoQrCode, 2000);
+          } else {
+            console.log('⏰ Timeout aguardando novo QR code');
+            toast({
+              title: "Timeout",
+              description: "Novo QR Code não foi gerado no tempo esperado",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error('Erro ao verificar novo QR code:', error);
+        }
+      };
+
+      // Iniciar verificação após 1 segundo
+      setTimeout(aguardarNovoQrCode, 1000);
+
+    } catch (error: any) {
+      console.error('❌ Erro ao atualizar QR Code:', error);
+      toast({
+        title: "Erro ao atualizar QR Code",
+        description: error.message || "Erro de comunicação com N8N/Evolution",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
@@ -489,14 +724,26 @@ export const AdminConfiguracoes: React.FC = () => {
                       />
                     </div>
                   )}
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setQrModalOpen(false)}
-                      className="flex-1"
-                    >
-                      Fechar
-                    </Button>
+                   <div className="flex gap-2">
+                     <Button 
+                       variant="outline" 
+                       onClick={() => atualizarQrCode(
+                         instancias.find(i => i.nome === currentInstanceName)?.id || '', 
+                         currentInstanceName
+                       )}
+                       disabled={loading}
+                       className="flex-1"
+                     >
+                       <RotateCcw className="h-4 w-4 mr-2" />
+                       Atualizar QR Code
+                     </Button>
+                     <Button 
+                       variant="outline" 
+                       onClick={() => setQrModalOpen(false)}
+                       className="flex-1"
+                     >
+                       Fechar
+                     </Button>
                   </div>
                 </div>
               </DialogContent>
@@ -535,15 +782,41 @@ export const AdminConfiguracoes: React.FC = () => {
                         </div>
                       </div>
                       
-                      {instancia.status !== 'conectada' && (
-                        <Button 
-                          onClick={() => conectarInstancia(instancia)}
-                          disabled={loading}
-                          className="w-full mb-3"
-                        >
-                          Conectar
-                        </Button>
-                      )}
+                       <div className="space-y-2">
+                         {instancia.status !== 'conectada' && (
+                           <Button 
+                             onClick={() => conectarInstancia(instancia)}
+                             disabled={loading}
+                             className="w-full"
+                           >
+                             Conectar
+                           </Button>
+                         )}
+                         
+                         <div className="flex gap-2">
+                           {instancia.status === 'conectada' && (
+                             <Button 
+                               variant="outline"
+                               onClick={() => desconectarInstancia(instancia)}
+                               disabled={loading}
+                               className="flex-1"
+                             >
+                               <X className="h-4 w-4 mr-2" />
+                               Desconectar
+                             </Button>
+                           )}
+                           
+                           <Button 
+                             variant="destructive"
+                             onClick={() => deletarInstancia(instancia)}
+                             disabled={loading}
+                             className={instancia.status === 'conectada' ? 'flex-1' : 'w-full'}
+                           >
+                             <Trash2 className="h-4 w-4 mr-2" />
+                             Apagar instância
+                           </Button>
+                         </div>
+                       </div>
 
                       {qrCodeVisible[instancia.id] && instancia.qr_code && (
                         <div className="mt-3 p-3 bg-muted rounded-lg">
