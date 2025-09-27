@@ -1,20 +1,22 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, Calendar, Clock, User } from "lucide-react"
+import { AlertTriangle, Calendar, Clock, User, Archive } from "lucide-react"
 import type { Tarefa } from "@/types/task"
 
 interface DeleteTaskConfirmationModalProps {
   isOpen: boolean
   onClose: () => void
   onConfirm: () => void
+  onArchive?: () => void
   task: Tarefa | null
 }
 
 export function DeleteTaskConfirmationModal({ 
   isOpen, 
   onClose, 
-  onConfirm, 
+  onConfirm,
+  onArchive,
   task 
 }: DeleteTaskConfirmationModalProps) {
   if (!task) return null
@@ -100,6 +102,12 @@ export function DeleteTaskConfirmationModal({
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
+          {onArchive && (
+            <Button variant="outline" onClick={onArchive}>
+              <Archive className="w-4 h-4 mr-2" />
+              Arquivar ao Invés
+            </Button>
+          )}
           <Button variant="destructive" onClick={onConfirm}>
             <AlertTriangle className="w-4 h-4 mr-2" />
             Excluir Permanentemente

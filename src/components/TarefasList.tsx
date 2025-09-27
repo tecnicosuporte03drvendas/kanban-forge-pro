@@ -9,6 +9,7 @@ import { Plus, Search, Filter, Download, Calendar, User, MoreHorizontal, Archive
 import { getDateStatus } from "@/utils/date-utils"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
+import { DeleteTaskConfirmationModal } from "@/components/modals/DeleteTaskConfirmationModal"
 import type { Tarefa } from "@/types/task"
 
 interface TarefasListProps {
@@ -24,6 +25,8 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [priorityFilter, setPriorityFilter] = useState("all")
+  const [taskToDelete, setTaskToDelete] = useState<Tarefa | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   useEffect(() => {
     if (usuario?.empresa_id) {
@@ -150,10 +153,13 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
           .update({ arquivada: false })
           .eq('id', taskId)
       } else if (action === 'delete') {
-        await supabase
-          .from('tarefas')
-          .delete()
-          .eq('id', taskId)
+        // Show confirmation modal for deletion
+        const task = tasks.find(t => t.id === taskId)
+        if (task) {
+          setTaskToDelete(task)
+          setShowDeleteModal(true)
+          return // Don't continue with direct deletion
+        }
       } else {
         // Status changes
         const statusMap: Record<string, string> = {
@@ -172,6 +178,40 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
       loadTasks()
     } catch (error) {
       console.error('Error executing task action:', error)
+    }
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!taskToDelete) return
+
+    try {
+      await supabase
+        .from('tarefas')
+        .delete()
+        .eq('id', taskToDelete.id)
+      
+      setShowDeleteModal(false)
+      setTaskToDelete(null)
+      loadTasks()
+    } catch (error) {
+      console.error('Error deleting task:', error)
+    }
+  }
+
+  const handleArchiveInsteadOfDelete = async () => {
+    if (!taskToDelete) return
+
+    try {
+      await supabase
+        .from('tarefas')
+        .update({ arquivada: true })
+        .eq('id', taskToDelete.id)
+      
+      setShowDeleteModal(false)
+      setTaskToDelete(null)
+      loadTasks()
+    } catch (error) {
+      console.error('Error archiving task:', error)
     }
   }
 
@@ -480,6 +520,17 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
           </Card>
         )}
       </div>
+
+      <DeleteTaskConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setTaskToDelete(null)
+        }}
+        onConfirm={handleConfirmDelete}
+        onArchive={handleArchiveInsteadOfDelete}
+        task={taskToDelete}
+      />
     </div>
   )
 }
