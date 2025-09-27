@@ -36,6 +36,8 @@ export const StealthUserProvider: React.FC<StealthUserProviderProps> = ({ childr
         return;
       }
 
+      console.log('🔍 Loading stealth user for empresa:', empresaId);
+
       try {
         // Buscar o primeiro proprietário ativo da empresa para simular seu acesso
         const { data: usuarios, error } = await supabase
@@ -47,9 +49,11 @@ export const StealthUserProvider: React.FC<StealthUserProviderProps> = ({ childr
           .limit(1);
 
         if (error) {
-          console.error('Erro ao buscar usuário stealth:', error);
+          console.error('❌ Erro ao buscar usuário stealth:', error);
           return;
         }
+
+        console.log('👤 Usuários encontrados:', usuarios);
 
         if (usuarios && usuarios.length > 0) {
           const usuario = usuarios[0];
@@ -63,9 +67,12 @@ export const StealthUserProvider: React.FC<StealthUserProviderProps> = ({ childr
             empresa_id: usuario.empresa_id,
             ativo: usuario.ativo
           });
+          console.log('✅ Stealth user carregado:', usuario.nome);
+        } else {
+          console.log('⚠️ Nenhum proprietário encontrado para a empresa');
         }
       } catch (error) {
-        console.error('Erro ao carregar usuário stealth:', error);
+        console.error('❌ Erro ao carregar usuário stealth:', error);
       } finally {
         setLoading(false);
       }

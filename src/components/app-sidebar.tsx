@@ -13,7 +13,7 @@ import {
   Sun,
   Monitor
 } from "lucide-react"
-import { NavLink, useLocation } from "react-router-dom"
+import { NavLink, useLocation, useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import {
   Sidebar,
@@ -36,26 +36,32 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useTheme } from "@/components/theme-provider"
 import { useEffectiveUser } from "@/hooks/use-effective-user"
+import { useStealth } from "@/hooks/use-stealth"
 import { supabase } from "@/integrations/supabase/client"
 
-const getMenuItems = (tipoUsuario: string) => [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Tarefas", url: "/tarefas", icon: CheckSquare },
-  { title: "Calendário", url: "/calendario", icon: Calendar },
-  { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
-  { title: "Empresa", url: "/empresa", icon: Users },
-  { title: tipoUsuario === 'colaborador' ? "Meu Desempenho" : "Desempenho", url: "/desempenho", icon: User },
-  { title: "Integrações", url: "/integracoes", icon: Settings },
-  { title: "Central de Ajuda", url: "/ajuda", icon: HelpCircle },
-  { title: "Administração", url: "/adminmasterauth", icon: Shield },
-]
+const getMenuItems = (tipoUsuario: string, isStealthMode: boolean, empresaId?: string) => {
+  const baseUrl = isStealthMode && empresaId ? `/empresa/${empresaId}` : '';
+  
+  return [
+    { title: "Dashboard", url: `${baseUrl}/`, icon: LayoutDashboard },
+    { title: "Tarefas", url: `${baseUrl}/tarefas`, icon: CheckSquare },
+    { title: "Calendário", url: `${baseUrl}/calendario`, icon: Calendar },
+    { title: "Relatórios", url: `${baseUrl}/relatorios`, icon: BarChart3 },
+    { title: "Empresa", url: `${baseUrl}/empresa`, icon: Users },
+    { title: tipoUsuario === 'colaborador' ? "Meu Desempenho" : "Desempenho", url: `${baseUrl}/desempenho`, icon: User },
+    { title: "Integrações", url: `${baseUrl}/integracoes`, icon: Settings },
+    { title: "Central de Ajuda", url: `${baseUrl}/ajuda`, icon: HelpCircle },
+    { title: "Administração", url: "/admin", icon: Shield },
+  ];
+}
 
 export function AppSidebar() {
   const { state } = useSidebar()
   const collapsed = state === "collapsed"
   const location = useLocation()
+  const { empresaId } = useParams()
   const { theme, setTheme } = useTheme()
-  const { usuario, logout } = useEffectiveUser()
+  const { usuario, logout, isStealthMode } = useEffectiveUser()
   const currentPath = location.pathname
   
   const [perfilUsuario, setPerfilUsuario] = useState<{
@@ -138,9 +144,9 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {getMenuItems(usuario?.tipo_usuario || '').map((item) => {
-                // Ocultar "Administração" para usuários que não sejam master
-                if (item.title === "Administração" && usuario?.tipo_usuario !== 'master') {
+              {getMenuItems(usuario?.tipo_usuario || '', isStealthMode, empresaId).map((item) => {
+                // Ocultar "Administração" para usuários que não sejam master ou em modo stealth
+                if (item.title === "Administração" && (usuario?.tipo_usuario !== 'master' || isStealthMode)) {
                   return null;
                 }
                 
@@ -199,7 +205,7 @@ export function AppSidebar() {
           </DropdownMenu>
           
           {!collapsed && (
-            <NavLink to="/perfil" className="flex-1">
+            <NavLink to={isStealthMode && empresaId ? `/empresa/${empresaId}/perfil` : "/perfil"} className="flex-1">
               <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
                 <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
                   <span className="text-xs font-medium text-sidebar-accent-foreground">
