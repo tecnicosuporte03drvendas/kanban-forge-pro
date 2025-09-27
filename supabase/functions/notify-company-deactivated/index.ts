@@ -19,20 +19,27 @@ serve(async (req) => {
   }
 
   try {
-    const webhookUrl = 'https://n8n-tezeus-agenda-n8n.upvzfg.easypanel.host/webhook-test/whatsapp-test';
+    const { empresaId, deactivatedBy, action = 'deactivated' }: CompanyActionData = await req.json();
+    
+    // Criar cliente Supabase para buscar configurações
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Tentar buscar URL configurada
+    const { data: config } = await supabase
+      .from('configuracoes_sistema')
+      .select('valor')
+      .eq('chave', 'n8n_webhook_mensagens')
+      .single();
+
+    // Usar URL configurada ou fallback para a URL padrão
+    const webhookUrl = config?.valor || 'https://n8n-tezeus-agenda-n8n.upvzfg.easypanel.host/webhook-test/whatsapp-test';
     
     if (!webhookUrl) {
-      console.error('N8N_WEBHOOK_URL not configured');
-      return new Response(
-        JSON.stringify({ error: 'Webhook URL not configured' }), 
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      console.error('N8N webhook URL not configured');
+      return new Response('Webhook URL not configured', { status: 500 });
     }
-
-    const { empresaId, deactivatedBy, action = 'deactivated' }: CompanyActionData = await req.json();
 
     if (!empresaId || !deactivatedBy) {
       return new Response(
@@ -45,11 +52,6 @@ serve(async (req) => {
     }
 
     console.log(`Received company ${action} request for empresaId:`, empresaId);
-
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch company data
     const { data: companyData, error: companyError } = await supabase

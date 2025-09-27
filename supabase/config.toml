@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.notify-meeting-created]
 verify_jwt = false
+
+[functions.create-whatsapp-instance]
+verify_jwt = false
+
+[functions.connect-whatsapp-instance]
+verify_jwt = false

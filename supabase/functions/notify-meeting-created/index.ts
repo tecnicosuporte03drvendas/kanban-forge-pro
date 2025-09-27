@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,21 +14,34 @@ serve(async (req) => {
   }
 
   try {
-    const { reuniao, participantes, empresa, criador } = await req.json();
+    const { meeting, participants } = await req.json();
+    
+    // Criar cliente Supabase para buscar configurações
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Tentar buscar URL configurada
+    const { data: config } = await supabase
+      .from('configuracoes_sistema')
+      .select('valor')
+      .eq('chave', 'n8n_webhook_mensagens')
+      .single();
+
+    // Usar URL configurada ou fallback para a URL padrão
+    const webhookUrl = config?.valor || Deno.env.get('N8N_WEBHOOK_URL');
+    
+    if (!webhookUrl) {
+      console.error('N8N webhook URL not configured');
+      return new Response('Webhook URL not configured', { status: 500 });
+    }
     
     console.log('Reunião criada:', {
-      reuniao_id: reuniao.id,
-      titulo: reuniao.titulo,
-      data: reuniao.data_reuniao,
-      horario: reuniao.horario_inicio
+      reuniao_id: meeting.id,
+      titulo: meeting.titulo,
+      data: meeting.data_reuniao,
+      horario: meeting.horario_inicio
     });
-
-    // Buscar dados completos dos usuários participantes
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.58.0');
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
 
     interface Usuario {
       id: string;
@@ -36,41 +50,27 @@ serve(async (req) => {
     }
 
     let usuariosCompletos: Usuario[] = [];
-    if (participantes.usuarios && participantes.usuarios.length > 0) {
+    if (participants.usuarios && participants.usuarios.length > 0) {
       const { data: usuarios } = await supabase
         .from('usuarios')
         .select('id, nome, celular')
-        .in('id', participantes.usuarios);
+        .in('id', participants.usuarios);
       
       usuariosCompletos = usuarios || [];
-    }
-
-    // Obter URL do webhook N8N
-    const webhookUrl = Deno.env.get('N8N_WEBHOOK_URL');
-    
-    if (!webhookUrl) {
-      console.error('N8N_WEBHOOK_URL não configurado');
-      return new Response(
-        JSON.stringify({ error: 'Webhook URL não configurado' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
     }
 
     // Preparar dados para envio
     const webhookData = {
       tipo: 'reuniao_criada',
       reuniao: {
-        id: reuniao.id,
-        titulo: reuniao.titulo,
-        descricao: reuniao.descricao,
-        data_reuniao: reuniao.data_reuniao,
-        horario_inicio: reuniao.horario_inicio,
-        duracao_minutos: reuniao.duracao_minutos,
-        link_reuniao: reuniao.link_reuniao,
-        created_at: reuniao.created_at
+        id: meeting.id,
+        titulo: meeting.titulo,
+        descricao: meeting.descricao,
+        data_reuniao: meeting.data_reuniao,
+        horario_inicio: meeting.horario_inicio,
+        duracao_minutos: meeting.duracao_minutos,
+        link_reuniao: meeting.link_reuniao,
+        created_at: meeting.created_at
       },
       participantes: {
         usuarios: usuariosCompletos.map(user => ({
@@ -78,15 +78,7 @@ serve(async (req) => {
           nome: user.nome,
           celular: user.celular
         })),
-        equipes: participantes.equipes || []
-      },
-      empresa: {
-        id: empresa.id,
-        nome: empresa.nome
-      },
-      criador: {
-        id: criador.id,
-        nome: criador.nome
+        equipes: participants.equipes || []
       },
       timestamp: new Date().toISOString()
     };

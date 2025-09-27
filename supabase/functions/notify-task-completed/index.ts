@@ -1,4 +1,3 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -19,20 +18,27 @@ serve(async (req) => {
   }
 
   try {
-    const webhookUrl = Deno.env.get('N8N_WEBHOOK_URL');
+    const { taskId, completedBy }: TaskCompletedData = await req.json();
+    
+    // Criar cliente Supabase para buscar configurações
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Tentar buscar URL configurada
+    const { data: config } = await supabase
+      .from('configuracoes_sistema')
+      .select('valor')
+      .eq('chave', 'n8n_webhook_mensagens')
+      .single();
+
+    // Usar URL configurada ou fallback para a URL padrão
+    const webhookUrl = config?.valor || Deno.env.get('N8N_WEBHOOK_URL');
     
     if (!webhookUrl) {
-      console.error('N8N_WEBHOOK_URL not configured');
-      return new Response(
-        JSON.stringify({ error: 'Webhook URL not configured' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      console.error('N8N webhook URL not configured');
+      return new Response('Webhook URL not configured', { status: 500 });
     }
-
-    const { taskId, completedBy } = await req.json();
 
     if (!taskId || !completedBy) {
       return new Response(
@@ -45,11 +51,6 @@ serve(async (req) => {
     }
 
     console.log('Received request for taskId:', taskId, 'completedBy:', completedBy);
-
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch complete task data
     const { data: taskData, error: taskError } = await supabase

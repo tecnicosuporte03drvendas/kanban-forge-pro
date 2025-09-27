@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      configuracoes_sistema: {
+        Row: {
+          chave: string
+          created_at: string
+          descricao: string | null
+          id: string
+          updated_at: string
+          valor: string
+        }
+        Insert: {
+          chave: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          updated_at?: string
+          valor: string
+        }
+        Update: {
+          chave?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          updated_at?: string
+          valor?: string
+        }
+        Relationships: []
+      }
       empresas: {
         Row: {
           ativa: boolean | null
@@ -92,6 +119,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      instancias_whatsapp: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          qr_code: string | null
+          status: string
+          telefone: string
+          updated_at: string
+          webhook_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          qr_code?: string | null
+          status?: string
+          telefone: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          qr_code?: string | null
+          status?: string
+          telefone?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Relationships: []
       }
       reunioes: {
         Row: {

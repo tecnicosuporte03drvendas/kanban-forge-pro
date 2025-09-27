@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Building2, Users, Plus, LogOut, Eye } from 'lucide-react';
+import { Building2, Users, Plus, LogOut, Eye, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { CreateCompanyModal } from '@/components/modals/CreateCompanyModal';
@@ -19,7 +19,7 @@ interface Empresa {
   created_at: string;
 }
 
-export default function AdminDashboard() {
+export function AdminDashboard() {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -106,10 +106,20 @@ export default function AdminDashboard() {
               </Badge>
             </p>
           </div>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => navigate('/admin/configuracoes')}
+              title="Configurações"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair
+            </Button>
+          </div>
         </div>
       </header>
 

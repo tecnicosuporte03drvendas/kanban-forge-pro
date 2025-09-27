@@ -20,7 +20,8 @@ import Integracoes from "./pages/Integracoes";
 import Ajuda from "./pages/Ajuda";
 import Perfil from "./pages/Perfil";
 import Login from "./pages/Login";
-import AdminDashboard from "./pages/AdminDashboard";
+import { AdminDashboard } from '@/pages/AdminDashboard';
+import { AdminConfiguracoes } from '@/pages/AdminConfiguracoes';
 import NotFound from "./pages/NotFound";
 import { lazy, Suspense } from "react";
 
@@ -47,6 +48,16 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={['master']}>
                     <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Rota de configurações do Admin Master */}
+              <Route
+                path="/admin/configuracoes"
+                element={
+                  <ProtectedRoute allowedRoles={['master']}>
+                    <AdminConfiguracoes />
                   </ProtectedRoute>
                 }
               />
