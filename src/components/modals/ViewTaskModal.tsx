@@ -139,14 +139,18 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
         .eq('tarefa_id', taskId)
 
       // Load comments
-      const { data: comentariosData } = await supabase
+      const { data: comentariosData, error: comentariosError } = await supabase
         .from('tarefas_comentarios')
         .select(`
           *,
-          usuarios(nome)
+          usuarios!tarefas_comentarios_usuario_id_fkey(nome)
         `)
         .eq('tarefa_id', taskId)
         .order('created_at', { ascending: false })
+
+      if (comentariosError) {
+        console.error('Error loading comments:', comentariosError)
+      }
 
       // Load activities
       const { data: atividadesData } = await supabase
