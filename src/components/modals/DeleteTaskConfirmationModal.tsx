@@ -10,6 +10,8 @@ interface DeleteTaskConfirmationModalProps {
   onConfirm: () => void
   onArchive?: () => void
   task: Tarefa | null
+  isBulkOperation?: boolean
+  selectedCount?: number
 }
 
 export function DeleteTaskConfirmationModal({ 
@@ -17,7 +19,9 @@ export function DeleteTaskConfirmationModal({
   onClose, 
   onConfirm,
   onArchive,
-  task 
+  task,
+  isBulkOperation = false,
+  selectedCount = 0
 }: DeleteTaskConfirmationModalProps) {
   if (!task) return null
 
@@ -48,7 +52,10 @@ export function DeleteTaskConfirmationModal({
             </div>
             <div>
               <DialogTitle className="text-xl text-foreground">
-                Excluir Tarefa Permanentemente
+                {isBulkOperation 
+                  ? `Excluir ${selectedCount} Tarefas Permanentemente`
+                  : "Excluir Tarefa Permanentemente"
+                }
               </DialogTitle>
               <DialogDescription className="text-muted-foreground">
                 Esta ação não pode ser desfeita
@@ -58,44 +65,63 @@ export function DeleteTaskConfirmationModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-4">
-            <p className="text-sm text-foreground mb-3">
-              <strong>Atenção:</strong> Você está prestes a excluir permanentemente a tarefa abaixo. 
-              Todos os dados relacionados serão perdidos, incluindo:
-            </p>
-            <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-              <li>• Comentários e atividades</li>
-              <li>• Checklists e anexos</li>
-              <li>• Histórico de tempo trabalhado</li>
-              <li>• Responsáveis atribuídos</li>
-            </ul>
-          </div>
-
-          <div className="border border-border rounded-lg p-4 space-y-3">
-            <div className="flex items-start justify-between">
-              <h4 className="font-medium text-foreground">{task.titulo}</h4>
-              <Badge className={getPriorityColor(task.prioridade)}>
-                {task.prioridade.charAt(0).toUpperCase() + task.prioridade.slice(1)}
-              </Badge>
-            </div>
-            
-            {task.descricao && (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {task.descricao}
+          {isBulkOperation ? (
+            // Bulk operation UI
+            <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-4">
+              <p className="text-sm text-foreground mb-3">
+                <strong>Atenção:</strong> Você está prestes a excluir permanentemente {selectedCount} tarefa{selectedCount > 1 ? 's' : ''}. 
+                Todos os dados relacionados serão perdidos, incluindo:
               </p>
-            )}
-            
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                <span>Criada em {new Date(task.created_at).toLocaleDateString("pt-BR")}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                <span>Tempo gasto: {formatTime(task.tempo_gasto_minutos)}</span>
-              </div>
+              <ul className="text-sm text-muted-foreground space-y-1 ml-4">
+                <li>• Comentários e atividades</li>
+                <li>• Checklists e anexos</li>
+                <li>• Histórico de tempo trabalhado</li>
+                <li>• Responsáveis atribuídos</li>
+              </ul>
             </div>
-          </div>
+          ) : (
+            // Single task operation UI
+            <>
+              <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-4">
+                <p className="text-sm text-foreground mb-3">
+                  <strong>Atenção:</strong> Você está prestes a excluir permanentemente a tarefa abaixo. 
+                  Todos os dados relacionados serão perdidos, incluindo:
+                </p>
+                <ul className="text-sm text-muted-foreground space-y-1 ml-4">
+                  <li>• Comentários e atividades</li>
+                  <li>• Checklists e anexos</li>
+                  <li>• Histórico de tempo trabalhado</li>
+                  <li>• Responsáveis atribuídos</li>
+                </ul>
+              </div>
+
+              <div className="border border-border rounded-lg p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <h4 className="font-medium text-foreground">{task.titulo}</h4>
+                  <Badge className={getPriorityColor(task.prioridade)}>
+                    {task.prioridade.charAt(0).toUpperCase() + task.prioridade.slice(1)}
+                  </Badge>
+                </div>
+                
+                {task.descricao && (
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {task.descricao}
+                  </p>
+                )}
+                
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    <span>Criada em {new Date(task.created_at).toLocaleDateString("pt-BR")}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    <span>Tempo gasto: {formatTime(task.tempo_gasto_minutos)}</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         <DialogFooter className="gap-2">

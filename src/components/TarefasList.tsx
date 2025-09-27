@@ -581,10 +581,12 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
         onClose={() => setShowBulkDeleteModal(false)}
         onConfirm={handleConfirmBulkDelete}
         onArchive={handleBulkArchiveInsteadOfDelete}
-        task={selectedTasks.length > 0 ? {
-          id: selectedTasks[0],
-          titulo: `${selectedTasks.length} tarefa(s) selecionada(s)`,
-          descricao: `Você está prestes a excluir ${selectedTasks.length} tarefa(s) permanentemente.`,
+        isBulkOperation={true}
+        selectedCount={selectedTasks.length}
+        task={{
+          id: '',
+          titulo: '',
+          descricao: '',
           prioridade: 'media' as any,
           data_conclusao: '',
           horario_conclusao: '',
@@ -595,7 +597,7 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
           updated_at: '',
           tempo_gasto_minutos: 0,
           arquivada: false
-        } : null}
+        }}
       />
     </div>
   )
