@@ -97,16 +97,6 @@ const faqs = [
   }
 ]
 
-const supportTickets = [
-  {
-    id: "1",
-    title: "Problema com sincronização do Google Calendar",
-    status: "Em Andamento",
-    priority: "Alta",
-    created: "2025-09-20",
-    category: "Integração"
-  }
-]
 
 const Ajuda = () => {
   const getCategoryColor = (category: string) => {
@@ -123,14 +113,6 @@ const Ajuda = () => {
     return colors[category] || "bg-muted text-muted-foreground"
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Em Andamento": return "bg-kanban-executing text-white"
-      case "Resolvido": return "bg-kanban-completed text-white"
-      case "Pendente": return "bg-kanban-created text-white"
-      default: return "bg-muted text-muted-foreground"
-    }
-  }
 
   return (
     <div className="flex flex-col h-screen">
@@ -259,55 +241,22 @@ const Ajuda = () => {
             </TabsContent>
 
             <TabsContent value="tickets" className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground">Meus Tickets de Suporte</h3>
-                  <p className="text-muted-foreground">Acompanhe o status dos seus tickets</p>
-                </div>
-                <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
-                  Novo Ticket
-                </Button>
-              </div>
-
-              {supportTickets.length === 0 ? (
-                <Card className="border-border bg-card">
-                  <CardContent className="p-8 text-center">
-                    <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <h4 className="font-medium text-card-foreground mb-2">Nenhum ticket de suporte encontrado.</h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Você não possui tickets abertos no momento.
-                    </p>
-                    <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
-                      Abrir Ticket de Suporte
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-4">
-                  {supportTickets.map((ticket) => (
-                    <Card key={ticket.id} className="border-border bg-card">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <h4 className="font-medium text-card-foreground mb-2">{ticket.title}</h4>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span>Criado em {new Date(ticket.created).toLocaleDateString("pt-BR")}</span>
-                              <span>•</span>
-                              <span>{ticket.category}</span>
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end gap-2">
-                            <Badge className={getStatusColor(ticket.status)}>
-                              {ticket.status}
-                            </Badge>
-                            <Badge variant="secondary">{ticket.priority}</Badge>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+              <Card className="border-border bg-card">
+                <CardHeader>
+                  <CardTitle>Criar Ticket de Suporte</CardTitle>
+                  <p className="text-muted-foreground">Precisa de ajuda? Abra um ticket e nossa equipe entrará em contato</p>
+                </CardHeader>
+                <CardContent className="p-8 text-center">
+                  <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h4 className="font-medium text-card-foreground mb-2">Abrir Novo Ticket</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Descreva seu problema ou dúvida e nossa equipe de suporte entrará em contato em até 24 horas.
+                  </p>
+                  <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
+                    Criar Ticket de Suporte
+                  </Button>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>
