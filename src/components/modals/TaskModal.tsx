@@ -475,7 +475,7 @@ export function TaskModal({
               </h1>}
           </div>
           <div className="flex items-center gap-2">
-            {hasUnsavedChanges && <span className="text-sm text-amber-600">Alterações não salvas</span>}
+            {hasUnsavedChanges && <span className="text-sm text-blue-600">Salva automaticamente ao fechar</span>}
             {saving && <span className="text-sm text-muted-foreground">Salvando...</span>}
             {(usuarioEfetivo?.tipo_usuario === 'proprietario' || usuarioEfetivo?.tipo_usuario === 'gestor') && (
               <DropdownMenu>
