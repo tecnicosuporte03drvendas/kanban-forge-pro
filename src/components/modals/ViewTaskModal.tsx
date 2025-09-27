@@ -4,8 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Calendar as CalendarIcon, Clock, User, Users, MessageSquare, Activity, CheckSquare, Edit, Save, X, AlertCircle, Zap } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, User, Users, MessageSquare, Activity, CheckSquare, Edit, Save, X, AlertCircle, Zap, MoreHorizontal, Archive } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -72,6 +74,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
   const [isEditing, setIsEditing] = useState(false)
   const [responsibleOptions, setResponsibleOptions] = useState<ResponsibleOption[]>([])
   const [saving, setSaving] = useState(false)
+  const [archiving, setArchiving] = useState(false)
 
   const form = useForm<z.infer<typeof taskEditSchema>>({
     resolver: zodResolver(taskEditSchema),
@@ -388,6 +391,37 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
     }
   }
 
+  const handleArchiveTask = async () => {
+    if (!tarefa || !usuario) return
+
+    setArchiving(true)
+    try {
+      const { error } = await supabase
+        .from('tarefas')
+        .update({ arquivada: true })
+        .eq('id', tarefa.id)
+
+      if (error) throw error
+
+      // Create activity record
+      await supabase.from('tarefas_atividades').insert({
+        tarefa_id: tarefa.id,
+        usuario_id: usuario.id,
+        acao: 'arquivou',
+        descricao: 'Tarefa arquivada',
+      })
+
+      toast({ title: 'Sucesso', description: 'Tarefa arquivada com sucesso!' })
+      onOpenChange(false)
+      onTaskUpdated?.()
+    } catch (error) {
+      console.error('Error archiving task:', error)
+      toast({ title: 'Erro', description: 'Erro ao arquivar tarefa', variant: 'destructive' })
+    } finally {
+      setArchiving(false)
+    }
+  }
+
   if (!tarefa) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -411,10 +445,46 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
             </div>
             <div className="flex items-center gap-2">
               {!isEditing ? (
-                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                  <Edit className="h-4 w-4 mr-1" />
-                  Editar
-                </Button>
+                <>
+                  <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                    <Edit className="h-4 w-4 mr-1" />
+                    Editar
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Archive className="h-4 w-4 mr-2" />
+                            Arquivar Tarefa
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Arquivar Tarefa</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja arquivar esta tarefa? A tarefa será movida para o arquivo e não aparecerá mais na lista de tarefas ativas.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={handleArchiveTask}
+                              disabled={archiving}
+                            >
+                              {archiving ? 'Arquivando...' : 'Arquivar'}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
               ) : (
                 <>
                   <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
