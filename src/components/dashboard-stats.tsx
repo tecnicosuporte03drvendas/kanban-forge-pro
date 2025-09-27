@@ -24,22 +24,62 @@ export function DashboardStats() {
     if (!usuario?.empresa_id) return
 
     try {
-      // Get all tasks from company
-      const { data: tarefas, error } = await supabase
+      let query = supabase
         .from('tarefas')
-        .select('status, data_conclusao')
+        .select(`
+          status, 
+          data_conclusao,
+          tarefas_responsaveis(
+            usuarios:usuario_id(id),
+            equipes:equipe_id(id)
+          )
+        `)
         .eq('empresa_id', usuario.empresa_id)
+
+      const { data: tarefas, error } = await query
 
       if (error) throw error
 
-      const total = tarefas?.length || 0
-      const concluidas = tarefas?.filter(t => t.status === 'concluida' || t.status === 'validada').length || 0
-      const executando = tarefas?.filter(t => t.status === 'executando' || t.status === 'assumida').length || 0
+      let filteredTarefas = tarefas || []
+
+      // If user is colaborador, filter tasks to show only those they're responsible for
+      if (usuario.tipo_usuario === 'colaborador') {
+        // Get user's team memberships
+        const { data: userTeams } = await supabase
+          .from('usuarios_equipes')
+          .select('equipe_id')
+          .eq('usuario_id', usuario.id)
+
+        const userTeamIds = userTeams?.map(ut => ut.equipe_id) || []
+
+        // Filter tasks to show only those where:
+        // 1. User is directly responsible, OR
+        // 2. User's team is responsible
+        filteredTarefas = tarefas?.filter((tarefa: any) => {
+          const responsaveis = tarefa.tarefas_responsaveis || []
+          
+          // Check if user is directly responsible
+          const isUserResponsible = responsaveis.some((r: any) => 
+            r.usuarios && r.usuarios.id === usuario.id
+          )
+          
+          // Check if any of user's teams is responsible
+          const isTeamResponsible = responsaveis.some((r: any) => 
+            r.equipes && userTeamIds.includes(r.equipes.id)
+          )
+          
+          return isUserResponsible || isTeamResponsible
+        }) || []
+      }
+
+      const total = filteredTarefas?.length || 0
+      const concluidas = filteredTarefas?.filter(t => t.status === 'concluida' || t.status === 'validada').length || 0
+      const executando = filteredTarefas?.filter(t => t.status === 'executando' || t.status === 'assumida').length || 0
       
       // Check overdue tasks
       const hoje = new Date()
       hoje.setHours(0, 0, 0, 0)
-      const atrasadas = tarefas?.filter(t => {
+      const atrasadas = filteredTarefas?.filter(t => {
         const dataVencimento = new Date(t.data_conclusao)
         dataVencimento.setHours(0, 0, 0, 0)
         return dataVencimento < hoje && (t.status !== 'concluida' && t.status !== 'validada')
@@ -55,9 +95,9 @@ export function DashboardStats() {
 
   const statsData = [
     {
-      title: "Total de Tarefas",
+      title: usuario?.tipo_usuario === 'colaborador' ? "Minhas Tarefas" : "Total de Tarefas",
       value: loading ? "..." : stats.total.toString(),
-      description: "tarefas no workspace",
+      description: usuario?.tipo_usuario === 'colaborador' ? "tarefas atribuídas" : "tarefas no workspace",
       icon: CheckSquare,
       color: "text-primary",
       bgColor: "bg-primary/10"

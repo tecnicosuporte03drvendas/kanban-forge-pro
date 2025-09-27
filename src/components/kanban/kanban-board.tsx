@@ -89,23 +89,57 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     
     setLoading(true)
     try {
-      const { data: tarefas, error } = await supabase
+      let query = supabase
         .from('tarefas')
         .select(`
           *,
           tarefas_responsaveis(
-            usuarios:usuario_id(nome),
-            equipes:equipe_id(nome)
+            usuarios:usuario_id(nome, id),
+            equipes:equipe_id(nome, id)
           )
         `)
         .eq('empresa_id', usuario.empresa_id)
         .eq('arquivada', false)
         .order('posicao_coluna', { ascending: true })
 
+      const { data: tarefas, error } = await query
+
       if (error) throw error
 
+      let filteredTarefas = tarefas || []
+
+      // If user is colaborador, filter tasks to show only those they're responsible for
+      if (usuario.tipo_usuario === 'colaborador') {
+        // Get user's team memberships
+        const { data: userTeams } = await supabase
+          .from('usuarios_equipes')
+          .select('equipe_id')
+          .eq('usuario_id', usuario.id)
+
+        const userTeamIds = userTeams?.map(ut => ut.equipe_id) || []
+
+        // Filter tasks to show only those where:
+        // 1. User is directly responsible, OR
+        // 2. User's team is responsible
+        filteredTarefas = tarefas?.filter((tarefa: any) => {
+          const responsaveis = tarefa.tarefas_responsaveis || []
+          
+          // Check if user is directly responsible
+          const isUserResponsible = responsaveis.some((r: any) => 
+            r.usuarios && r.usuarios.id === usuario.id
+          )
+          
+          // Check if any of user's teams is responsible
+          const isTeamResponsible = responsaveis.some((r: any) => 
+            r.equipes && userTeamIds.includes(r.equipes.id)
+          )
+          
+          return isUserResponsible || isTeamResponsible
+        }) || []
+      }
+
       // Transform Supabase data to Task format
-      const transformedTasks: Task[] = tarefas?.map((tarefa: any) => {
+      const transformedTasks: Task[] = filteredTarefas?.map((tarefa: any) => {
         const responsaveis = tarefa.tarefas_responsaveis || []
         const usuarios = responsaveis.filter((r: any) => r.usuarios).map((r: any) => r.usuarios)
         const equipes = responsaveis.filter((r: any) => r.equipes).map((r: any) => r.equipes)
@@ -453,13 +487,22 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Minhas Tarefas e da Equipe</h2>
-          <p className="text-muted-foreground">Visualize e gerencie suas tarefas e da sua equipe</p>
+          <h2 className="text-2xl font-bold text-foreground">
+            {usuario?.tipo_usuario === 'colaborador' ? 'Minhas Tarefas e da Equipe' : 'Tarefas da Empresa'}
+          </h2>
+          <p className="text-muted-foreground">
+            {usuario?.tipo_usuario === 'colaborador' 
+              ? 'Visualize e gerencie suas tarefas atribuídas e da sua equipe' 
+              : 'Visualize e gerencie todas as tarefas da empresa'
+            }
+          </p>
         </div>
-        <Button onClick={onCreateTask} className="bg-primary text-primary-foreground hover:bg-primary-hover">
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Tarefa
-        </Button>
+        {(usuario?.tipo_usuario === 'proprietario' || usuario?.tipo_usuario === 'gestor') && (
+          <Button onClick={onCreateTask} className="bg-primary text-primary-foreground hover:bg-primary-hover">
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Tarefa
+          </Button>
+        )}
       </div>
 
       <KanbanFilters onFiltersChange={setFilters} />
