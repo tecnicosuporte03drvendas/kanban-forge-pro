@@ -119,8 +119,8 @@ const Calendario = () => {
           tarefas_responsaveis(
             usuario_id,
             equipe_id,
-            usuarios(nome),
-            equipes(nome)
+            usuarios(nome, id),
+            equipes(nome, id)
           )
         `)
         .eq('empresa_id', usuario.empresa_id)
@@ -137,8 +137,8 @@ const Calendario = () => {
           reunioes_participantes(
             usuario_id,
             equipe_id,
-            usuarios(nome),
-            equipes(nome)
+            usuarios(nome, id),
+            equipes(nome, id)
           )
         `)
         .eq('empresa_id', usuario.empresa_id)
@@ -146,10 +146,58 @@ const Calendario = () => {
 
       if (reunioesError) throw reunioesError
 
+      let filteredTarefas = tarefas || []
+      let filteredReunioes = reunioes || []
+
+      // Se o usuário é colaborador, filtrar apenas tarefas e reuniões relacionadas a ele
+      if (usuario.tipo_usuario === 'colaborador') {
+        // Buscar equipes do usuário
+        const { data: userTeams } = await supabase
+          .from('usuarios_equipes')
+          .select('equipe_id')
+          .eq('usuario_id', usuario.id)
+
+        const userTeamIds = userTeams?.map(ut => ut.equipe_id) || []
+
+        // Filtrar tarefas onde o usuário é responsável diretamente ou via equipe
+        filteredTarefas = tarefas?.filter((tarefa: any) => {
+          const responsaveis = tarefa.tarefas_responsaveis || []
+          
+          // Verificar se usuário é responsável direto
+          const isUserResponsible = responsaveis.some((r: any) => 
+            r.usuarios && r.usuarios.id === usuario.id
+          )
+          
+          // Verificar se alguma equipe do usuário é responsável
+          const isTeamResponsible = responsaveis.some((r: any) => 
+            r.equipes && userTeamIds.includes(r.equipes.id)
+          )
+          
+          return isUserResponsible || isTeamResponsible
+        }) || []
+
+        // Filtrar reuniões onde o usuário participa diretamente ou via equipe
+        filteredReunioes = reunioes?.filter((reuniao: any) => {
+          const participantes = reuniao.reunioes_participantes || []
+          
+          // Verificar se usuário participa diretamente
+          const isUserParticipant = participantes.some((p: any) => 
+            p.usuarios && p.usuarios.id === usuario.id
+          )
+          
+          // Verificar se alguma equipe do usuário participa
+          const isTeamParticipant = participantes.some((p: any) => 
+            p.equipes && userTeamIds.includes(p.equipes.id)
+          )
+          
+          return isUserParticipant || isTeamParticipant
+        }) || []
+      }
+
       const calendarEvents: CalendarEvent[] = []
 
       // Transform tasks to calendar events
-      tarefas?.forEach((tarefa: any) => {
+      filteredTarefas?.forEach((tarefa: any) => {
         const responsaveis = tarefa.tarefas_responsaveis || []
         const usuarios = responsaveis.filter((r: any) => r.usuarios?.nome).map((r: any) => r.usuarios)
         const equipes = responsaveis.filter((r: any) => r.equipes?.nome).map((r: any) => r.equipes)
@@ -188,7 +236,7 @@ const Calendario = () => {
       })
 
       // Transform meetings to calendar events
-      reunioes?.forEach((reuniao: any) => {
+      filteredReunioes?.forEach((reuniao: any) => {
         const participantes = reuniao.reunioes_participantes || []
         const usuarios = participantes.filter((p: any) => p.usuarios?.nome).map((p: any) => p.usuarios)
         const equipes = participantes.filter((p: any) => p.equipes?.nome).map((p: any) => p.equipes)
