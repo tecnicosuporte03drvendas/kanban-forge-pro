@@ -42,6 +42,9 @@ export const AdminConfiguracoes: React.FC = () => {
   const [modalAberto, setModalAberto] = useState(false);
   const [formInstance, setFormInstance] = useState<CreateInstanceForm>({ nome: '', telefone: '' });
   const [qrCodeVisible, setQrCodeVisible] = useState<{ [key: string]: boolean }>({});
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [currentQrCode, setCurrentQrCode] = useState<string | null>(null);
+  const [currentInstanceName, setCurrentInstanceName] = useState<string>('');
 
   // Verificar se usuário é master
   if (!usuario || usuario.tipo_usuario !== 'master') {
@@ -318,12 +321,14 @@ export const AdminConfiguracoes: React.FC = () => {
 
       // Exibir QR Code se retornado pelo N8N
       if (data.qrCode || data.qr_code) {
-        setQrCodeVisible(prev => ({ ...prev, [instancia.id]: true }));
+        setCurrentQrCode(data.qrCode || data.qr_code);
+        setCurrentInstanceName(instancia.nome);
+        setQrModalOpen(true);
       }
 
       toast({
-        title: "Status atualizado",
-        description: `Status: ${data.status || data.instanceStatus || 'conectando'}`,
+        title: "Conexão iniciada",
+        description: `Status: ${data.status || data.instanceStatus || 'conectando'}. ${data.qrCode || data.qr_code ? 'QR Code gerado para escaneamento.' : ''}`,
       });
 
     } catch (error: any) {
@@ -444,10 +449,42 @@ export const AdminConfiguracoes: React.FC = () => {
                       </Button>
                     </div>
                   </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardHeader>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+
+            {/* Modal QR Code */}
+            <Dialog open={qrModalOpen} onOpenChange={setQrModalOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Conectar Instância WhatsApp</DialogTitle>
+                </DialogHeader>
+                <div className="text-center space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Escaneie o QR Code com seu WhatsApp para conectar a instância <strong>{currentInstanceName}</strong>
+                  </p>
+                  {currentQrCode && (
+                    <div className="flex justify-center">
+                      <img 
+                        src={currentQrCode} 
+                        alt="QR Code WhatsApp" 
+                        className="max-w-64 w-full border rounded-lg"
+                      />
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setQrModalOpen(false)}
+                      className="flex-1"
+                    >
+                      Fechar
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           <CardContent>
             {instancias.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
