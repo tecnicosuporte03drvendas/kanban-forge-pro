@@ -55,6 +55,7 @@ export const AdminConfiguracoes: React.FC = () => {
 
   const carregarConfiguracoes = async () => {
     try {
+      console.log('🔍 Buscando configurações do banco...');
       const { data, error } = await supabase
         .from('configuracoes_sistema')
         .select('*')
@@ -62,15 +63,20 @@ export const AdminConfiguracoes: React.FC = () => {
 
       if (error) throw error;
 
+      console.log('📊 Configurações encontradas:', data);
+
       data?.forEach((config: Configuracao) => {
+        console.log('⚙️ Processando config:', config.chave, '=', config.valor);
         if (config.chave === 'n8n_webhook_mensagens') {
           setUrlMensagens(config.valor);
+          console.log('✅ URL Mensagens definida:', config.valor);
         } else if (config.chave === 'n8n_webhook_instancias') {
           setUrlInstancias(config.valor);
+          console.log('✅ URL Instâncias definida:', config.valor);
         }
       });
     } catch (error: any) {
-      console.error('Erro ao carregar configurações:', error);
+      console.error('❌ Erro ao carregar configurações:', error);
       toast({
         title: "Erro",
         description: "Falha ao carregar configurações",
@@ -160,6 +166,14 @@ export const AdminConfiguracoes: React.FC = () => {
 
     setLoading(true);
     try {
+      console.log('🚀 Criando instância...');
+      console.log('📍 URL do webhook:', urlInstancias);
+      console.log('📤 Dados sendo enviados:', {
+        action: 'create_instance',
+        nome: formInstance.nome,
+        telefone: formInstance.telefone,
+      });
+
       // Chamar webhook N8N diretamente para criar instância
       const response = await fetch(urlInstancias, {
         method: 'POST',
@@ -173,12 +187,17 @@ export const AdminConfiguracoes: React.FC = () => {
         }),
       });
 
+      console.log('📥 Resposta do N8N - Status:', response.status);
+      console.log('📥 Resposta do N8N - Headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error(`Erro do N8N: ${response.status}`);
+        const responseText = await response.text();
+        console.log('❌ Resposta de erro do N8N:', responseText);
+        throw new Error(`Erro do N8N: ${response.status} - ${responseText}`);
       }
 
       const data = await response.json();
-      console.log('Resposta N8N ao criar instância:', data);
+      console.log('✅ Resposta N8N ao criar instância:', data);
 
       // Se o N8N retornou sucesso, salvar no Supabase apenas para exibir
       const novaInstancia = {
