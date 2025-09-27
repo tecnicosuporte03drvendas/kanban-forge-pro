@@ -41,9 +41,7 @@ export function KanbanColumn({
               {tasks.length}
             </span>
           </div>
-          <Button variant="ghost" size="sm" className="w-6 h-6 p-0 hover:bg-white/20 text-white">
-            <Plus className="w-4 h-4" />
-          </Button>
+          
         </div>
       </div>
 
