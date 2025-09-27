@@ -320,14 +320,14 @@ const Calendario = () => {
                               ) : (
                                 <CheckSquare className="w-4 h-4" style={{ color: eventStyle.text.includes('high') ? 'var(--priority-high)' : eventStyle.text.includes('medium') ? 'var(--priority-medium)' : 'var(--priority-low)' }} />
                               )}
-                              <div>
-                                <div className={`font-semibold text-sm ${eventStyle.text}`}>
+                               <div>
+                                <div className="font-medium text-card-foreground">{event.title}</div>
+                                <div className={`font-semibold text-sm ${eventStyle.text} mt-1`}>
                                   {event.time}
                                   {event.type === 'meeting' && event.duration && (
                                     <span className="text-xs ml-2">({event.duration}min)</span>
                                   )}
                                 </div>
-                                <div className="font-medium text-card-foreground">{event.title}</div>
                                 <div className="text-xs text-muted-foreground mt-1">
                                   {event.type === 'meeting' ? 'Reunião' : event.team} • {event.assignee}
                                 </div>
@@ -439,15 +439,15 @@ const Calendario = () => {
                                     if (event.type === 'meeting') handleMeetingClick(event.id)
                                   }}
                                 >
-                                  <div className="flex items-center gap-1">
-                                    {event.type === 'meeting' ? (
-                                      <Video className="w-3 h-3" />
-                                    ) : (
-                                      <CheckSquare className="w-3 h-3" />
-                                    )}
-                                    <div className="font-medium truncate">{event.time}</div>
-                                  </div>
-                                  <div className="truncate">{event.title}</div>
+                                   <div className="truncate">{event.title}</div>
+                                   <div className="flex items-center gap-1">
+                                     {event.type === 'meeting' ? (
+                                       <Video className="w-3 h-3" />
+                                     ) : (
+                                       <CheckSquare className="w-3 h-3" />
+                                     )}
+                                     <div className="font-medium truncate">{event.time}</div>
+                                   </div>
                                 </div>
                               )
                             })}
@@ -570,10 +570,10 @@ const Calendario = () => {
                             ) : (
                               <CheckSquare className="w-3 h-3 flex-shrink-0" />
                             )}
-                            <div className="min-w-0 flex-1">
-                              <div className="font-medium">{event.time}</div>
-                              <div className="truncate">{event.title}</div>
-                            </div>
+                             <div className="min-w-0 flex-1">
+                               <div className="truncate">{event.title}</div>
+                               <div className="font-medium">{event.time}</div>
+                             </div>
                           </div>
                         )
                       })}
@@ -612,28 +612,28 @@ const Calendario = () => {
                       onClick={() => event.type === 'meeting' ? handleMeetingClick(event.id) : undefined}
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-4">
-                          {event.type === 'meeting' ? (
-                            <Video className="w-5 h-5 text-blue-600" />
-                          ) : (
-                            <CheckSquare className="w-5 h-5" style={{ color: eventStyle.text.includes('high') ? 'var(--priority-high)' : eventStyle.text.includes('medium') ? 'var(--priority-medium)' : 'var(--priority-low)' }} />
-                          )}
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Clock className="w-4 h-4" />
-                            <span className="font-medium">
-                              {event.time}
-                              {event.type === 'meeting' && event.duration && (
-                                <span className="text-xs ml-2">({event.duration}min)</span>
-                              )}
-                            </span>
-                          </div>
-                          <div>
-                            <h5 className="font-semibold text-card-foreground">{event.title}</h5>
-                            <p className="text-sm text-muted-foreground">
-                              {event.type === 'meeting' ? 'Reunião' : event.team} • {event.assignee}
-                            </p>
-                          </div>
-                        </div>
+                         <div className="flex items-center gap-4">
+                           {event.type === 'meeting' ? (
+                             <Video className="w-5 h-5 text-blue-600" />
+                           ) : (
+                             <CheckSquare className="w-5 h-5" style={{ color: eventStyle.text.includes('high') ? 'var(--priority-high)' : eventStyle.text.includes('medium') ? 'var(--priority-medium)' : 'var(--priority-low)' }} />
+                           )}
+                           <div>
+                             <h5 className="font-semibold text-card-foreground">{event.title}</h5>
+                             <div className="flex items-center gap-2 text-muted-foreground">
+                               <Clock className="w-4 h-4" />
+                               <span className="font-medium">
+                                 {event.time}
+                                 {event.type === 'meeting' && event.duration && (
+                                   <span className="text-xs ml-2">({event.duration}min)</span>
+                                 )}
+                               </span>
+                             </div>
+                             <p className="text-sm text-muted-foreground">
+                               {event.type === 'meeting' ? 'Reunião' : event.team} • {event.assignee}
+                             </p>
+                           </div>
+                         </div>
                         <Badge className={eventStyle.badge}>
                           {event.type === 'meeting' ? 'Reunião' : (event.priority?.charAt(0).toUpperCase() + event.priority?.slice(1))}
                         </Badge>
