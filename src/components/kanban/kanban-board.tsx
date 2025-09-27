@@ -242,9 +242,9 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       
       // Define allowed transitions for colaboradores
       const allowedTransitions: Record<StatusTarefa, StatusTarefa[]> = {
-        'criada': ['assumida', 'executando'],
-        'assumida': ['criada', 'executando'],
-        'executando': ['criada', 'assumida', 'concluida'],
+        'criada': ['assumida', 'executando', 'concluida'],
+        'assumida': ['executando', 'concluida'],
+        'executando': ['concluida'],
         'concluida': [], // Can't move from completed
         'validada': [] // Can't move from validated
       }
