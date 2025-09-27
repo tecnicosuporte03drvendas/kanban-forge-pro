@@ -594,6 +594,77 @@ export const AdminConfiguracoes: React.FC = () => {
     }
   };
 
+  const confirmarConexao = async (instanciaId: string, nomeInstancia: string) => {
+    if (!urlInstancias.trim()) {
+      toast({
+        title: "Erro",
+        description: "Configure o webhook de instâncias antes de confirmar conexão",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log('✅ Confirmando conexão via N8N...');
+      console.log('📍 Instância:', { id: instanciaId, nome: nomeInstancia });
+      
+      // Disparar webhook N8N para verificar status da conexão
+      const { data, error } = await supabase.functions.invoke('n8n-proxy', {
+        body: {
+          webhookUrl: urlInstancias,
+          data: {
+            action: 'check_connection_status',
+            instanceId: instanciaId,
+          }
+        }
+      });
+
+      if (error) {
+        console.log('❌ Erro do proxy ao confirmar conexão:', error);
+        throw new Error(`Erro do proxy: ${error.message}`);
+      }
+
+      console.log('✅ Status verificado pelo N8N:', data);
+
+      // Buscar dados atualizados da instância
+      const { data: instanciaAtualizada, error: fetchError } = await supabase
+        .from('instancias_whatsapp')
+        .select('*')
+        .eq('id', instanciaId)
+        .single();
+
+      if (fetchError) {
+        console.error('Erro ao buscar instância atualizada:', fetchError);
+        throw new Error('Erro ao verificar status da instância');
+      }
+
+      // Atualizar estado local
+      setInstancias(prev => prev.map(inst => 
+        inst.id === instanciaId ? instanciaAtualizada : inst
+      ));
+
+      // Fechar modal
+      setQrModalOpen(false);
+      setCurrentQrCode(null);
+
+      toast({
+        title: "Status verificado",
+        description: `Instância ${nomeInstancia}: ${instanciaAtualizada.status}`,
+      });
+
+    } catch (error: any) {
+      console.error('❌ Erro ao confirmar conexão:', error);
+      toast({
+        title: "Erro ao confirmar conexão",
+        description: error.message || "Erro de comunicação com N8N/Evolution",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
@@ -736,6 +807,16 @@ export const AdminConfiguracoes: React.FC = () => {
                      >
                        <RotateCcw className="h-4 w-4 mr-2" />
                        Atualizar QR Code
+                     </Button>
+                     <Button 
+                       onClick={() => confirmarConexao(
+                         instancias.find(i => i.nome === currentInstanceName)?.id || '', 
+                         currentInstanceName
+                       )}
+                       disabled={loading}
+                       className="flex-1"
+                     >
+                       Confirmar Conexão
                      </Button>
                      <Button 
                        variant="outline" 
