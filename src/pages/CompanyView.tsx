@@ -111,6 +111,41 @@ export default function CompanyView() {
   const handleInspectCompany = () => {
     setIsInspectorModalOpen(true);
   };
+
+  const handleReactivateCompany = async () => {
+    if (!empresa) return;
+
+    try {
+      const { error } = await supabase
+        .from('empresas')
+        .update({ ativa: true })
+        .eq('id', empresa.id);
+
+      if (error) {
+        console.error('Erro ao reativar empresa:', error);
+        toast({
+          title: "Erro ao reativar empresa",
+          description: "Não foi possível reativar a empresa. Tente novamente.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Empresa reativada",
+        description: `${empresa.nome_fantasia} foi reativada com sucesso.`,
+      });
+
+      await fetchEmpresa();
+    } catch (error) {
+      console.error('Erro ao reativar empresa:', error);
+      toast({
+        title: "Erro interno",
+        description: "Ocorreu um erro interno. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
@@ -161,9 +196,12 @@ export default function CompanyView() {
             {usuario?.tipo_usuario === 'master' && <div className="flex gap-2">
                 
                 
-                <Button variant="destructive" onClick={() => setIsDeactivateModalOpen(true)} disabled={!empresa.ativa}>
+                <Button 
+                  variant={empresa.ativa ? "destructive" : "default"} 
+                  onClick={() => empresa.ativa ? setIsDeactivateModalOpen(true) : handleReactivateCompany()}
+                >
                   <AlertTriangle className="w-4 h-4 mr-2" />
-                  {empresa.ativa ? 'Desativar Empresa' : 'Empresa Inativa'}
+                  {empresa.ativa ? 'Desativar Empresa' : 'Reativar Empresa'}
                 </Button>
               </div>}
           </div>
