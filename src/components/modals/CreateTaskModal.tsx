@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
+import { useStealth } from '@/hooks/use-stealth'
 import type { PrioridadeTarefa } from '@/types/task'
 
 interface Usuario {
@@ -61,6 +62,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
   const [selectedResponsibles, setSelectedResponsibles] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const { usuario } = useAuth()
+  const { shouldSuppressLogs } = useStealth()
 
   const form = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
@@ -181,13 +183,15 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
         }
       }
 
-      // Create activity record
-      await supabase.from('tarefas_atividades').insert({
-        tarefa_id: tarefa.id,
-        usuario_id: usuario.id,
-        acao: 'criou',
-        descricao: 'Tarefa criada',
-      })
+      // Create activity record only if not in stealth mode
+      if (!shouldSuppressLogs) {
+        await supabase.from('tarefas_atividades').insert({
+          tarefa_id: tarefa.id,
+          usuario_id: usuario.id,
+          acao: 'criou',
+          descricao: 'Tarefa criada',
+        })
+      }
 
       toast({ title: 'Sucesso', description: 'Tarefa criada com sucesso!' })
       form.reset()

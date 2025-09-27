@@ -109,8 +109,8 @@ export default function CompanyView() {
     setIsDeleteUserModalOpen(true);
   };
   const handleInspectCompany = () => {
-    // Navegar para o ambiente corporativo da empresa
-    navigate(`/empresa/${empresaId}`);
+    // Navegar para o ambiente corporativo da empresa em modo stealth
+    navigate(`/empresa/${empresaId}?stealth=true&master_id=${usuario?.id}`);
   };
 
   const handleCompanyReactivated = async () => {

@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { StealthIndicator } from "@/components/StealthIndicator";
 import Index from "./pages/Index";
 import Tarefas from "./pages/Tarefas";
 import Calendario from "./pages/Calendario";
@@ -33,6 +34,7 @@ const App = () => (
         <AuthProvider>
           <Toaster />
           <Sonner />
+          <StealthIndicator />
           <BrowserRouter>
             <Routes>
               {/* Rota pública de login */}
@@ -59,6 +61,21 @@ const App = () => (
                       <CompanyView />
                     </Suspense>
                   </ProtectedRoute>
+                }
+              />
+              
+              {/* Rota stealth para master acessar ambiente da empresa */}
+              <Route
+                path="/empresa/:empresaId"
+                element={
+                  <SidebarProvider defaultOpen={true}>
+                    <div className="min-h-screen flex w-full bg-background">
+                      <AppSidebar />
+                      <main className="flex-1 overflow-hidden">
+                        <Index />
+                      </main>
+                    </div>
+                  </SidebarProvider>
                 }
               />
               

@@ -20,6 +20,8 @@ import { KanbanFilters, FilterState } from "./kanban-filters"
 import { isOverdue } from "@/utils/date-utils"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
+import { useStealth } from "@/hooks/use-stealth"
+import { toast } from "@/hooks/use-toast"
 import type { Tarefa, StatusTarefa } from "@/types/task"
 
 export interface Task {
@@ -60,6 +62,7 @@ const columns = [
 
 export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
   const { usuario } = useAuth()
+  const { shouldSuppressLogs } = useStealth()
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(false)
   const [activeTask, setActiveTask] = useState<Task | null>(null)
@@ -345,13 +348,15 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
 
       if (error) throw error
 
-      // Create activity record
-      await supabase.from('tarefas_atividades').insert({
-        tarefa_id: taskId,
-        usuario_id: user.id,
-        acao: 'alterou status',
-        descricao: `Status alterado para: ${status}`,
-      })
+      // Create activity record only if not in stealth mode
+      if (!shouldSuppressLogs) {
+        await supabase.from('tarefas_atividades').insert({
+          tarefa_id: taskId,
+          usuario_id: user.id,
+          acao: 'alterou status',
+          descricao: `Status alterado para: ${status}`,
+        })
+      }
 
       // Reload tasks to get updated time data
       loadTasks()

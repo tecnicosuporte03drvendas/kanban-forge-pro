@@ -21,6 +21,8 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   updateUsuario: (dadosAtualizados: Partial<Usuario>) => void;
+  isStealthMode: boolean;
+  stealthMasterId: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,6 +42,8 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isStealthMode, setIsStealthMode] = useState(false);
+  const [stealthMasterId, setStealthMasterId] = useState<string | null>(null);
 
   useEffect(() => {
     // Verificar se há um usuário salvo no localStorage
@@ -53,7 +57,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.removeItem('usuario_logado');
       }
     }
+
+    // Verificar modo stealth pela URL
+    const checkStealthMode = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const stealthParam = urlParams.get('stealth');
+      const masterIdParam = urlParams.get('master_id');
+      
+      if (stealthParam === 'true' && masterIdParam) {
+        setIsStealthMode(true);
+        setStealthMasterId(masterIdParam);
+      } else {
+        setIsStealthMode(false);
+        setStealthMasterId(null);
+      }
+    };
+
+    checkStealthMode();
+    
+    // Listener para mudanças de URL
+    window.addEventListener('popstate', checkStealthMode);
+    
     setLoading(false);
+    
+    return () => {
+      window.removeEventListener('popstate', checkStealthMode);
+    };
   }, []);
 
   const login = async (email: string, senha: string): Promise<{ success: boolean; error?: string }> => {
@@ -184,7 +213,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     isAuthenticated: !!usuario,
-    updateUsuario
+    updateUsuario,
+    isStealthMode,
+    stealthMasterId
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
