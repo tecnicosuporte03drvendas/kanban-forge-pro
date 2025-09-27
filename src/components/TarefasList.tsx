@@ -10,6 +10,7 @@ import { getDateStatus } from "@/utils/date-utils"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import { DeleteTaskConfirmationModal } from "@/components/modals/DeleteTaskConfirmationModal"
+import { CreateTaskModal } from "@/components/modals/CreateTaskModal"
 import type { Tarefa } from "@/types/task"
 
 interface TarefasListProps {
@@ -27,6 +28,7 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
   const [priorityFilter, setPriorityFilter] = useState("all")
   const [taskToDelete, setTaskToDelete] = useState<Tarefa | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   useEffect(() => {
     if (usuario?.empresa_id) {
@@ -510,8 +512,8 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
               <p className="text-muted-foreground">
                 {showArchived ? 'Nenhuma tarefa arquivada encontrada.' : 'Nenhuma tarefa encontrada.'}
               </p>
-              {!showArchived && onCreateTask && (
-                <Button onClick={onCreateTask} className="mt-4">
+              {!showArchived && (
+                <Button onClick={() => setShowCreateModal(true)} className="mt-4">
                   <Plus className="w-4 h-4 mr-2" />
                   Criar Nova Tarefa
                 </Button>
@@ -530,6 +532,12 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
         onConfirm={handleConfirmDelete}
         onArchive={handleArchiveInsteadOfDelete}
         task={taskToDelete}
+      />
+      
+      <CreateTaskModal
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        onTaskCreated={loadTasks}
       />
     </div>
   )

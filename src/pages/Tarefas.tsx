@@ -8,9 +8,17 @@ import { Input } from "@/components/ui/input"
 import { TarefasList } from "@/components/TarefasList"
 import { ArchivedTasksList } from "@/components/ArchivedTasksList"
 import { TemporalAnalysis } from "@/components/temporal-analysis/TemporalAnalysis"
+import { CreateTaskModal } from "@/components/modals/CreateTaskModal"
+import { useState } from "react"
 
 
 const Tarefas = () => {
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [refreshTasks, setRefreshTasks] = useState(0)
+
+  const handleTaskCreated = () => {
+    setRefreshTasks(prev => prev + 1)
+  }
 
   return (
     <div className="flex flex-col h-screen">
@@ -23,7 +31,10 @@ const Tarefas = () => {
               <p className="text-muted-foreground">Gerencie, filtre e organize suas tarefas com ferramentas avançadas</p>
             </div>
           </div>
-          <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
+          <Button 
+            className="bg-primary hover:bg-primary-hover text-primary-foreground"
+            onClick={() => setShowCreateModal(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Nova Tarefa
           </Button>
@@ -39,7 +50,7 @@ const Tarefas = () => {
           </TabsList>
 
           <TabsContent value="tarefas" className="space-y-6">
-            <TarefasList />
+            <TarefasList key={refreshTasks} />
           </TabsContent>
 
           <TabsContent value="analise" className="space-y-6">
@@ -51,6 +62,12 @@ const Tarefas = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <CreateTaskModal
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        onTaskCreated={handleTaskCreated}
+      />
     </div>
   );
 };
