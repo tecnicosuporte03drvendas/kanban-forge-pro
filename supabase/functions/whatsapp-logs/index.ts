@@ -128,8 +128,13 @@ serve(async (req) => {
         console.log('📱 QR Code extraído da Evolution API');
       }
       
-      // Status baseado na presença do QR code
-      statusProcessado = evolutionData.data.base64 ? 'conectando' : 'desconectada';
+      // Status baseado no success: se true = conectado, se tem QR = conectando, senão desconectada
+      if (evolutionData.success === true) {
+        statusProcessado = 'conectado';
+        console.log('✅ Status definido como conectado (success = true)');
+      } else {
+        statusProcessado = evolutionData.data.base64 ? 'conectando' : 'desconectada';
+      }
     }
     // Verificar se o QR code está no próprio evolutionData (caso seja a string base64 direta)
     else if (typeof evolutionData === 'string' && evolutionData.startsWith('data:image/png;base64,')) {
