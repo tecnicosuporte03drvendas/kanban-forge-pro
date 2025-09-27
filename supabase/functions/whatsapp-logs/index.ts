@@ -115,30 +115,36 @@ serve(async (req) => {
 
     console.log('✅ Log salvo com sucesso:', data);
 
+    // Processar dados de retorno para resposta
+    const evolutionData = body.dados_retorno || body;
+    let qrCodeProcessado = null;
+    let statusProcessado = body.status || evolutionData.status || evolutionData.instance?.state;
+
+    // Processar QR code se disponível
+    const qrCode = body.qr_code || 
+                  evolutionData.qrCode || 
+                  evolutionData.qr_code || 
+                  evolutionData.base64 ||
+                  evolutionData.instance?.qr ||
+                  evolutionData.instance?.qrcode;
+                  
+    if (qrCode) {
+      // Garantir que o QR code está no formato correto (data:image)
+      qrCodeProcessado = qrCode.startsWith('data:image') ? qrCode : `data:image/png;base64,${qrCode}`;
+      console.log('📱 QR Code processado para resposta');
+    }
+
     // Se os dados contém informações da instância, tentar atualizar também
     if (instancia_id) {
       const updateData: any = {};
       
-      // Processar dados de retorno da Evolution API
-      const evolutionData = body.dados_retorno || body;
-      
       // Atualizar status se disponível
-      if (body.status || evolutionData.status || evolutionData.instance?.state) {
-        updateData.status = body.status || evolutionData.status || evolutionData.instance?.state || 'conectando';
+      if (statusProcessado) {
+        updateData.status = statusProcessado;
       }
-      
-      // Atualizar QR code se disponível (múltiplos formatos possíveis)
-      const qrCode = body.qr_code || 
-                    evolutionData.qrCode || 
-                    evolutionData.qr_code || 
-                    evolutionData.base64 ||
-                    evolutionData.instance?.qr ||
-                    evolutionData.instance?.qrcode;
-                    
-      if (qrCode) {
-        // Garantir que o QR code está no formato correto (data:image)
-        updateData.qr_code = qrCode.startsWith('data:image') ? qrCode : `data:image/png;base64,${qrCode}`;
-        console.log('📱 QR Code recebido e formatado');
+                     
+      if (qrCodeProcessado) {
+        updateData.qr_code = qrCodeProcessado;
       }
       
       if (Object.keys(updateData).length > 0) {
@@ -166,7 +172,15 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         message: 'Log registrado com sucesso',
-        log_id: data.id 
+        log_id: data.id,
+        // Retornar os dados recebidos para o N8n usar
+        dados_processados: {
+          instancia_id: instancia_id,
+          acao: acao,
+          status: statusProcessado,
+          qr_code: qrCodeProcessado,
+          dados_completos: evolutionData
+        }
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
