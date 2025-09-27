@@ -130,6 +130,12 @@ serve(async (req) => {
       
       // Status baseado na presença do QR code
       statusProcessado = evolutionData.data.base64 ? 'conectando' : 'desconectada';
+    }
+    // Verificar se o QR code está no próprio evolutionData (caso seja a string base64 direta)
+    else if (typeof evolutionData === 'string' && evolutionData.startsWith('data:image/png;base64,')) {
+      qrCodeProcessado = evolutionData;
+      console.log('📱 QR Code extraído diretamente dos dados');
+      statusProcessado = 'conectando';
     } else {
       // Processar outros formatos (fallback)
       const qrCode = body.qr_code || 
