@@ -29,6 +29,7 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
   const [taskToDelete, setTaskToDelete] = useState<Tarefa | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false)
 
   useEffect(() => {
     if (usuario?.empresa_id) {
@@ -104,6 +105,12 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
   const handleBulkAction = async (action: string) => {
     if (selectedTasks.length === 0) return
 
+    // Show confirmation modal for bulk delete
+    if (action === 'delete') {
+      setShowBulkDeleteModal(true)
+      return
+    }
+
     try {
       if (action === 'archive') {
         await supabase
@@ -114,11 +121,6 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
         await supabase
           .from('tarefas')
           .update({ arquivada: false })
-          .in('id', selectedTasks)
-      } else if (action === 'delete') {
-        await supabase
-          .from('tarefas')
-          .delete()
           .in('id', selectedTasks)
       } else {
         // Status changes
@@ -139,6 +141,40 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
       loadTasks()
     } catch (error) {
       console.error('Error executing bulk action:', error)
+    }
+  }
+
+  const handleConfirmBulkDelete = async () => {
+    if (selectedTasks.length === 0) return
+
+    try {
+      await supabase
+        .from('tarefas')
+        .delete()
+        .in('id', selectedTasks)
+      
+      setShowBulkDeleteModal(false)
+      setSelectedTasks([])
+      loadTasks()
+    } catch (error) {
+      console.error('Error deleting tasks:', error)
+    }
+  }
+
+  const handleBulkArchiveInsteadOfDelete = async () => {
+    if (selectedTasks.length === 0) return
+
+    try {
+      await supabase
+        .from('tarefas')
+        .update({ arquivada: true })
+        .in('id', selectedTasks)
+      
+      setShowBulkDeleteModal(false)
+      setSelectedTasks([])
+      loadTasks()
+    } catch (error) {
+      console.error('Error archiving tasks:', error)
     }
   }
 
@@ -538,6 +574,28 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
         open={showCreateModal}
         onOpenChange={setShowCreateModal}
         onTaskCreated={loadTasks}
+      />
+
+      <DeleteTaskConfirmationModal
+        isOpen={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        onConfirm={handleConfirmBulkDelete}
+        onArchive={handleBulkArchiveInsteadOfDelete}
+        task={selectedTasks.length > 0 ? {
+          id: selectedTasks[0],
+          titulo: `${selectedTasks.length} tarefa(s) selecionada(s)`,
+          descricao: `Você está prestes a excluir ${selectedTasks.length} tarefa(s) permanentemente.`,
+          prioridade: 'media' as any,
+          data_conclusao: '',
+          horario_conclusao: '',
+          status: 'criada' as any,
+          empresa_id: '',
+          criado_por: '',
+          created_at: '',
+          updated_at: '',
+          tempo_gasto_minutos: 0,
+          arquivada: false
+        } : null}
       />
     </div>
   )
