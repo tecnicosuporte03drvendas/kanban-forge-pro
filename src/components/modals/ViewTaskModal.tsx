@@ -142,8 +142,12 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
       const { data: comentariosData, error: comentariosError } = await supabase
         .from('tarefas_comentarios')
         .select(`
-          *,
-          usuarios!tarefas_comentarios_usuario_id_fkey(nome)
+          id,
+          tarefa_id,
+          usuario_id,
+          comentario,
+          created_at,
+          usuarios!usuario_id(nome)
         `)
         .eq('tarefa_id', taskId)
         .order('created_at', { ascending: false })
@@ -153,14 +157,23 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
       }
 
       // Load activities
-      const { data: atividadesData } = await supabase
+      const { data: atividadesData, error: atividadesError } = await supabase
         .from('tarefas_atividades')
         .select(`
-          *,
-          usuarios(nome)
+          id,
+          tarefa_id,
+          usuario_id,
+          acao,
+          descricao,
+          created_at,
+          usuarios!usuario_id(nome)
         `)
         .eq('tarefa_id', taskId)
         .order('created_at', { ascending: false })
+
+      if (atividadesError) {
+        console.error('Error loading activities:', atividadesError)
+      }
 
       const tarefaCompleta: TarefaCompleta = {
         ...tarefaData,
