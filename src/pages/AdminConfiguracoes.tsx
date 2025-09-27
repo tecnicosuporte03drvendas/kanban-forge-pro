@@ -143,7 +143,7 @@ export const AdminConfiguracoes: React.FC = () => {
     if (!formInstance.nome.trim() || !formInstance.telefone.trim()) {
       toast({
         title: "Erro",
-        description: "Preencha todos os campos",
+        description: "Nome e telefone são obrigatórios",
         variant: "destructive",
       });
       return;
@@ -151,44 +151,73 @@ export const AdminConfiguracoes: React.FC = () => {
 
     if (!urlInstancias.trim()) {
       toast({
-        title: "Erro",
-        description: "Configure primeiro a URL do webhook de instâncias",
+        title: "Erro", 
+        description: "Configure o webhook de instâncias antes de criar uma instância",
         variant: "destructive",
       });
       return;
     }
 
+    setLoading(true);
     try {
-      setLoading(true);
-
-      const response = await supabase.functions.invoke('create-whatsapp-instance', {
-        body: {
-          nome: formInstance.nome.trim(),
-          telefone: formInstance.telefone.trim(),
-          webhookUrl: urlInstancias.trim()
-        }
+      // Chamar webhook N8N diretamente para criar instância
+      const response = await fetch(urlInstancias, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'create_instance',
+          nome: formInstance.nome,
+          telefone: formInstance.telefone,
+        }),
       });
 
-      if (response.error) throw response.error;
+      if (!response.ok) {
+        throw new Error(`Erro do N8N: ${response.status}`);
+      }
 
-      const novaInstancia = response.data;
-      
-      // Adicionar à lista local
+      const data = await response.json();
+      console.log('Resposta N8N ao criar instância:', data);
+
+      // Se o N8N retornou sucesso, salvar no Supabase apenas para exibir
+      const novaInstancia = {
+        id: data.instanceId || crypto.randomUUID(),
+        nome: formInstance.nome,
+        telefone: formInstance.telefone,
+        status: data.status || 'desconectada',
+        qr_code: data.qrCode || null,
+        webhook_url: urlInstancias,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { error: dbError } = await supabase
+        .from('instancias_whatsapp')
+        .insert(novaInstancia);
+
+      if (dbError) {
+        console.error('Erro ao salvar instância no Supabase:', dbError);
+        // Não falhar aqui, pois a instância foi criada no N8N
+      }
+
+      // Atualizar lista local com dados reais do N8N
       setInstancias(prev => [novaInstancia, ...prev]);
-      
+
+      toast({
+        title: "Instância criada com sucesso",
+        description: `Instância ${formInstance.nome} foi criada via N8N`,
+      });
+
       // Limpar formulário e fechar modal
       setFormInstance({ nome: '', telefone: '' });
       setModalAberto(false);
 
-      toast({
-        title: "Sucesso",
-        description: "Instância criada com sucesso",
-      });
     } catch (error: any) {
       console.error('Erro ao criar instância:', error);
       toast({
-        title: "Erro",
-        description: "Falha ao criar instância",
+        title: "Erro ao criar instância",
+        description: error.message || "Erro de comunicação com N8N", 
         variant: "destructive",
       });
     } finally {
@@ -200,47 +229,76 @@ export const AdminConfiguracoes: React.FC = () => {
     if (!urlInstancias.trim()) {
       toast({
         title: "Erro",
-        description: "Configure primeiro a URL do webhook de instâncias",
+        description: "Configure o webhook de instâncias antes de conectar",
         variant: "destructive",
       });
       return;
     }
 
+    setLoading(true);
     try {
-      setLoading(true);
-
-      const response = await supabase.functions.invoke('connect-whatsapp-instance', {
-        body: {
+      // Chamar webhook N8N diretamente para conectar instância
+      const response = await fetch(urlInstancias, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'connect_instance',
           instanceId: instancia.id,
-          webhookUrl: urlInstancias.trim()
-        }
+          nome: instancia.nome,
+          telefone: instancia.telefone,
+        }),
       });
 
-      if (response.error) throw response.error;
+      if (!response.ok) {
+        throw new Error(`Erro do N8N: ${response.status}`);
+      }
 
-      const { qrCode, status } = response.data;
+      const data = await response.json();
+      console.log('Resposta N8N ao conectar instância:', data);
 
-      // Atualizar instância localmente
+      // Atualizar status e QR code no Supabase baseado na resposta do N8N
+      const updateData: any = {
+        status: data.status || 'conectando',
+        updated_at: new Date().toISOString()
+      };
+
+      if (data.qrCode) {
+        updateData.qr_code = data.qrCode;
+      }
+
+      const { error: updateError } = await supabase
+        .from('instancias_whatsapp')
+        .update(updateData)
+        .eq('id', instancia.id);
+
+      if (updateError) {
+        console.error('Erro ao atualizar instância no Supabase:', updateError);
+      }
+
+      // Atualizar instância localmente com dados reais do N8N
       setInstancias(prev => prev.map(inst => 
         inst.id === instancia.id 
-          ? { ...inst, status, qr_code: qrCode }
+          ? { ...inst, status: data.status || 'conectando', qr_code: data.qrCode }
           : inst
       ));
 
-      // Mostrar QR Code
-      if (qrCode) {
+      // Mostrar QR Code se disponível
+      if (data.qrCode) {
         setQrCodeVisible(prev => ({ ...prev, [instancia.id]: true }));
       }
 
       toast({
-        title: "Sucesso",
-        description: status === 'conectada' ? "Instância conectada!" : "QR Code gerado",
+        title: "Conectando instância",
+        description: `Status: ${data.status || 'conectando'}`,
       });
+
     } catch (error: any) {
       console.error('Erro ao conectar instância:', error);
       toast({
-        title: "Erro",
-        description: "Falha ao conectar instância",
+        title: "Erro ao conectar instância",
+        description: error.message || "Erro de comunicação com N8N",
         variant: "destructive",
       });
     } finally {
