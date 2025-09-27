@@ -53,7 +53,7 @@ export function DeleteTaskConfirmationModal({
             <div>
               <DialogTitle className="text-xl text-foreground">
                 {isBulkOperation 
-                  ? `Excluir ${selectedCount} Tarefas Permanentemente`
+                  ? `Excluir ${selectedCount} Tarefa${selectedCount > 1 ? 's' : ''} Permanentemente`
                   : "Excluir Tarefa Permanentemente"
                 }
               </DialogTitle>
