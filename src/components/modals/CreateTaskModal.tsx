@@ -60,6 +60,7 @@ interface CreateTaskModalProps {
 export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTaskModalProps) {
   const [responsibleOptions, setResponsibleOptions] = useState<ResponsibleOption[]>([])
   const [selectedResponsibles, setSelectedResponsibles] = useState<string[]>([])
+  const [teamMembers, setTeamMembers] = useState<Record<string, string[]>>({})
   const [loading, setLoading] = useState(false)
   const { usuario } = useAuth()
   const { shouldSuppressLogs } = useStealth()
@@ -107,6 +108,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
     const { data: teamsData } = await supabase
       .from('equipes')
       .select('id, nome, descricao')
+      .eq('empresa_id', usuario.empresa_id)
     
     if (teamsData) {
       options.push(...teamsData.map(e => ({ 
@@ -117,6 +119,37 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
     }
 
     setResponsibleOptions(options)
+    
+    // Load team members for all teams
+    if (teamsData) {
+      await loadTeamMembers(teamsData.map(t => t.id))
+    }
+  }
+
+  const loadTeamMembers = async (teamIds: string[]) => {
+    const { data: teamMembersData } = await supabase
+      .from('usuarios_equipes')
+      .select('equipe_id, usuario_id')
+      .in('equipe_id', teamIds)
+    
+    if (teamMembersData) {
+      const membersMap: Record<string, string[]> = {}
+      teamMembersData.forEach(member => {
+        if (!membersMap[member.equipe_id]) {
+          membersMap[member.equipe_id] = []
+        }
+        membersMap[member.equipe_id].push(member.usuario_id)
+      })
+      setTeamMembers(membersMap)
+    }
+  }
+
+  const isUserDisabled = (userId: string, selectedResponsibleIds: string[]) => {
+    const selectedTeams = selectedResponsibleIds.filter(id => 
+      responsibleOptions.find(option => option.id === id && option.type === 'team')
+    )
+    
+    return selectedTeams.some(teamId => teamMembers[teamId]?.includes(userId))
   }
 
   const getPriorityIcon = (priority: PrioridadeTarefa) => {
@@ -300,26 +333,38 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
                 <FormItem>
                   <FormLabel>Responsáveis</FormLabel>
                   <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
-                    {responsibleOptions.map((option) => (
-                      <div key={option.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={option.id}
-                          checked={field.value?.includes(option.id) || false}
-                          onCheckedChange={(checked) => {
-                            const updatedValue = field.value || []
-                            if (checked) {
-                              field.onChange([...updatedValue, option.id])
-                            } else {
-                              field.onChange(updatedValue.filter((id) => id !== option.id))
-                            }
-                          }}
-                        />
-                        <Label htmlFor={option.id} className="flex items-center gap-2 cursor-pointer">
-                          {option.type === 'user' ? <User className="w-4 h-4" /> : <Users className="w-4 h-4" />}
-                          {option.nome}
-                        </Label>
-                      </div>
-                    ))}
+                    {responsibleOptions.map((option) => {
+                      const isDisabled = option.type === 'user' && isUserDisabled(option.id, field.value || [])
+                      
+                      return (
+                        <div key={option.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={option.id}
+                            checked={field.value?.includes(option.id) || false}
+                            disabled={isDisabled}
+                            onCheckedChange={(checked) => {
+                              const updatedValue = field.value || []
+                              if (checked) {
+                                field.onChange([...updatedValue, option.id])
+                              } else {
+                                field.onChange(updatedValue.filter((id) => id !== option.id))
+                              }
+                            }}
+                          />
+                          <Label 
+                            htmlFor={option.id} 
+                            className={cn(
+                              "flex items-center gap-2 cursor-pointer",
+                              isDisabled && "opacity-50 cursor-not-allowed"
+                            )}
+                          >
+                            {option.type === 'user' ? <User className="w-4 h-4" /> : <Users className="w-4 h-4" />}
+                            {option.nome}
+                            {isDisabled && <span className="text-xs text-muted-foreground">(já incluído na equipe)</span>}
+                          </Label>
+                        </div>
+                      )
+                    })}
                   </div>
                   <FormMessage />
                 </FormItem>
