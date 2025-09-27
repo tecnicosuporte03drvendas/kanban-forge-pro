@@ -283,52 +283,24 @@ export const AdminConfiguracoes: React.FC = () => {
 
       console.log('✅ Resposta N8N ao conectar:', data);
 
-      // Usar apenas dados retornados pelo N8N/Evolution
-      if (!data) {
-        throw new Error('N8N não retornou dados de conexão da instância');
-      }
-
-      const updateData: any = {
-        status: data.status || data.instanceStatus || 'conectando',
-        updated_at: new Date().toISOString()
-      };
-
-      // QR Code vem do N8N/Evolution
-      if (data.qrCode || data.qr_code) {
-        updateData.qr_code = data.qrCode || data.qr_code;
-      }
-
-      // Atualizar no Supabase apenas para persistência
-      const { error: updateError } = await supabase
-        .from('instancias_whatsapp')
-        .update(updateData)
-        .eq('id', instancia.id);
-
-      if (updateError) {
-        console.error('❌ Erro ao atualizar instância no Supabase:', updateError);
-      }
-
-      // Atualizar localmente com dados REAIS do N8N
-      setInstancias(prev => prev.map(inst => 
-        inst.id === instancia.id 
-          ? { 
-              ...inst, 
-              status: data.status || data.instanceStatus || 'conectando', 
-              qr_code: data.qrCode || data.qr_code || inst.qr_code 
-            }
-          : inst
-      ));
-
-      // Exibir QR Code se retornado pelo N8N
-      if (data.qrCode || data.qr_code) {
-        setCurrentQrCode(data.qrCode || data.qr_code);
-        setCurrentInstanceName(instancia.nome);
-        setQrModalOpen(true);
-      }
+      // Aguardar um pouco para a Edge Function processar os logs
+      setTimeout(async () => {
+        await carregarInstancias();
+        
+        // Buscar instância atualizada
+        const instanciaAtualizada = instancias.find(i => i.id === instancia.id);
+        
+        // Se tem QR code, mostrar modal
+        if (instanciaAtualizada?.qr_code) {
+          setCurrentQrCode(instanciaAtualizada.qr_code);
+          setCurrentInstanceName(instanciaAtualizada.nome);
+          setQrModalOpen(true);
+        }
+      }, 2000);
 
       toast({
         title: "Conexão iniciada",
-        description: `Status: ${data.status || data.instanceStatus || 'conectando'}. ${data.qrCode || data.qr_code ? 'QR Code gerado para escaneamento.' : ''}`,
+        description: "Aguardando QR Code para conexão...",
       });
 
     } catch (error: any) {
