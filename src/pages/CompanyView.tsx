@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { CreateUserModal } from '@/components/modals/CreateUserModal';
 import { DeactivateCompanyModal } from '@/components/modals/DeactivateCompanyModal';
+import { ReactivateCompanyModal } from '@/components/modals/ReactivateCompanyModal';
 import { DeleteUserModal } from '@/components/modals/DeleteUserModal';
 import { CompanyInspectorModal } from '@/components/modals/CompanyInspectorModal';
 interface Empresa {
@@ -45,6 +46,7 @@ export default function CompanyView() {
   const [loading, setLoading] = useState(true);
   const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+  const [isReactivateModalOpen, setIsReactivateModalOpen] = useState(false);
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
   const [isInspectorModalOpen, setIsInspectorModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
@@ -112,39 +114,8 @@ export default function CompanyView() {
     setIsInspectorModalOpen(true);
   };
 
-  const handleReactivateCompany = async () => {
-    if (!empresa) return;
-
-    try {
-      const { error } = await supabase
-        .from('empresas')
-        .update({ ativa: true })
-        .eq('id', empresa.id);
-
-      if (error) {
-        console.error('Erro ao reativar empresa:', error);
-        toast({
-          title: "Erro ao reativar empresa",
-          description: "Não foi possível reativar a empresa. Tente novamente.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      toast({
-        title: "Empresa reativada",
-        description: `${empresa.nome_fantasia} foi reativada com sucesso.`,
-      });
-
-      await fetchEmpresa();
-    } catch (error) {
-      console.error('Erro ao reativar empresa:', error);
-      toast({
-        title: "Erro interno",
-        description: "Ocorreu um erro interno. Tente novamente.",
-        variant: "destructive"
-      });
-    }
+  const handleCompanyReactivated = async () => {
+    await fetchEmpresa();
   };
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
@@ -198,7 +169,7 @@ export default function CompanyView() {
                 
                 <Button 
                   variant={empresa.ativa ? "destructive" : "default"} 
-                  onClick={() => empresa.ativa ? setIsDeactivateModalOpen(true) : handleReactivateCompany()}
+                  onClick={() => empresa.ativa ? setIsDeactivateModalOpen(true) : setIsReactivateModalOpen(true)}
                 >
                   <AlertTriangle className="w-4 h-4 mr-2" />
                   {empresa.ativa ? 'Desativar Empresa' : 'Reativar Empresa'}
@@ -374,6 +345,8 @@ export default function CompanyView() {
       <CreateUserModal open={isCreateUserModalOpen} onOpenChange={setIsCreateUserModalOpen} onUserCreated={handleUserCreated} empresaId={empresaId!} empresaNome={empresa.nome_fantasia} createdBy="admin" />
 
       <DeactivateCompanyModal open={isDeactivateModalOpen} onOpenChange={setIsDeactivateModalOpen} onCompanyDeactivated={handleCompanyDeactivated} company={empresa} />
+
+      <ReactivateCompanyModal open={isReactivateModalOpen} onOpenChange={setIsReactivateModalOpen} onCompanyReactivated={handleCompanyReactivated} company={empresa} />
 
       <DeleteUserModal open={isDeleteUserModalOpen} onOpenChange={setIsDeleteUserModalOpen} onUserDeleted={handleUserDeleted} user={selectedUser} companyName={empresa.nome_fantasia} />
 
