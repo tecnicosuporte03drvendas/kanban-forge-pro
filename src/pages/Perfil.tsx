@@ -1,46 +1,27 @@
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar,
-  CheckSquare,
-  BarChart3,
-  Lock,
-  Trash2,
-  Edit,
-  Save,
-  X
-} from "lucide-react"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { useToast } from "@/hooks/use-toast"
-import { supabase } from "@/integrations/supabase/client"
-import { useAuth } from "@/contexts/AuthContext"
-
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, Mail, Phone, MapPin, Calendar, CheckSquare, BarChart3, Lock, Trash2, Edit, Save, X } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 export default function Perfil() {
-  const { toast } = useToast()
-  const { usuario, updateUsuario } = useAuth()
-  const [isEditing, setIsEditing] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const {
+    toast
+  } = useToast();
+  const {
+    usuario,
+    updateUsuario
+  } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -48,38 +29,46 @@ export default function Perfil() {
     department: "",
     position: "",
     location: ""
-  })
-  const [editData, setEditData] = useState(userData)
+  });
+  const [editData, setEditData] = useState(userData);
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
-  })
-  const [stats, setStats] = useState([
-    { label: "Tarefas Concluídas", value: "0", icon: CheckSquare, color: "text-green-600" },
-    { label: "Tarefas Ativas", value: "0", icon: Calendar, color: "text-blue-600" },
-    { label: "Taxa de Conclusão", value: "0%", icon: BarChart3, color: "text-purple-600" }
-  ])
-  const [showProfileConfirmation, setShowProfileConfirmation] = useState(false)
-  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false)
-  const [profileChanges, setProfileChanges] = useState<string[]>([])
+  });
+  const [stats, setStats] = useState([{
+    label: "Tarefas Concluídas",
+    value: "0",
+    icon: CheckSquare,
+    color: "text-green-600"
+  }, {
+    label: "Tarefas Ativas",
+    value: "0",
+    icon: Calendar,
+    color: "text-blue-600"
+  }, {
+    label: "Taxa de Conclusão",
+    value: "0%",
+    icon: BarChart3,
+    color: "text-purple-600"
+  }]);
+  const [showProfileConfirmation, setShowProfileConfirmation] = useState(false);
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
+  const [profileChanges, setProfileChanges] = useState<string[]>([]);
 
   // Carregar dados do usuário
   useEffect(() => {
     const loadUserData = async () => {
-      if (!usuario) return
-
+      if (!usuario) return;
       try {
-        setLoading(true)
-        
-        // Buscar dados completos do usuário
-        const { data: fullUserData, error: userError } = await supabase
-          .from('usuarios')
-          .select('*')
-          .eq('id', usuario.id)
-          .single()
+        setLoading(true);
 
-        if (userError) throw userError
+        // Buscar dados completos do usuário
+        const {
+          data: fullUserData,
+          error: userError
+        } = await supabase.from('usuarios').select('*').eq('id', usuario.id).single();
+        if (userError) throw userError;
 
         // Atualizar dados do usuário
         const newUserData = {
@@ -89,221 +78,218 @@ export default function Perfil() {
           department: fullUserData.funcao_empresa || "",
           position: fullUserData.funcao_empresa || "",
           location: ""
-        }
-        
-        setUserData(newUserData)
-        setEditData(newUserData)
+        };
+        setUserData(newUserData);
+        setEditData(newUserData);
 
         // Buscar estatísticas do usuário
-        const { data: taskStats, error: statsError } = await supabase
-          .from('tarefas')
-          .select('status, arquivada')
-          .eq('criado_por', usuario.id)
-
+        const {
+          data: taskStats,
+          error: statsError
+        } = await supabase.from('tarefas').select('status, arquivada').eq('criado_por', usuario.id);
         if (!statsError && taskStats) {
-          const completedTasks = taskStats.filter(t => t.status === 'concluida' || t.status === 'validada').length
-          const activeTasks = taskStats.filter(t => t.status !== 'concluida' && t.status !== 'validada' && !t.arquivada).length
-          const totalTasks = taskStats.filter(t => !t.arquivada).length
-          const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
-
-          setStats([
-            { label: "Tarefas Concluídas", value: completedTasks.toString(), icon: CheckSquare, color: "text-green-600" },
-            { label: "Tarefas Ativas", value: activeTasks.toString(), icon: Calendar, color: "text-blue-600" },
-            { label: "Taxa de Conclusão", value: `${completionRate}%`, icon: BarChart3, color: "text-purple-600" }
-          ])
+          const completedTasks = taskStats.filter(t => t.status === 'concluida' || t.status === 'validada').length;
+          const activeTasks = taskStats.filter(t => t.status !== 'concluida' && t.status !== 'validada' && !t.arquivada).length;
+          const totalTasks = taskStats.filter(t => !t.arquivada).length;
+          const completionRate = totalTasks > 0 ? Math.round(completedTasks / totalTasks * 100) : 0;
+          setStats([{
+            label: "Tarefas Concluídas",
+            value: completedTasks.toString(),
+            icon: CheckSquare,
+            color: "text-green-600"
+          }, {
+            label: "Tarefas Ativas",
+            value: activeTasks.toString(),
+            icon: Calendar,
+            color: "text-blue-600"
+          }, {
+            label: "Taxa de Conclusão",
+            value: `${completionRate}%`,
+            icon: BarChart3,
+            color: "text-purple-600"
+          }]);
         }
-
       } catch (error) {
-        console.error('Erro ao carregar dados do usuário:', error)
+        console.error('Erro ao carregar dados do usuário:', error);
         toast({
           title: "Erro",
           description: "Não foi possível carregar os dados do perfil.",
           variant: "destructive"
-        })
+        });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-
-    loadUserData()
-  }, [usuario, toast])
-
-  const [upcomingTasks, setUpcomingTasks] = useState([])
-  const [upcomingMeetings, setUpcomingMeetings] = useState([])
+    };
+    loadUserData();
+  }, [usuario, toast]);
+  const [upcomingTasks, setUpcomingTasks] = useState([]);
+  const [upcomingMeetings, setUpcomingMeetings] = useState([]);
 
   // Carregando dados reais do banco - arrays vazios quando não há dados
 
   const handleSaveProfile = async () => {
-    if (!usuario) return
+    if (!usuario) return;
 
     // Verificar mudanças e mostrar confirmação
-    const changes: string[] = []
+    const changes: string[] = [];
     if (userData.name !== editData.name) {
-      changes.push(`Nome: "${userData.name}" → "${editData.name}"`)
+      changes.push(`Nome: "${userData.name}" → "${editData.name}"`);
     }
     if (userData.email !== editData.email) {
-      changes.push(`Email: "${userData.email}" → "${editData.email}"`)
+      changes.push(`Email: "${userData.email}" → "${editData.email}"`);
     }
     if (userData.phone !== editData.phone) {
-      changes.push(`Telefone: "${userData.phone}" → "${editData.phone}"`)
+      changes.push(`Telefone: "${userData.phone}" → "${editData.phone}"`);
     }
     if (userData.department !== editData.department) {
-      changes.push(`Departamento: "${userData.department}" → "${editData.department}"`)
+      changes.push(`Departamento: "${userData.department}" → "${editData.department}"`);
     }
     if (userData.location !== editData.location) {
-      changes.push(`Localização: "${userData.location}" → "${editData.location}"`)
+      changes.push(`Localização: "${userData.location}" → "${editData.location}"`);
     }
-
     if (changes.length === 0) {
       toast({
         title: "Nenhuma alteração",
-        description: "Não há alterações para salvar.",
-      })
-      return
+        description: "Não há alterações para salvar."
+      });
+      return;
     }
-
-    setProfileChanges(changes)
-    setShowProfileConfirmation(true)
-  }
-
+    setProfileChanges(changes);
+    setShowProfileConfirmation(true);
+  };
   const confirmSaveProfile = async () => {
-    if (!usuario) return
-
+    if (!usuario) return;
     try {
-      setLoading(true)
-
-      const { error } = await supabase
-        .from('usuarios')
-        .update({
-          nome: editData.name,
-          email: editData.email,
-          celular: editData.phone,
-          funcao_empresa: editData.department,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', usuario.id)
-
-      if (error) throw error
+      setLoading(true);
+      const {
+        error
+      } = await supabase.from('usuarios').update({
+        nome: editData.name,
+        email: editData.email,
+        celular: editData.phone,
+        funcao_empresa: editData.department,
+        updated_at: new Date().toISOString()
+      }).eq('id', usuario.id);
+      if (error) throw error;
 
       // Atualizar dados locais e no contexto
-      setUserData(editData)
-      
+      setUserData(editData);
+
       // Atualizar o contexto de autenticação
       updateUsuario({
         nome: editData.name,
         email: editData.email,
         celular: editData.phone,
         funcao_empresa: editData.department
-      })
-      
-      setIsEditing(false)
-      setShowProfileConfirmation(false)
+      });
+      setIsEditing(false);
+      setShowProfileConfirmation(false);
       toast({
         title: "Perfil atualizado",
-        description: "Suas informações foram salvas com sucesso.",
-      })
+        description: "Suas informações foram salvas com sucesso."
+      });
     } catch (error) {
-      console.error('Erro ao salvar perfil:', error)
+      console.error('Erro ao salvar perfil:', error);
       toast({
         title: "Erro",
         description: "Não foi possível salvar as alterações.",
         variant: "destructive"
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
+  };
   const handleCancelEdit = () => {
-    setEditData(userData)
-    setIsEditing(false)
-  }
-
+    setEditData(userData);
+    setIsEditing(false);
+  };
   const handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
         title: "Erro",
         description: "As senhas não coincidem.",
         variant: "destructive"
-      })
-      return
+      });
+      return;
     }
-
     if (passwordData.newPassword.length < 6) {
       toast({
         title: "Erro",
         description: "A nova senha deve ter pelo menos 6 caracteres.",
         variant: "destructive"
-      })
-      return
+      });
+      return;
     }
-
-    setShowPasswordConfirmation(true)
-  }
-
+    setShowPasswordConfirmation(true);
+  };
   const confirmChangePassword = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
 
       // Primeiro, verificar se o usuário está autenticado
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      
+      const {
+        data: {
+          user
+        },
+        error: userError
+      } = await supabase.auth.getUser();
       if (userError || !user) {
-        throw new Error("Usuário não autenticado. Faça login novamente.")
+        throw new Error("Usuário não autenticado. Faça login novamente.");
       }
 
       // Atualizar senha
-      const { error } = await supabase.auth.updateUser({
+      const {
+        error
+      } = await supabase.auth.updateUser({
         password: passwordData.newPassword
-      })
-
-      if (error) throw error
-
-      setShowPasswordConfirmation(false)
+      });
+      if (error) throw error;
+      setShowPasswordConfirmation(false);
       toast({
         title: "Senha alterada",
-        description: "Sua senha foi alterada com sucesso.",
-      })
-      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" })
+        description: "Sua senha foi alterada com sucesso."
+      });
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+      });
     } catch (error: any) {
-      console.error('Erro ao alterar senha:', error)
+      console.error('Erro ao alterar senha:', error);
       toast({
         title: "Erro",
         description: error.message || "Ocorreu um erro ao alterar a senha.",
         variant: "destructive"
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
+  };
   const handleDeleteAccount = () => {
     toast({
       title: "Solicitação enviada",
-      description: "Sua solicitação de exclusão foi enviada ao gestor para aprovação.",
-    })
-  }
-
+      description: "Sua solicitação de exclusão foi enviada ao gestor para aprovação."
+    });
+  };
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "Alta": return "destructive"
-      case "Média": return "default"
-      case "Baixa": return "secondary"
-      default: return "default"
+      case "Alta":
+        return "destructive";
+      case "Média":
+        return "default";
+      case "Baixa":
+        return "secondary";
+      default:
+        return "default";
     }
-  }
-
-  return (
-    <div className="flex-1 space-y-6 p-6 bg-background">
-      {loading ? (
-        <div className="flex items-center justify-center h-96">
+  };
+  return <div className="flex-1 space-y-6 p-6 bg-background">
+      {loading ? <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
             <p className="mt-4 text-muted-foreground">Carregando perfil...</p>
           </div>
-        </div>
-      ) : (
-        <>
+        </div> : <>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Meu Perfil</h1>
@@ -338,17 +324,13 @@ export default function Perfil() {
                 <Phone className="w-4 h-4 text-muted-foreground" />
                 <span className="text-muted-foreground">{userData.phone}</span>
               </div>
-              <div className="flex items-center gap-3 text-sm">
-                <MapPin className="w-4 h-4 text-muted-foreground" />
-                <span className="text-muted-foreground">{userData.location}</span>
-              </div>
+              
             </CardContent>
           </Card>
 
           {/* Stats Cards */}
           <div className="space-y-3 mt-6">
-            {stats.map((stat, index) => (
-              <Card key={index}>
+            {stats.map((stat, index) => <Card key={index}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -358,8 +340,7 @@ export default function Perfil() {
                     <stat.icon className={`w-8 h-8 ${stat.color}`} />
                   </div>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
 
@@ -383,24 +364,18 @@ export default function Perfil() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {upcomingMeetings.length > 0 ? (
-                    <div className="space-y-3">
-                      {upcomingMeetings.map((meeting, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  {upcomingMeetings.length > 0 ? <div className="space-y-3">
+                      {upcomingMeetings.map((meeting, index) => <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                           <div>
                             <p className="font-medium">{meeting.title}</p>
                             <p className="text-sm text-muted-foreground">{meeting.date}</p>
                           </div>
                           <Badge variant="outline">{meeting.participants} participantes</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
+                        </div>)}
+                    </div> : <div className="text-center py-8 text-muted-foreground">
                       <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>Nenhuma reunião agendada</p>
-                    </div>
-                  )}
+                    </div>}
                 </CardContent>
               </Card>
 
@@ -413,24 +388,18 @@ export default function Perfil() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {upcomingTasks.length > 0 ? (
-                    <div className="space-y-3">
-                      {upcomingTasks.map((task, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  {upcomingTasks.length > 0 ? <div className="space-y-3">
+                      {upcomingTasks.map((task, index) => <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                           <div>
                             <p className="font-medium">{task.title}</p>
                             <p className="text-sm text-muted-foreground">Prazo: {task.dueDate}</p>
                           </div>
                           <Badge variant={getPriorityColor(task.priority)}>{task.priority}</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
+                        </div>)}
+                    </div> : <div className="text-center py-8 text-muted-foreground">
                       <CheckSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>Nenhuma tarefa próxima</p>
-                    </div>
-                  )}
+                    </div>}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -443,75 +412,56 @@ export default function Perfil() {
                       <CardTitle>Informações Pessoais</CardTitle>
                       <CardDescription>Atualize suas informações pessoais</CardDescription>
                     </div>
-                    {!isEditing && (
-                      <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
+                    {!isEditing && <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
                         <Edit className="w-4 h-4 mr-2" />
                         Editar
-                      </Button>
-                    )}
+                      </Button>}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <Label htmlFor="name">Nome Completo</Label>
-                      <Input
-                        id="name"
-                        value={isEditing ? editData.name : userData.name}
-                        onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                        disabled={!isEditing}
-                      />
+                      <Input id="name" value={isEditing ? editData.name : userData.name} onChange={e => setEditData({
+                        ...editData,
+                        name: e.target.value
+                      })} disabled={!isEditing} />
                     </div>
                     <div>
                       <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={isEditing ? editData.email : userData.email}
-                        onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                        disabled={!isEditing}
-                      />
+                      <Input id="email" type="email" value={isEditing ? editData.email : userData.email} onChange={e => setEditData({
+                        ...editData,
+                        email: e.target.value
+                      })} disabled={!isEditing} />
                     </div>
                     <div>
                       <Label htmlFor="phone">Telefone</Label>
-                      <Input
-                        id="phone"
-                        value={isEditing ? editData.phone : userData.phone}
-                        onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                        disabled={!isEditing}
-                      />
+                      <Input id="phone" value={isEditing ? editData.phone : userData.phone} onChange={e => setEditData({
+                        ...editData,
+                        phone: e.target.value
+                      })} disabled={!isEditing} />
                     </div>
                     <div>
                       <Label htmlFor="position">Cargo</Label>
-                      <Input
-                        id="position"
-                        value={userData.position}
-                        disabled={true}
-                        className="bg-muted"
-                      />
+                      <Input id="position" value={userData.position} disabled={true} className="bg-muted" />
                     </div>
                     <div>
                       <Label htmlFor="department">Departamento</Label>
-                      <Input
-                        id="department"
-                        value={isEditing ? editData.department : userData.department}
-                        onChange={(e) => setEditData({ ...editData, department: e.target.value })}
-                        disabled={!isEditing}
-                      />
+                      <Input id="department" value={isEditing ? editData.department : userData.department} onChange={e => setEditData({
+                        ...editData,
+                        department: e.target.value
+                      })} disabled={!isEditing} />
                     </div>
                     <div>
                       <Label htmlFor="location">Localização</Label>
-                      <Input
-                        id="location"
-                        value={isEditing ? editData.location : userData.location}
-                        onChange={(e) => setEditData({ ...editData, location: e.target.value })}
-                        disabled={!isEditing}
-                      />
+                      <Input id="location" value={isEditing ? editData.location : userData.location} onChange={e => setEditData({
+                        ...editData,
+                        location: e.target.value
+                      })} disabled={!isEditing} />
                     </div>
                   </div>
                   
-                  {isEditing && (
-                    <div className="flex gap-2 pt-4">
+                  {isEditing && <div className="flex gap-2 pt-4">
                       <Button onClick={handleSaveProfile}>
                         <Save className="w-4 h-4 mr-2" />
                         Salvar
@@ -520,8 +470,7 @@ export default function Perfil() {
                         <X className="w-4 h-4 mr-2" />
                         Cancelar
                       </Button>
-                    </div>
-                  )}
+                    </div>}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -535,30 +484,24 @@ export default function Perfil() {
                 <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor="current-password">Senha Atual</Label>
-                    <Input
-                      id="current-password"
-                      type="password"
-                      value={passwordData.currentPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                    />
+                    <Input id="current-password" type="password" value={passwordData.currentPassword} onChange={e => setPasswordData({
+                      ...passwordData,
+                      currentPassword: e.target.value
+                    })} />
                   </div>
                   <div>
                     <Label htmlFor="new-password">Nova Senha</Label>
-                    <Input
-                      id="new-password"
-                      type="password"
-                      value={passwordData.newPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                    />
+                    <Input id="new-password" type="password" value={passwordData.newPassword} onChange={e => setPasswordData({
+                      ...passwordData,
+                      newPassword: e.target.value
+                    })} />
                   </div>
                   <div>
                     <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      value={passwordData.confirmPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                    />
+                    <Input id="confirm-password" type="password" value={passwordData.confirmPassword} onChange={e => setPasswordData({
+                      ...passwordData,
+                      confirmPassword: e.target.value
+                    })} />
                   </div>
                   <Button onClick={handleChangePassword} className="w-full">
                     <Lock className="w-4 h-4 mr-2" />
@@ -610,44 +553,7 @@ export default function Perfil() {
             </TabsContent>
 
             <TabsContent value="account">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-destructive">Zona de Perigo</CardTitle>
-                  <CardDescription>Ações irreversíveis para sua conta</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="border border-destructive/20 rounded-lg p-4">
-                    <h4 className="font-medium text-destructive mb-2">Excluir conta</h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Esta ação solicitará a exclusão permanente da sua conta. 
-                      A solicitação será enviada ao gestor para aprovação.
-                    </p>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Solicitar Exclusão
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Esta ação enviará uma solicitação de exclusão da sua conta ao gestor. 
-                            Você receberá uma resposta em até 48 horas.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive hover:bg-destructive/90">
-                            Enviar Solicitação
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </CardContent>
-              </Card>
+              
             </TabsContent>
           </Tabs>
         </div>
@@ -661,9 +567,7 @@ export default function Perfil() {
             <AlertDialogDescription className="space-y-2">
               <div>Você está prestes a fazer as seguintes alterações em seu perfil:</div>
               <div className="bg-muted p-3 rounded-md">
-                {profileChanges.map((change, index) => (
-                  <div key={index} className="text-sm font-medium">{change}</div>
-                ))}
+                {profileChanges.map((change, index) => <div key={index} className="text-sm font-medium">{change}</div>)}
               </div>
               <div>Deseja continuar com essas alterações?</div>
             </AlertDialogDescription>
@@ -699,8 +603,6 @@ export default function Perfil() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      </>
-    )}
-    </div>
-  )
+      </>}
+    </div>;
 }
