@@ -805,38 +805,40 @@ const Calendario = () => {
                  {events.map((event) => {
                    const eventStyle = getEventStyle(event)
                    return (
-                      <div 
-                        key={event.id} 
-                        className={`p-3 border border-border rounded-lg bg-background/50 ${event.type === 'meeting' ? 'cursor-pointer hover:bg-background/80' : ''}`}
-                        onClick={() => event.type === 'meeting' ? handleMeetingClick(event.id) : undefined}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              {event.type === 'meeting' ? (
-                                <Video className="w-4 h-4 text-blue-600" />
-                              ) : (
-                                <CheckSquare className="w-4 h-4" style={{ color: eventStyle.text.includes('high') ? 'var(--priority-high)' : eventStyle.text.includes('medium') ? 'var(--priority-medium)' : 'var(--priority-low)' }} />
-                              )}
-                              <h4 className="font-medium text-sm text-card-foreground">{event.title}</h4>
-                            </div>
-                           <div className="flex items-center gap-4 text-xs">
-                             <span className="flex items-center gap-1 text-muted-foreground">
-                               <Clock className="w-3 h-3" />
-                               {event.time}
-                               {event.type === 'meeting' && event.duration && (
-                                 <span className="ml-1">({event.duration}min)</span>
+                       <div 
+                         key={event.id} 
+                         className={`p-3 sm:p-4 border border-border rounded-lg bg-background/50 transition-colors ${event.type === 'meeting' ? 'cursor-pointer hover:bg-background/80' : ''}`}
+                         onClick={() => event.type === 'meeting' ? handleMeetingClick(event.id) : undefined}
+                       >
+                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                           <div className="flex-1 min-w-0">
+                             <div className="flex items-center gap-2 mb-2">
+                               {event.type === 'meeting' ? (
+                                 <Video className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                               ) : (
+                                 <CheckSquare className="w-4 h-4 flex-shrink-0" style={{ color: eventStyle.text.includes('high') ? 'var(--priority-high)' : eventStyle.text.includes('medium') ? 'var(--priority-medium)' : 'var(--priority-low)' }} />
                                )}
-                             </span>
-                             <span className="flex items-center gap-1 text-muted-foreground">
-                               <Users className="w-3 h-3" />
-                               {event.assignee}
-                             </span>
-                             <span className={`${getDateStatus(event.dueDate).className}`}>
-                               {new Date(event.dueDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
-                             </span>
-                           </div>
-                         </div>
+                               <h4 className="font-medium text-sm text-card-foreground truncate">{event.title}</h4>
+                             </div>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs">
+                              <span className="flex items-center gap-1 text-muted-foreground">
+                                <Clock className="w-3 h-3 flex-shrink-0" />
+                                <span className="truncate">
+                                  {event.time}
+                                  {event.type === 'meeting' && event.duration && (
+                                    <span className="ml-1">({event.duration}min)</span>
+                                  )}
+                                </span>
+                              </span>
+                              <span className="flex items-center gap-1 text-muted-foreground">
+                                <Users className="w-3 h-3 flex-shrink-0" />
+                                <span className="truncate">{event.assignee}</span>
+                              </span>
+                              <span className={`flex-shrink-0 ${getDateStatus(event.dueDate).className}`}>
+                                {new Date(event.dueDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+                              </span>
+                            </div>
+                          </div>
                          <Badge className={eventStyle.badge}>
                            {event.type === 'meeting' ? 'Reunião' : (event.priority?.charAt(0).toUpperCase() + event.priority?.slice(1) || 'Tarefa')}
                          </Badge>
