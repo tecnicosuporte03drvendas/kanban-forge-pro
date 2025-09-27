@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckSquare, Clock, Target, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffectiveUser } from '@/hooks/use-effective-user';
 import { isOverdue } from "@/utils/date-utils";
 
 interface IndividualStatsProps {
@@ -10,7 +11,7 @@ interface IndividualStatsProps {
 }
 
 export const IndividualStats = ({ userId }: IndividualStatsProps) => {
-  const { usuario } = useAuth();
+  const { usuario } = useEffectiveUser()
   const [stats, setStats] = useState({
     tasksCompleted: 0,
     tasksPending: 0,

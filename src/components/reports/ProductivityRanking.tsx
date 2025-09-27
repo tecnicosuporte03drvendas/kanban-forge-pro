@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Users } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 
 interface UserProductivity {
   id: string
@@ -14,7 +15,7 @@ interface UserProductivity {
 }
 
 export function ProductivityRanking() {
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const [ranking, setRanking] = useState<UserProductivity[]>([])
   const [loading, setLoading] = useState(false)
 

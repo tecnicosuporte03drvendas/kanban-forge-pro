@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Clock, User, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffectiveUser } from '@/hooks/use-effective-user';
 import { getDateStatus } from "@/utils/date-utils";
 
 interface Activity {
@@ -21,7 +22,7 @@ interface RecentActivitiesProps {
 }
 
 export const RecentActivities = ({ userId }: RecentActivitiesProps) => {
-  const { usuario } = useAuth();
+  const { usuario } = useEffectiveUser()
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
 

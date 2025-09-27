@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 import type { TarefaCompleta, TarefaComentario, TarefaAtividade, PrioridadeTarefa, StatusTarefa } from '@/types/task'
 
 const taskEditSchema = z.object({
@@ -66,7 +67,7 @@ const statusColors = {
 }
 
 export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: ViewTaskModalProps) {
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const [tarefa, setTarefa] = useState<TarefaCompleta | null>(null)
   const [loading, setLoading] = useState(false)
   const [novoComentario, setNovoComentario] = useState('')

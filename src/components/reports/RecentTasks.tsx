@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { getDateStatus } from "@/utils/date-utils"
 import type { Tarefa } from "@/types/task"
 
 export function RecentTasks() {
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const [recentTasks, setRecentTasks] = useState<Tarefa[]>([])
   const [loading, setLoading] = useState(false)
 

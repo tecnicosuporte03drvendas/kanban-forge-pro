@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffectiveUser } from '@/hooks/use-effective-user';
 
 interface WeeklyData {
   day: string;
@@ -14,7 +15,7 @@ interface WeeklyChartProps {
 }
 
 export const WeeklyChart = ({ userId }: WeeklyChartProps) => {
-  const { usuario } = useAuth();
+  const { usuario } = useEffectiveUser()
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [loading, setLoading] = useState(true);
 

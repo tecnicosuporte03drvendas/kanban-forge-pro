@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 import type { TarefaChecklist, TarefaChecklistItem } from '@/types/task'
 
 interface TaskChecklistsProps {
@@ -17,7 +18,7 @@ interface TaskChecklistsProps {
 }
 
 export function TaskChecklists({ taskId, checklists, onChecklistsChange }: TaskChecklistsProps) {
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const [creatingChecklist, setCreatingChecklist] = useState(false)
   const [newChecklistTitle, setNewChecklistTitle] = useState('')
   const [addingItems, setAddingItems] = useState<Record<string, boolean>>({})

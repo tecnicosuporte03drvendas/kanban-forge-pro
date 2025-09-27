@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, User } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 
 interface ResponsibleUser {
   id: string
@@ -14,7 +15,7 @@ interface ResponsibleUser {
 }
 
 export function ResponsiblePerformance() {
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const [responsibleUsers, setResponsibleUsers] = useState<ResponsibleUser[]>([])
   const [loading, setLoading] = useState(false)
 

@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BarChart3, TrendingUp, Clock, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffectiveUser } from '@/hooks/use-effective-user';
 import { ResponsiblePerformance } from "@/components/ResponsiblePerformance";
 
 interface TemporalMetrics {
@@ -29,7 +30,7 @@ interface TemporalMetrics {
 type TimePeriod = 'esta-semana' | 'este-mes' | 'este-ano';
 
 export const TemporalAnalysis = () => {
-  const { usuario } = useAuth();
+  const { usuario } = useEffectiveUser()
   const [metrics, setMetrics] = useState<TemporalMetrics>({
     totalTasks: 0,
     completionRate: 0,

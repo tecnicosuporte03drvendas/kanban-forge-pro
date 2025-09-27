@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 
 interface TaskAttachment {
   id: string
@@ -28,7 +29,7 @@ interface TaskAttachmentsProps {
 }
 
 export function TaskAttachments({ taskId, attachments, onAttachmentsChange }: TaskAttachmentsProps) {
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const [isUploading, setIsUploading] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
   const [linkName, setLinkName] = useState('')

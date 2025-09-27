@@ -9,6 +9,7 @@ import { Plus, Search, Filter, Download, Calendar, User, MoreHorizontal, Archive
 import { getDateStatus } from "@/utils/date-utils"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { DeleteTaskConfirmationModal } from "@/components/modals/DeleteTaskConfirmationModal"
 import { CreateTaskModal } from "@/components/modals/CreateTaskModal"
 import type { Tarefa } from "@/types/task"
@@ -19,7 +20,7 @@ interface TarefasListProps {
 }
 
 export function TarefasList({ onCreateTask, showArchived = false }: TarefasListProps) {
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const [tasks, setTasks] = useState<Tarefa[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedTasks, setSelectedTasks] = useState<string[]>([])

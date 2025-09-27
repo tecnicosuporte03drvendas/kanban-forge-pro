@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffectiveUser } from '@/hooks/use-effective-user';
 import { isOverdue } from "@/utils/date-utils";
 
 interface CompanyMetrics {
@@ -17,7 +18,7 @@ interface CompanyMetrics {
 }
 
 export const CompanyStats = () => {
-  const { usuario } = useAuth();
+  const { usuario } = useEffectiveUser()
   const [metrics, setMetrics] = useState<CompanyMetrics>({
     totalTasks: 0,
     completedTasks: 0,

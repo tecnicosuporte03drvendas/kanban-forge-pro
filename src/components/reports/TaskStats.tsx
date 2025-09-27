@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart3, TrendingUp, Clock, Users } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { isOverdue } from "@/utils/date-utils"
 
 interface TaskStatsData {
@@ -13,7 +14,7 @@ interface TaskStatsData {
 }
 
 export function TaskStats() {
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const [stats, setStats] = useState<TaskStatsData>({
     validated: 0,
     executing: 0,

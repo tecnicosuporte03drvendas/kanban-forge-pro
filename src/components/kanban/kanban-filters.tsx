@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Search, Filter, X } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { Task } from "./kanban-board"
 
 interface KanbanFiltersProps {
@@ -30,7 +31,7 @@ export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
     dateTo: '',
     showOverdueOnly: false
   })
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const [users, setUsers] = useState<Array<{id: string, nome: string}>>([])
   const [teams, setTeams] = useState<Array<{id: string, nome: string}>>([])
 

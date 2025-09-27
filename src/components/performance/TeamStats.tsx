@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffectiveUser } from '@/hooks/use-effective-user';
 
 interface TeamMember {
   id: string;
@@ -16,7 +17,7 @@ interface TeamMember {
 }
 
 export const TeamStats = () => {
-  const { usuario } = useAuth();
+  const { usuario } = useEffectiveUser()
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
 

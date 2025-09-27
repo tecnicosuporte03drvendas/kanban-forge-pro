@@ -9,12 +9,13 @@ import { Search, Filter, Calendar, User, MoreHorizontal, Archive, Trash2, X, Ref
 import { getDateStatus } from "@/utils/date-utils"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { useToast } from "@/hooks/use-toast"
 import type { Tarefa } from "@/types/task"
 import { DeleteTaskConfirmationModal } from "@/components/modals/DeleteTaskConfirmationModal"
 
 export function ArchivedTasksList() {
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const { toast } = useToast()
   const [tasks, setTasks] = useState<Tarefa[]>([])
   const [loading, setLoading] = useState(false)

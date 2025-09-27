@@ -15,6 +15,7 @@ import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { useToast } from '@/hooks/use-toast'
 import {
   Form,
@@ -66,7 +67,7 @@ export function CreateMeetingModal({
 }: CreateMeetingModalProps) {
   const [responsibleOptions, setResponsibleOptions] = useState<ResponsibleOption[]>([])
   const [loading, setLoading] = useState(false)
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const { toast } = useToast()
 
   const form = useForm<MeetingFormData>({
