@@ -11,7 +11,7 @@ const integrations = [
     name: "Google Calendar",
     description: "Sincronize suas tarefas e eventos com o Google Calendar",
     icon: Calendar,
-    status: "available",
+    status: "coming-soon",
     connected: false,
     category: "Calendário"
   },
@@ -20,7 +20,7 @@ const integrations = [
     name: "WhatsApp Business",
     description: "Receba notificações e atualizações via WhatsApp",
     icon: MessageCircle,
-    status: "available", 
+    status: "coming-soon", 
     connected: false,
     category: "Comunicação"
   },
