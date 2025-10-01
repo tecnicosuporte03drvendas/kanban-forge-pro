@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Mail, Phone, MapPin, Calendar, CheckSquare, BarChart3, Lock, Trash2, Edit, Save, X } from "lucide-react";
+import { User, Mail, Phone, MapPin, Calendar, CheckSquare, BarChart3, Lock, Trash2, Edit, Save, X, LogOut } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +19,8 @@ export default function Perfil() {
   } = useToast();
   const {
     usuario,
-    updateUsuario
+    updateUsuario,
+    logout
   } = useEffectiveUser();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -55,6 +56,7 @@ export default function Perfil() {
   }]);
   const [showProfileConfirmation, setShowProfileConfirmation] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [profileChanges, setProfileChanges] = useState<string[]>([]);
 
   // Carregar dados do usuário
@@ -272,6 +274,12 @@ export default function Perfil() {
       description: "Sua solicitação de exclusão foi enviada ao gestor para aprovação."
     });
   };
+
+  const handleLogout = async () => {
+    await logout();
+    setShowLogoutDialog(false);
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "Alta":
@@ -401,6 +409,23 @@ export default function Perfil() {
                       <CheckSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>Nenhuma tarefa próxima</p>
                     </div>}
+                </CardContent>
+              </Card>
+
+              {/* Quick Actions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Ações Rápidas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    variant="destructive" 
+                    className="w-full"
+                    onClick={() => setShowLogoutDialog(true)}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sair da Conta
+                  </Button>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -600,6 +625,24 @@ export default function Perfil() {
             </AlertDialogCancel>
             <AlertDialogAction onClick={confirmChangePassword}>
               Alterar Senha
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Modal de confirmação para logout */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Saída</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja sair da sua conta? Você precisará fazer login novamente para acessar o sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
+              Sair
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
