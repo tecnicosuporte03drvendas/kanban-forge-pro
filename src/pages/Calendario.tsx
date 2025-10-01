@@ -941,24 +941,6 @@ const Calendario = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle>Conectar Google Calendar</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center space-y-3">
-                  <div className="w-12 h-12 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto">
-                    <CalendarIcon className="w-6 h-6 text-yellow-600" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Conecte sua conta do Google para sincronizar eventos externos com as tarefas e reuniões do sistema.
-                  </p>
-                  <Button size="sm" className="bg-primary hover:bg-primary-hover text-primary-foreground">
-                    Conectar Google Calendar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
