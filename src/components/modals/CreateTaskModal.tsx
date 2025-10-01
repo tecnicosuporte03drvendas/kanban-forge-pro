@@ -18,7 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from '@/hooks/use-toast'
-import { useAuth } from '@/contexts/AuthContext'
+import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { useStealth } from '@/hooks/use-stealth'
 import type { PrioridadeTarefa } from '@/types/task'
 
@@ -62,7 +62,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
   const [selectedResponsibles, setSelectedResponsibles] = useState<string[]>([])
   const [teamMembers, setTeamMembers] = useState<Record<string, string[]>>({})
   const [loading, setLoading] = useState(false)
-  const { usuario } = useAuth()
+  const { usuario } = useEffectiveUser()
   const { shouldSuppressLogs } = useStealth()
 
   const form = useForm<z.infer<typeof taskSchema>>({
