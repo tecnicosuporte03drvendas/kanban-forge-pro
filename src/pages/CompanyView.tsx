@@ -14,6 +14,7 @@ import { CreateUserModal } from '@/components/modals/CreateUserModal';
 import { DeactivateCompanyModal } from '@/components/modals/DeactivateCompanyModal';
 import { ReactivateCompanyModal } from '@/components/modals/ReactivateCompanyModal';
 import { DeleteUserModal } from '@/components/modals/DeleteUserModal';
+import { DeleteCompanyModal } from '@/components/modals/DeleteCompanyModal';
 interface Empresa {
   id: string;
   cnpj: string | null;
@@ -48,6 +49,7 @@ export default function CompanyView() {
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
   const [isReactivateModalOpen, setIsReactivateModalOpen] = useState(false);
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
+  const [isDeleteCompanyModalOpen, setIsDeleteCompanyModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
   const fetchEmpresa = async () => {
     if (!empresaId) return;
@@ -117,6 +119,10 @@ export default function CompanyView() {
   const handleCompanyReactivated = async () => {
     await fetchEmpresa();
   };
+
+  const handleCompanyDeleted = () => {
+    navigate('/admin');
+  };
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
@@ -165,15 +171,32 @@ export default function CompanyView() {
             
             {/* Ações do Master */}
             {usuario?.tipo_usuario === 'master' && <div className="flex gap-2">
-                
-                
-                <Button 
-                  variant={empresa.ativa ? "destructive" : "default"} 
-                  onClick={() => empresa.ativa ? setIsDeactivateModalOpen(true) : setIsReactivateModalOpen(true)}
-                >
-                  <AlertTriangle className="w-4 h-4 mr-2" />
-                  {empresa.ativa ? 'Desativar Empresa' : 'Reativar Empresa'}
-                </Button>
+                {empresa.ativa ? (
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => setIsDeactivateModalOpen(true)}
+                  >
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    Desativar Empresa
+                  </Button>
+                ) : (
+                  <>
+                    <Button 
+                      variant="default" 
+                      onClick={() => setIsReactivateModalOpen(true)}
+                    >
+                      <AlertTriangle className="w-4 h-4 mr-2" />
+                      Reativar Empresa
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      onClick={() => setIsDeleteCompanyModalOpen(true)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Excluir Empresa
+                    </Button>
+                  </>
+                )}
               </div>}
           </div>
           
@@ -349,5 +372,7 @@ export default function CompanyView() {
       <ReactivateCompanyModal open={isReactivateModalOpen} onOpenChange={setIsReactivateModalOpen} onCompanyReactivated={handleCompanyReactivated} company={empresa} />
 
       <DeleteUserModal open={isDeleteUserModalOpen} onOpenChange={setIsDeleteUserModalOpen} onUserDeleted={handleUserDeleted} user={selectedUser} companyName={empresa.nome_fantasia} />
+
+      <DeleteCompanyModal open={isDeleteCompanyModalOpen} onOpenChange={setIsDeleteCompanyModalOpen} onCompanyDeleted={handleCompanyDeleted} company={empresa} />
     </div>;
 }
