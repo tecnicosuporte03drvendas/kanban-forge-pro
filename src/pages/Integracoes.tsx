@@ -16,40 +16,13 @@ const integrations = [
     category: "Calendário"
   },
   {
-    id: "whatsapp",
-    name: "WhatsApp Business",
-    description: "Receba notificações e atualizações via WhatsApp",
-    icon: MessageCircle,
-    status: "coming-soon", 
-    connected: false,
-    category: "Comunicação"
-  },
-  {
-    id: "gmail",
-    name: "Gmail",
-    description: "Integre emails e crie tarefas automaticamente",
-    icon: Mail,
-    status: "coming-soon",
-    connected: false,
-    category: "Email"
-  },
-  {
-    id: "zapier",
-    name: "Zapier",
-    description: "Conecte com mais de 3000 aplicativos via Zapier",
-    icon: Zap,
-    status: "coming-soon",
-    connected: false,
-    category: "Automação"
-  },
-  {
-    id: "slack",
-    name: "Slack",
-    description: "Receba notificações de tarefas no Slack",
+    id: "google-meet",
+    name: "Google Meet",
+    description: "Crie e gerencie reuniões diretamente do sistema",
     icon: MessageCircle,
     status: "coming-soon",
     connected: false,
-    category: "Comunicação"
+    category: "Reuniões"
   }
 ]
 
@@ -72,7 +45,7 @@ const Integracoes = () => {
     }
   }
 
-  const categories = ["Todos", "Calendário", "Comunicação", "Email", "Automação"]
+  const categories = ["Todos", "Calendário", "Reuniões"]
 
   return (
     <div className="flex flex-col h-screen">
