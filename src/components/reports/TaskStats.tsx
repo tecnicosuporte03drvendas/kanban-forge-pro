@@ -66,14 +66,6 @@ export function TaskStats() {
 
   const statsConfig = [
     {
-      title: "Tarefas Validadas",
-      value: loading ? "..." : stats.validated.toString(),
-      subtitle: "tarefas validadas",
-      icon: BarChart3,
-      color: "text-kanban-validated",
-      bgColor: "bg-purple-500/10"
-    },
-    {
       title: "Em Execução", 
       value: loading ? "..." : stats.executing.toString(),
       subtitle: "tarefas ativas",
@@ -88,6 +80,14 @@ export function TaskStats() {
       icon: TrendingUp,
       color: "text-destructive",
       bgColor: "bg-red-500/10"
+    },
+    {
+      title: "Tarefas Validadas",
+      value: loading ? "..." : stats.validated.toString(),
+      subtitle: "tarefas validadas",
+      icon: BarChart3,
+      color: "text-kanban-validated",
+      bgColor: "bg-purple-500/10"
     },
     {
       title: "Taxa de Conclusão",
