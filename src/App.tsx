@@ -37,9 +37,9 @@ const App = () => (
         <AuthProvider>
           <Toaster />
           <Sonner />
-          <StealthIndicator />
-          <StealthBackButton />
           <BrowserRouter>
+            <StealthIndicator />
+            <StealthBackButton />
             <Routes>
               {/* Rota pública de login */}
               <Route path="/login" element={<Login />} />
