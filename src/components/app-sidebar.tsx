@@ -60,7 +60,7 @@ const getMenuItems = (tipoUsuario: string, isStealthMode: boolean, empresaId?: s
   const allItems = [
     { title: "Dashboard", url: `${baseUrl}/${stealthParams}`, icon: LayoutDashboard },
     { title: "Tarefas", url: `${baseUrl}/tarefas${stealthParams}`, icon: CheckSquare },
-    { title: "Calendário", url: `${baseUrl}/calendario${stealthParams}`, icon: Calendar },
+    { title: "Agenda", url: `${baseUrl}/calendario${stealthParams}`, icon: Calendar },
     { title: "Relatórios", url: `${baseUrl}/relatorios${stealthParams}`, icon: BarChart3 },
     { title: "Empresa", url: `${baseUrl}/empresa${stealthParams}`, icon: Users },
     { title: tipoUsuario === 'colaborador' ? "Meu Desempenho" : "Desempenho", url: `${baseUrl}/desempenho${stealthParams}`, icon: User },

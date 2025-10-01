@@ -13,7 +13,7 @@ const integrations = [
     icon: Calendar,
     status: "coming-soon",
     connected: false,
-    category: "Calendário"
+    category: "Agenda"
   },
   {
     id: "google-meet",
@@ -45,7 +45,7 @@ const Integracoes = () => {
     }
   }
 
-  const categories = ["Todos", "Calendário", "Reuniões"]
+  const categories = ["Todos", "Agenda", "Reuniões"]
 
   return (
     <div className="flex flex-col h-screen">
