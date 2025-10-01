@@ -22,12 +22,12 @@ export const StealthBackButton = () => {
   };
 
   return (
-    <div className="fixed top-4 left-4 z-50">
+    <div className="fixed top-4 right-4 z-[100]">
       <Button 
         onClick={handleBack}
-        variant="secondary"
+        variant="default"
         size="sm"
-        className="shadow-lg"
+        className="shadow-xl"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Voltar à Empresa
