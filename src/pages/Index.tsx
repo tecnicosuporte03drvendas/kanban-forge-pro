@@ -1,9 +1,7 @@
 import { DashboardStats } from "@/components/dashboard-stats"
 import { KanbanBoard } from "@/components/kanban/kanban-board"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { LogOut, Plus, ArrowLeft } from "lucide-react"
+import { LogOut } from "lucide-react"
 import { useEffectiveUser } from "@/hooks/use-effective-user"
 import { useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
@@ -59,15 +57,6 @@ const Index = () => {
       <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between h-full px-6 pt-5">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate(-1)}
-              className="hover:bg-accent"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Voltar ao perfil da empresa
-            </Button>
-            <SidebarTrigger className="lg:hidden" />
             <div>
               <h1 className="text-2xl font-bold text-foreground">
                 Bem-vindo à empresa {empresa?.nome_fantasia || '...'}! 👋

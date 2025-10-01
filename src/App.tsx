@@ -2,8 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -11,6 +13,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { StealthIndicator } from "@/components/StealthIndicator";
 import { StealthBackButton } from "@/components/StealthBackButton";
 import { StealthUserProvider } from "@/components/StealthUserProvider";
+import { useEffectiveUser } from "@/hooks/use-effective-user";
 import Index from "./pages/Index";
 import Tarefas from "./pages/Tarefas";
 import Calendario from "./pages/Calendario";
@@ -29,6 +32,63 @@ import { lazy, Suspense } from "react";
 const CompanyView = lazy(() => import("./pages/CompanyView"));
 
 const queryClient = new QueryClient();
+
+const HeaderWithBackButton = () => {
+  const navigate = useNavigate();
+  const { originalUser, usuario } = useEffectiveUser();
+  
+  return (
+    <SidebarProvider defaultOpen={true}>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <header className="h-14 border-b bg-background flex items-center px-4 sticky top-0 z-10">
+            <SidebarTrigger className="mr-4" />
+            {originalUser?.tipo_usuario === 'master' && usuario?.empresa_id && (
+              <Button 
+                variant="outline" 
+                onClick={() => navigate(`/admin/empresa/${usuario.empresa_id}`)}
+                className="hover:bg-accent"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Voltar ao perfil da empresa
+              </Button>
+            )}
+          </header>
+          <main className="flex-1 overflow-auto">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<Index />} />
+              <Route 
+                path="/tarefas" 
+                element={
+                  <ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
+                    <Tarefas />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="/calendario" element={<Calendario />} />
+              <Route 
+                path="/relatorios" 
+                element={
+                  <ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
+                    <Relatorios />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="/empresa" element={<Empresa />} />
+              <Route path="/desempenho" element={<Desempenho />} />
+              <Route path="/integracoes" element={<Integracoes />} />
+              <Route path="/ajuda" element={<Ajuda />} />
+              <Route path="/perfil" element={<Perfil />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -83,45 +143,7 @@ const App = () => (
                 path="/empresa/:empresaId/*"
                 element={
                   <StealthUserProvider>
-                    <SidebarProvider defaultOpen={true}>
-                      <div className="min-h-screen flex w-full bg-background">
-                        <AppSidebar />
-                        <div className="flex-1 flex flex-col overflow-hidden">
-                          <header className="h-14 border-b bg-background flex items-center px-4 sticky top-0 z-10">
-                            <SidebarTrigger className="mr-4" />
-                          </header>
-                          <main className="flex-1 overflow-auto">
-                            <Routes>
-                              <Route path="/" element={<Index />} />
-                              <Route path="/dashboard" element={<Index />} />
-                              <Route 
-                                path="/tarefas" 
-                                element={
-                                  <ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
-                                    <Tarefas />
-                                  </ProtectedRoute>
-                                } 
-                              />
-                              <Route path="/calendario" element={<Calendario />} />
-                              <Route 
-                                path="/relatorios" 
-                                element={
-                                  <ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
-                                    <Relatorios />
-                                  </ProtectedRoute>
-                                } 
-                              />
-                              <Route path="/empresa" element={<Empresa />} />
-                              <Route path="/desempenho" element={<Desempenho />} />
-                              <Route path="/integracoes" element={<Integracoes />} />
-                              <Route path="/ajuda" element={<Ajuda />} />
-                              <Route path="/perfil" element={<Perfil />} />
-                              <Route path="*" element={<NotFound />} />
-                            </Routes>
-                          </main>
-                        </div>
-                      </div>
-                    </SidebarProvider>
+                    <HeaderWithBackButton />
                   </StealthUserProvider>
                 }
               />
@@ -131,45 +153,7 @@ const App = () => (
                 path="/*"
                 element={
                   <ProtectedRoute allowedRoles={['proprietario', 'gestor', 'colaborador']}>
-                    <SidebarProvider defaultOpen={true}>
-                      <div className="min-h-screen flex w-full bg-background">
-                        <AppSidebar />
-                        <div className="flex-1 flex flex-col overflow-hidden">
-                          <header className="h-14 border-b bg-background flex items-center px-4 sticky top-0 z-10">
-                            <SidebarTrigger className="mr-4" />
-                          </header>
-                          <main className="flex-1 overflow-auto">
-                            <Routes>
-                              <Route path="/" element={<Index />} />
-                              <Route path="/dashboard" element={<Index />} />
-                              <Route 
-                                path="/tarefas" 
-                                element={
-                                  <ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
-                                    <Tarefas />
-                                  </ProtectedRoute>
-                                } 
-                              />
-                              <Route path="/calendario" element={<Calendario />} />
-                              <Route 
-                                path="/relatorios" 
-                                element={
-                                  <ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
-                                    <Relatorios />
-                                  </ProtectedRoute>
-                                } 
-                              />
-                              <Route path="/empresa" element={<Empresa />} />
-                              <Route path="/desempenho" element={<Desempenho />} />
-                              <Route path="/integracoes" element={<Integracoes />} />
-                              <Route path="/ajuda" element={<Ajuda />} />
-                              <Route path="/perfil" element={<Perfil />} />
-                              <Route path="*" element={<NotFound />} />
-                            </Routes>
-                          </main>
-                        </div>
-                      </div>
-                    </SidebarProvider>
+                    <HeaderWithBackButton />
                   </ProtectedRoute>
                 }
               />
