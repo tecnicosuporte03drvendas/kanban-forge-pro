@@ -26,7 +26,7 @@ export function KanbanColumn({
     return `bg-${color} text-white`;
   };
   const getColumnClass = () => {
-    const baseClass = "flex flex-col w-80 rounded-lg border transition-all duration-200";
+    const baseClass = "flex flex-col flex-1 min-w-0 rounded-lg border transition-all duration-200";
     if (isOver) {
       return `${baseClass} border-primary/50 bg-accent/30 scale-[1.02]`;
     }
