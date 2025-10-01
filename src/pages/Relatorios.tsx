@@ -25,7 +25,6 @@ const Relatorios = () => {
             <SidebarTrigger className="lg:hidden" />
             <div>
               <h1 className="text-2xl font-bold text-foreground">Relatórios</h1>
-              <p className="text-muted-foreground">Acompanhe a produtividade e performance da equipe no CDE</p>
             </div>
           </div>
           <div className="flex gap-2">
