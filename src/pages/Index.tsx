@@ -2,7 +2,7 @@ import { DashboardStats } from "@/components/dashboard-stats"
 import { KanbanBoard } from "@/components/kanban/kanban-board"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { LogOut, Plus, ArrowLeft } from "lucide-react"
+import { LogOut, Plus, ArrowLeft, Building2 } from "lucide-react"
 import { useEffectiveUser } from "@/hooks/use-effective-user"
 import { useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
@@ -11,7 +11,7 @@ import { CreateTaskModal } from "@/components/modals/CreateTaskModal"
 import { TaskModal } from "@/components/modals/TaskModal"
 
 const Index = () => {
-  const { usuario, logout, isStealthMode } = useEffectiveUser();
+  const { usuario, logout, isStealthMode, originalUser } = useEffectiveUser();
   const navigate = useNavigate();
   const [empresa, setEmpresa] = useState<any>(null);
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
@@ -67,6 +67,16 @@ const Index = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <SidebarTrigger className="lg:hidden" />
+            {originalUser?.tipo_usuario === 'master' && (
+              <Button 
+                variant="outline" 
+                onClick={() => navigate(`/empresa/${usuario?.empresa_id}`)}
+                className="flex items-center gap-2"
+              >
+                <Building2 className="w-4 h-4" />
+                Voltar ao perfil da empresa
+              </Button>
+            )}
             <div>
               <h1 className="text-2xl font-bold text-foreground">
                 Bem-vindo à empresa {empresa?.nome_fantasia || '...'}! 👋
