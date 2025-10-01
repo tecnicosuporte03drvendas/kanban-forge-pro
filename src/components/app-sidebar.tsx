@@ -154,14 +154,14 @@ export function AppSidebar() {
       collapsible="icon"
     >
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-sidebar-primary-foreground font-bold text-sm">
+        <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
+          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-sidebar-primary-foreground font-bold text-sm shadow-sm">
             T
           </div>
           {!collapsed && (
             <div>
-              <h2 className="text-lg font-bold text-sidebar-foreground">Tezeus Agenda</h2>
-              <p className="text-xs text-sidebar-foreground/60">Ambiente Corporativo</p>
+              <h2 className="text-lg font-bold text-sidebar-foreground">TzAgenda</h2>
+              <p className="text-xs text-sidebar-foreground/60">Gestão Empresarial</p>
             </div>
           )}
         </div>
