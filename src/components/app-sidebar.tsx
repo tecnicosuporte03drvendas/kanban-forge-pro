@@ -141,7 +141,7 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path
   
   const getNavClasses = (path: string) => {
-    const baseClasses = "w-full justify-start gap-3 h-12 rounded-lg transition-all duration-200"
+    const baseClasses = `w-full h-12 rounded-lg transition-all duration-200 ${collapsed ? 'justify-center px-0' : 'justify-start gap-3 px-3'}`
     if (isActive(path)) {
       return `${baseClasses} bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-sm`
     }
@@ -153,7 +153,7 @@ export function AppSidebar() {
       className={`${collapsed ? "w-16" : "w-64"} transition-all duration-300 border-r border-sidebar-border bg-sidebar`}
       collapsible="icon"
     >
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
+      <SidebarHeader className={`border-b border-sidebar-border ${collapsed ? 'p-3' : 'p-4'}`}>
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
           <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-sidebar-primary-foreground font-bold text-sm shadow-sm">
             T
@@ -167,13 +167,15 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4">
+      <SidebarContent className={collapsed ? 'px-2 py-4' : 'px-3 py-4'}>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/60 text-xs font-medium mb-2">
-            {!collapsed && "MENU PRINCIPAL"}
-          </SidebarGroupLabel>
+          {!collapsed && (
+            <SidebarGroupLabel className="text-sidebar-foreground/60 text-xs font-medium mb-2 px-3">
+              MENU PRINCIPAL
+            </SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {getMenuItems(usuario?.tipo_usuario || '', isStealthMode, empresaId).map((item) => {
                 // Ocultar "Administração" para usuários que não sejam master ou em modo stealth
                 if (item.title === "Administração" && (usuario?.tipo_usuario !== 'master' || isStealthMode)) {
@@ -182,14 +184,14 @@ export function AppSidebar() {
                 
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild className="hover:bg-transparent p-0">
                       <NavLink 
                         to={item.url} 
                         end 
                         className={getNavClasses(item.url)}
                       >
                         <item.icon className="w-5 h-5 flex-shrink-0" />
-                        {!collapsed && <span className="font-medium">{item.title}</span>}
+                        {!collapsed && <span className="font-medium truncate">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -200,14 +202,14 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-sidebar-border">
-        <div className="flex items-center gap-2">
+      <SidebarFooter className={`border-t border-sidebar-border ${collapsed ? 'p-2' : 'p-3'}`}>
+        <div className={`flex items-center ${collapsed ? 'flex-col gap-2' : 'gap-2'}`}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="w-10 h-10 p-0 hover:bg-sidebar-accent"
+                className="w-10 h-10 p-0 hover:bg-sidebar-accent rounded-lg"
               >
                 {theme === "light" ? (
                   <Sun className="w-4 h-4 text-sidebar-foreground" />
@@ -238,7 +240,7 @@ export function AppSidebar() {
             <DropdownMenu>
               <DropdownMenuTrigger className="flex-1 text-left">
                 <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-                  <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-xs font-medium text-sidebar-accent-foreground">
                       {perfilUsuario?.iniciais || 'U'}
                     </span>
@@ -280,12 +282,18 @@ export function AppSidebar() {
           
           {collapsed && (
             <DropdownMenu>
-              <DropdownMenuTrigger className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-                <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
-                  <span className="text-xs font-medium text-sidebar-accent-foreground">
-                    {perfilUsuario?.iniciais || 'U'}
-                  </span>
-                </div>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="w-10 h-10 p-0 rounded-full hover:bg-sidebar-accent"
+                >
+                  <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
+                    <span className="text-xs font-medium text-sidebar-accent-foreground">
+                      {perfilUsuario?.iniciais || 'U'}
+                    </span>
+                  </div>
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem asChild>
