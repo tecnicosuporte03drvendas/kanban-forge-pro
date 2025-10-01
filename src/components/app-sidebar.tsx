@@ -13,7 +13,9 @@ import {
   Sun,
   Monitor,
   LogOut,
-  UserCircle
+  UserCircle,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react"
 import { NavLink, useLocation, useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
@@ -80,7 +82,7 @@ const getMenuItems = (tipoUsuario: string, isStealthMode: boolean, empresaId?: s
 }
 
 export function AppSidebar() {
-  const { state } = useSidebar()
+  const { state, toggleSidebar } = useSidebar()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const collapsed = state === "collapsed"
   const location = useLocation()
@@ -141,39 +143,41 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path
   
   const getNavClasses = (path: string) => {
-    const baseClasses = "w-full justify-start gap-3 h-12 rounded-lg transition-all duration-200"
+    const baseClasses = "w-full justify-start gap-3 h-11 rounded-lg transition-all duration-200"
     if (isActive(path)) {
-      return `${baseClasses} bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-sm`
+      return `${baseClasses} bg-sidebar-accent text-sidebar-accent-foreground font-medium`
     }
-    return `${baseClasses} text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground`
+    return `${baseClasses} text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground`
   }
 
   return (
     <Sidebar
-      className={`${collapsed ? "w-16" : "w-64"} transition-all duration-300 border-r border-sidebar-border bg-sidebar`}
+      className="transition-all duration-300 border-r border-sidebar-border bg-sidebar"
       collapsible="icon"
     >
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
+      <SidebarHeader className="p-4 border-b border-sidebar-border shrink-0">
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-sidebar-primary-foreground font-bold text-sm shadow-sm">
+          <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center text-sidebar-primary-foreground font-bold shadow-sm shrink-0">
             T
           </div>
           {!collapsed && (
-            <div>
-              <h2 className="text-lg font-bold text-sidebar-foreground">TzAgenda</h2>
-              <p className="text-xs text-sidebar-foreground/60">Gestão Empresarial</p>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base font-bold text-sidebar-foreground truncate">TzAgenda</h2>
+              <p className="text-xs text-sidebar-foreground/60 truncate">Gestão Empresarial</p>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4">
+      <SidebarContent className="px-3 py-4 flex-1 overflow-y-auto">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/60 text-xs font-medium mb-2">
-            {!collapsed && "MENU PRINCIPAL"}
-          </SidebarGroupLabel>
+          {!collapsed && (
+            <SidebarGroupLabel className="text-sidebar-foreground/60 text-xs font-medium mb-2 px-2">
+              MENU PRINCIPAL
+            </SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {getMenuItems(usuario?.tipo_usuario || '', isStealthMode, empresaId).map((item) => {
                 // Ocultar "Administração" para usuários que não sejam master ou em modo stealth
                 if (item.title === "Administração" && (usuario?.tipo_usuario !== 'master' || isStealthMode)) {
@@ -188,8 +192,8 @@ export function AppSidebar() {
                         end 
                         className={getNavClasses(item.url)}
                       >
-                        <item.icon className="w-5 h-5 flex-shrink-0" />
-                        {!collapsed && <span className="font-medium">{item.title}</span>}
+                        <item.icon className="w-5 h-5 shrink-0" />
+                        {!collapsed && <span className="font-medium truncate">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -200,14 +204,15 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-sidebar-border">
+      <SidebarFooter className="p-3 border-t border-sidebar-border shrink-0 space-y-3">
+        {/* User Profile & Theme */}
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="w-10 h-10 p-0 hover:bg-sidebar-accent"
+                className="w-10 h-10 p-0 hover:bg-sidebar-accent shrink-0"
               >
                 {theme === "light" ? (
                   <Sun className="w-4 h-4 text-sidebar-foreground" />
@@ -236,9 +241,9 @@ export function AppSidebar() {
           
           {!collapsed && (
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex-1 text-left">
+              <DropdownMenuTrigger className="flex-1 text-left min-w-0">
                 <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-                  <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center shrink-0">
                     <span className="text-xs font-medium text-sidebar-accent-foreground">
                       {perfilUsuario?.iniciais || 'U'}
                     </span>
@@ -280,7 +285,7 @@ export function AppSidebar() {
           
           {collapsed && (
             <DropdownMenu>
-              <DropdownMenuTrigger className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-sidebar-accent/50 transition-colors">
+              <DropdownMenuTrigger className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-sidebar-accent/50 transition-colors shrink-0">
                 <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
                   <span className="text-xs font-medium text-sidebar-accent-foreground">
                     {perfilUsuario?.iniciais || 'U'}
@@ -312,6 +317,21 @@ export function AppSidebar() {
             </DropdownMenu>
           )}
         </div>
+
+        {/* Collapse/Expand Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleSidebar}
+          className={`w-full h-10 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} hover:bg-sidebar-accent rounded-lg transition-colors`}
+        >
+          {!collapsed && <span className="text-sm font-medium text-sidebar-foreground">Recolher</span>}
+          {collapsed ? (
+            <ChevronRight className="w-4 h-4 text-sidebar-foreground" />
+          ) : (
+            <ChevronLeft className="w-4 h-4 text-sidebar-foreground" />
+          )}
+        </Button>
       </SidebarFooter>
 
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
