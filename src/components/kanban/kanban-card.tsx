@@ -89,15 +89,15 @@ export function KanbanCard({
           {task.description}
         </p>
 
-        <div className="flex items-center justify-between pt-2 border-t border-border/50">
+        <div className="flex flex-col gap-2 pt-2 border-t border-border/50">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <User className="w-3 h-3" />
-            <span className="truncate max-w-[100px]">{task.assignee}</span>
+            <span className="truncate">{task.assignee}</span>
           </div>
           
           <div className={`flex items-center gap-1 text-xs ${dateStatus.className}`}>
-            <Calendar className="w-5 h-5" />
-            <span className="text-lg">{formatDate(task.dueDate)}</span>
+            <Calendar className="w-3 h-3" />
+            <span>{formatDate(task.dueDate)}</span>
           </div>
         </div>
       </div>
