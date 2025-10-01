@@ -2,7 +2,7 @@ import { DashboardStats } from "@/components/dashboard-stats"
 import { KanbanBoard } from "@/components/kanban/kanban-board"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { LogOut, Plus } from "lucide-react"
+import { LogOut, Plus, ArrowLeft } from "lucide-react"
 import { useEffectiveUser } from "@/hooks/use-effective-user"
 import { useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
@@ -58,6 +58,14 @@ const Index = () => {
       <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between h-full px-6 pt-5">
           <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigate(-1)}
+              className="hover:bg-accent"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
             <SidebarTrigger className="lg:hidden" />
             <div>
               <h1 className="text-2xl font-bold text-foreground">
