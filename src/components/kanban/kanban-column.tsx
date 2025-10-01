@@ -45,7 +45,7 @@ export function KanbanColumn({
         </div>
       </div>
 
-      <div ref={setNodeRef} className="flex-1 p-4 space-y-3 overflow-y-auto">
+      <div ref={setNodeRef} className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[60vh]">
         {tasks.length === 0 ? <div className="flex flex-col items-center justify-center h-40 text-center">
             <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
               <Plus className="w-6 h-6 text-muted-foreground" />

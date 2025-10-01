@@ -537,7 +537,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       .sort((a, b) => (a.posicao_coluna || 0) - (b.posicao_coluna || 0))
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">

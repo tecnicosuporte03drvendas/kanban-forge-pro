@@ -77,7 +77,7 @@ const Index = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden p-6 bg-gradient-kanban">
+      <div className="flex-1 overflow-x-hidden overflow-y-auto p-6 bg-gradient-kanban">
         <DashboardStats />
         <KanbanBoard 
           key={refreshTasks} 
