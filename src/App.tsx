@@ -9,6 +9,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { StealthIndicator } from "@/components/StealthIndicator";
+import { StealthBackButton } from "@/components/StealthBackButton";
 import { StealthUserProvider } from "@/components/StealthUserProvider";
 import Index from "./pages/Index";
 import Tarefas from "./pages/Tarefas";
@@ -37,6 +38,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <StealthIndicator />
+          <StealthBackButton />
           <BrowserRouter>
             <Routes>
               {/* Rota pública de login */}
