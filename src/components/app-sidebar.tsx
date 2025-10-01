@@ -184,16 +184,14 @@ export function AppSidebar() {
                 
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild className="hover:bg-transparent p-0">
-                      <NavLink 
-                        to={item.url} 
-                        end 
-                        className={getNavClasses(item.url)}
-                      >
-                        <item.icon className="w-5 h-5 flex-shrink-0" />
-                        {!collapsed && <span className="font-medium truncate">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
+                    <NavLink 
+                      to={item.url} 
+                      end 
+                      className={getNavClasses(item.url)}
+                    >
+                      <item.icon className={`flex-shrink-0 ${collapsed ? 'w-5 h-5' : 'w-5 h-5'}`} />
+                      {!collapsed && <span className="font-medium truncate">{item.title}</span>}
+                    </NavLink>
                   </SidebarMenuItem>
                 );
               })}
