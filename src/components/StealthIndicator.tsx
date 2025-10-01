@@ -14,7 +14,7 @@ export const StealthIndicator = () => {
         className="bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 shadow-lg"
       >
         <EyeOff className="w-3 h-3 mr-1" />
-        Modo Invisível
+        Visualização Master
       </Badge>
     </div>
   );
