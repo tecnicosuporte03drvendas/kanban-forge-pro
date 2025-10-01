@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Building2, Users, Plus, LogOut, Eye, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffectiveUser } from '@/hooks/use-effective-user';
@@ -24,6 +25,7 @@ export function AdminDashboard() {
   const { usuario, logout } = useEffectiveUser();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [totalUsuarios, setTotalUsuarios] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -31,6 +33,7 @@ export function AdminDashboard() {
   const handleLogout = () => {
     logout();
     navigate('/login');
+    setShowLogoutDialog(false);
   };
 
   const fetchEmpresas = async () => {
@@ -116,9 +119,9 @@ export function AdminDashboard() {
             >
               <Settings className="w-4 h-4" />
             </Button>
-            <Button variant="outline" onClick={handleLogout}>
+            <Button variant="outline" onClick={() => setShowLogoutDialog(true)}>
               <LogOut className="w-4 h-4 mr-2" />
-              Sair
+              Sair da Conta
             </Button>
           </div>
         </div>
@@ -261,6 +264,24 @@ export function AdminDashboard() {
         onOpenChange={setIsModalOpen}
         onCompanyCreated={handleCompanyCreated}
       />
+
+      {/* Modal de Confirmação de Saída */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Saída</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja sair da sua conta? Você precisará fazer login novamente para acessar o sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
+              Sair
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
