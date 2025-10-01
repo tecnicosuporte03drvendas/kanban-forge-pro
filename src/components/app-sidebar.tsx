@@ -11,7 +11,9 @@ import {
   Shield,
   Moon,
   Sun,
-  Monitor
+  Monitor,
+  LogOut,
+  UserCircle
 } from "lucide-react"
 import { NavLink, useLocation, useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
@@ -33,7 +35,18 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { useTheme } from "@/components/theme-provider"
 import { useEffectiveUser } from "@/hooks/use-effective-user"
 import { useStealth } from "@/hooks/use-stealth"
@@ -68,6 +81,7 @@ const getMenuItems = (tipoUsuario: string, isStealthMode: boolean, empresaId?: s
 
 export function AppSidebar() {
   const { state } = useSidebar()
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const collapsed = state === "collapsed"
   const location = useLocation()
   const { empresaId } = useParams()
@@ -118,6 +132,11 @@ export function AppSidebar() {
       });
     }
   }, [usuario]);
+
+  const handleLogout = async () => {
+    await logout();
+    setShowLogoutDialog(false);
+  }
 
   const isActive = (path: string) => currentPath === path
   
@@ -216,48 +235,101 @@ export function AppSidebar() {
           </DropdownMenu>
           
           {!collapsed && (
-            <NavLink 
-              to={isStealthMode && empresaId ? 
-                `/empresa/${empresaId}/perfil?stealth=true&master_id=${new URLSearchParams(window.location.search).get('master_id')}` : 
-                "/perfil"
-              } 
-              className="flex-1"
-            >
-              <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex-1 text-left">
+                <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
+                  <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
+                    <span className="text-xs font-medium text-sidebar-accent-foreground">
+                      {perfilUsuario?.iniciais || 'U'}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-sidebar-foreground truncate">
+                      {perfilUsuario?.nome || 'Usuário'}
+                    </p>
+                    <p className="text-xs text-sidebar-foreground/60 truncate">
+                      {perfilUsuario?.funcao || ''}
+                    </p>
+                  </div>
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <NavLink 
+                    to={isStealthMode && empresaId ? 
+                      `/empresa/${empresaId}/perfil?stealth=true&master_id=${new URLSearchParams(window.location.search).get('master_id')}` : 
+                      "/perfil"
+                    }
+                    className="flex items-center cursor-pointer"
+                  >
+                    <UserCircle className="w-4 h-4 mr-2" />
+                    Ver Perfil
+                  </NavLink>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => setShowLogoutDialog(true)}
+                  className="text-destructive focus:text-destructive cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sair da Conta
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          
+          {collapsed && (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-sidebar-accent/50 transition-colors">
                 <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
                   <span className="text-xs font-medium text-sidebar-accent-foreground">
                     {perfilUsuario?.iniciais || 'U'}
                   </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-sidebar-foreground truncate">
-                    {perfilUsuario?.nome || 'Usuário'}
-                  </p>
-                  <p className="text-xs text-sidebar-foreground/60 truncate">
-                    {perfilUsuario?.funcao || ''}
-                  </p>
-                </div>
-              </div>
-            </NavLink>
-          )}
-          
-          {collapsed && (
-            <NavLink 
-              to={isStealthMode && empresaId ? 
-                `/empresa/${empresaId}/perfil?stealth=true&master_id=${new URLSearchParams(window.location.search).get('master_id')}` : 
-                "/perfil"
-              } 
-              className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-sidebar-accent/50 transition-colors"
-            >
-              <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
-                <span className="text-xs font-medium text-sidebar-accent-foreground">
-                  {perfilUsuario?.iniciais || 'U'}
-                </span>
-              </div>
-            </NavLink>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <NavLink 
+                    to={isStealthMode && empresaId ? 
+                      `/empresa/${empresaId}/perfil?stealth=true&master_id=${new URLSearchParams(window.location.search).get('master_id')}` : 
+                      "/perfil"
+                    }
+                    className="flex items-center cursor-pointer"
+                  >
+                    <UserCircle className="w-4 h-4 mr-2" />
+                    Ver Perfil
+                  </NavLink>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => setShowLogoutDialog(true)}
+                  className="text-destructive focus:text-destructive cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sair da Conta
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </SidebarFooter>
+
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Saída</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja sair da sua conta? Você precisará fazer login novamente para acessar o sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
+              Sair
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sidebar>
   )
 }
