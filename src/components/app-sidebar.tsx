@@ -141,7 +141,7 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path
   
   const getNavClasses = (path: string) => {
-    const baseClasses = `w-full h-12 rounded-lg transition-all duration-200 ${collapsed ? 'justify-center px-0' : 'justify-start gap-3 px-3'}`
+    const baseClasses = `flex items-center w-full h-12 rounded-lg transition-all duration-200 ${collapsed ? 'justify-center px-0' : 'justify-start gap-3 px-3'}`
     if (isActive(path)) {
       return `${baseClasses} bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-sm`
     }
