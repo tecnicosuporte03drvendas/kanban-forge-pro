@@ -377,11 +377,7 @@ export function TaskModal({
   const handleClose = async () => {
     if (hasUnsavedChanges) {
       const values = form.getValues();
-      await saveTask(values);
-      toast({
-        title: 'Sucesso',
-        description: 'Alterações salvas'
-      });
+      await saveTask(values, true); // Skip activity log for auto-save
     }
     onOpenChange(false);
   };
@@ -475,7 +471,6 @@ export function TaskModal({
               </h1>}
           </div>
           <div className="flex items-center gap-2">
-            {hasUnsavedChanges && <span className="text-sm text-blue-600">Salva automaticamente ao fechar</span>}
             {saving && <span className="text-sm text-muted-foreground">Salvando...</span>}
             {(usuarioEfetivo?.tipo_usuario === 'proprietario' || usuarioEfetivo?.tipo_usuario === 'gestor') && (
               <DropdownMenu>
