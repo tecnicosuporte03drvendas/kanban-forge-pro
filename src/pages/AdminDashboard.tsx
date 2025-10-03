@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { CreateCompanyModal } from '@/components/modals/CreateCompanyModal';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 interface Empresa {
   id: string;
@@ -111,6 +112,7 @@ export function AdminDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button 
               variant="outline" 
               size="icon"
