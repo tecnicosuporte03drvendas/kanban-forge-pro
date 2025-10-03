@@ -321,26 +321,26 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
       updateTaskStatusAndPosition(taskId, originalStatus, finalStatus)
     } else {
       console.log('📍 Same status - updating only position')
-      // Same column, just position change - calculate new position
+      // Same column, just position change
       const tasksInColumn = getTasksByStatus(finalStatus)
-      const currentIndex = tasksInColumn.findIndex(t => t.id === taskId)
-      let newPosition = 0
+      const oldIndex = tasksInColumn.findIndex(t => t.id === taskId)
       
-      // Calculate position based on drop target
+      if (oldIndex === -1) return
+      
+      // Find new index based on drop target
+      let newIndex = oldIndex
       if (overId !== taskId) {
-        const overTask = tasks.find(t => t.id === overId)
-        if (overTask && overTask.status === finalStatus) {
-          const overIndex = tasksInColumn.findIndex(t => t.id === overId)
-          newPosition = overIndex >= 0 ? overIndex : tasksInColumn.length
-        } else {
-          newPosition = tasksInColumn.length
+        const overTask = tasksInColumn.find(t => t.id === overId)
+        if (overTask) {
+          newIndex = tasksInColumn.findIndex(t => t.id === overId)
         }
-      } else {
-        newPosition = currentIndex >= 0 ? currentIndex : tasksInColumn.length
       }
       
-      if (currentIndex !== newPosition) {
-        updateTaskPosition(taskId, finalStatus, newPosition)
+      // Only update if position actually changed
+      if (oldIndex !== newIndex) {
+        // Reorder array using arrayMove
+        const reorderedTasks = arrayMove(tasksInColumn, oldIndex, newIndex)
+        updateTaskPosition(reorderedTasks, finalStatus)
       }
     }
   }
@@ -456,17 +456,23 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
     }
   }
 
-  const updateTaskPosition = async (taskId: string, status: StatusTarefa, newPosition: number) => {
+  const updateTaskPosition = async (reorderedTasks: Task[], status: StatusTarefa) => {
     try {
-      // Update position in database
-      const { error } = await supabase
-        .from('tarefas')
-        .update({ 
-          posicao_coluna: newPosition
-        })
-        .eq('id', taskId)
+      // Update all positions in database with batch update
+      const updates = reorderedTasks.map((task, index) => ({
+        id: task.id,
+        posicao_coluna: index
+      }))
 
-      if (error) throw error
+      // Update each task's position
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('tarefas')
+          .update({ posicao_coluna: update.posicao_coluna })
+          .eq('id', update.id)
+        
+        if (error) throw error
+      }
 
       // Reload tasks to reflect new positions
       await loadTasks()
