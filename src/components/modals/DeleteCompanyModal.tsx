@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DeleteCompanyModalProps {
   open: boolean;
@@ -17,11 +18,23 @@ interface DeleteCompanyModalProps {
 
 export function DeleteCompanyModal({ open, onOpenChange, onCompanyDeleted, company }: DeleteCompanyModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const { usuario } = useAuth();
 
   const handleDelete = async () => {
     setIsDeleting(true);
     
     try {
+      // Enviar notificação ANTES de deletar (para pegar dados do proprietário)
+      try {
+        await supabase.functions.invoke('notify-company-deleted', {
+          body: {
+            empresaId: company.id,
+            deletedBy: usuario?.tipo_usuario || 'unknown'
+          }
+        });
+      } catch (notificationError) {
+        console.error('Erro ao enviar notificação, mas continuando com exclusão:', notificationError);
+      }
       // Buscar IDs das tarefas
       const { data: tarefas } = await supabase
         .from('tarefas')
