@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Search, Phone, MoreHorizontal, Users, Grid3X3, List, Edit, UserPlus } from "lucide-react"
+import { Plus, Search, Phone, MoreHorizontal, Users, Grid3X3, List, Edit, UserPlus, AlertTriangle, CheckCircle, Eye } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,9 @@ import {
 import { CreateUserModal } from "@/components/modals/CreateUserModal"
 import { EditUserModal } from "@/components/modals/EditUserModal"
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal"
+import { ViewUserProfileModal } from "@/components/modals/ViewUserProfileModal"
+import { DeactivateUserModal } from "@/components/modals/DeactivateUserModal"
+import { ReactivateUserModal } from "@/components/modals/ReactivateUserModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { supabase } from "@/integrations/supabase/client"
@@ -52,6 +55,9 @@ const Empresa = () => {
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
+  const [isViewProfileOpen, setIsViewProfileOpen] = useState(false);
+  const [isDeactivateUserOpen, setIsDeactivateUserOpen] = useState(false);
+  const [isReactivateUserOpen, setIsReactivateUserOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UsuarioEmpresa | null>(null);
   const [usuarios, setUsuarios] = useState<UsuarioEmpresa[]>([]);
   const [filteredUsuarios, setFilteredUsuarios] = useState<UsuarioEmpresa[]>([]);
@@ -123,7 +129,6 @@ const Empresa = () => {
         `)
         .eq('empresa_id', usuario?.empresa_id)
         .neq('tipo_usuario', 'master') // Excluir masters
-        .eq('ativo', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -239,6 +244,29 @@ const Empresa = () => {
   const handleEditUser = (user: UsuarioEmpresa) => {
     setSelectedUser(user);
     setIsEditUserOpen(true);
+  };
+
+  const handleViewProfile = (user: UsuarioEmpresa) => {
+    setSelectedUser(user);
+    setIsViewProfileOpen(true);
+  };
+
+  const handleDeactivateUser = (user: UsuarioEmpresa) => {
+    setSelectedUser(user);
+    setIsDeactivateUserOpen(true);
+  };
+
+  const handleReactivateUser = (user: UsuarioEmpresa) => {
+    setSelectedUser(user);
+    setIsReactivateUserOpen(true);
+  };
+
+  const handleUserDeactivated = () => {
+    fetchUsuarios();
+  };
+
+  const handleUserReactivated = () => {
+    fetchUsuarios();
   };
 
   // Verificar se pode editar usuário
@@ -434,12 +462,27 @@ const Empresa = () => {
                                 Editar
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
-                            <DropdownMenuItem>Enviar Mensagem</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewProfile(member)}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              Ver Perfil
+                            </DropdownMenuItem>
                             {usuario?.tipo_usuario === 'proprietario' && member.id !== usuario.id && (
-                              <DropdownMenuItem className="text-destructive">
-                                Desativar
-                              </DropdownMenuItem>
+                              member.ativo ? (
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeactivateUser(member)}
+                                  className="text-warning focus:text-warning"
+                                >
+                                  <AlertTriangle className="w-4 h-4 mr-2" />
+                                  Desativar Usuário
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem 
+                                  onClick={() => handleReactivateUser(member)}
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Reativar Usuário
+                                </DropdownMenuItem>
+                              )
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -565,6 +608,29 @@ const Empresa = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Modals */}
+        <ViewUserProfileModal
+          open={isViewProfileOpen}
+          onOpenChange={setIsViewProfileOpen}
+          user={selectedUser}
+        />
+
+        <DeactivateUserModal
+          open={isDeactivateUserOpen}
+          onOpenChange={setIsDeactivateUserOpen}
+          onUserDeactivated={handleUserDeactivated}
+          user={selectedUser}
+          companyName={empresa?.nome_fantasia || ''}
+        />
+
+        <ReactivateUserModal
+          open={isReactivateUserOpen}
+          onOpenChange={setIsReactivateUserOpen}
+          onUserReactivated={handleUserReactivated}
+          user={selectedUser}
+          companyName={empresa?.nome_fantasia || ''}
+        />
       </div>
     </div>
   );
