@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Search, Phone, MoreHorizontal, Users, Grid3X3, List, Edit, UserPlus, AlertTriangle, CheckCircle, Eye } from "lucide-react"
+import { Plus, Search, Phone, MoreHorizontal, Users, Grid3X3, List, Edit, UserPlus, AlertTriangle, CheckCircle, Eye, Trash2 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,7 @@ import { CreateTeamModal } from "@/components/modals/CreateTeamModal"
 import { ViewUserProfileModal } from "@/components/modals/ViewUserProfileModal"
 import { DeactivateUserModal } from "@/components/modals/DeactivateUserModal"
 import { ReactivateUserModal } from "@/components/modals/ReactivateUserModal"
+import { DeleteUserModal } from "@/components/modals/DeleteUserModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { supabase } from "@/integrations/supabase/client"
@@ -58,6 +59,7 @@ const Empresa = () => {
   const [isViewProfileOpen, setIsViewProfileOpen] = useState(false);
   const [isDeactivateUserOpen, setIsDeactivateUserOpen] = useState(false);
   const [isReactivateUserOpen, setIsReactivateUserOpen] = useState(false);
+  const [isDeleteUserOpen, setIsDeleteUserOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UsuarioEmpresa | null>(null);
   const [usuarios, setUsuarios] = useState<UsuarioEmpresa[]>([]);
   const [filteredUsuarios, setFilteredUsuarios] = useState<UsuarioEmpresa[]>([]);
@@ -269,6 +271,15 @@ const Empresa = () => {
     fetchUsuarios();
   };
 
+  const handleDeleteUser = (user: UsuarioEmpresa) => {
+    setSelectedUser(user);
+    setIsDeleteUserOpen(true);
+  };
+
+  const handleUserDeleted = () => {
+    fetchUsuarios();
+  };
+
   // Verificar se pode editar usuário
   const canEditUser = (targetUser: UsuarioEmpresa) => {
     if (!usuario) return false;
@@ -281,6 +292,23 @@ const Empresa = () => {
     // Gestores podem editar apenas colaboradores
     if (usuario.tipo_usuario === 'gestor') {
       return targetUser.tipo_usuario === 'colaborador';
+    }
+    
+    return false;
+  };
+
+  // Verificar se pode desativar/reativar/remover usuário
+  const canManageUser = (targetUser: UsuarioEmpresa) => {
+    if (!usuario || targetUser.id === usuario.id) return false;
+    
+    // Proprietários podem gerenciar gestores e colaboradores
+    if (usuario.tipo_usuario === 'proprietario') {
+      return targetUser.tipo_usuario !== 'proprietario';
+    }
+    
+    // Gestores podem gerenciar colaboradores e outros gestores
+    if (usuario.tipo_usuario === 'gestor') {
+      return targetUser.tipo_usuario === 'colaborador' || targetUser.tipo_usuario === 'gestor';
     }
     
     return false;
@@ -466,7 +494,7 @@ const Empresa = () => {
                               <Eye className="w-4 h-4 mr-2" />
                               Ver Perfil
                             </DropdownMenuItem>
-                            {usuario?.tipo_usuario === 'proprietario' && member.id !== usuario.id && (
+                            {canManageUser(member) && (
                               member.ativo ? (
                                 <DropdownMenuItem 
                                   onClick={() => handleDeactivateUser(member)}
@@ -476,12 +504,21 @@ const Empresa = () => {
                                   Desativar Usuário
                                 </DropdownMenuItem>
                               ) : (
-                                <DropdownMenuItem 
-                                  onClick={() => handleReactivateUser(member)}
-                                >
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Reativar Usuário
-                                </DropdownMenuItem>
+                                <>
+                                  <DropdownMenuItem 
+                                    onClick={() => handleReactivateUser(member)}
+                                  >
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    Reativar Usuário
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteUser(member)}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Remover Usuário
+                                  </DropdownMenuItem>
+                                </>
                               )
                             )}
                           </DropdownMenuContent>
@@ -628,6 +665,14 @@ const Empresa = () => {
           open={isReactivateUserOpen}
           onOpenChange={setIsReactivateUserOpen}
           onUserReactivated={handleUserReactivated}
+          user={selectedUser}
+          companyName={empresa?.nome_fantasia || ''}
+        />
+
+        <DeleteUserModal
+          open={isDeleteUserOpen}
+          onOpenChange={setIsDeleteUserOpen}
+          onUserDeleted={handleUserDeleted}
           user={selectedUser}
           companyName={empresa?.nome_fantasia || ''}
         />
