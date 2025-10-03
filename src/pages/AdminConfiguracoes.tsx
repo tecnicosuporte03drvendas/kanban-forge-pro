@@ -9,8 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Plus, Wifi, WifiOff, QrCode, X, Trash2, RotateCcw, User } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+import { Settings, Plus, Wifi, WifiOff, QrCode, X, Trash2, RotateCcw, User, ArrowLeft } from 'lucide-react';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 interface Configuracao {
   id: string;
@@ -36,6 +36,7 @@ interface CreateInstanceForm {
 export const AdminConfiguracoes: React.FC = () => {
   const { usuario } = useEffectiveUser();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   // Estados para WhatsApp
   const [urlMensagens, setUrlMensagens] = useState('');
@@ -786,6 +787,14 @@ export const AdminConfiguracoes: React.FC = () => {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/admin')}
+            className="mr-2"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <Settings className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold">Configurações do Sistema</h1>
         </div>
