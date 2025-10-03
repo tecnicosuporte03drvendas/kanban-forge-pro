@@ -80,14 +80,15 @@ serve(async (req) => {
 
     console.log('Company data fetched:', companyData);
 
-    // Fetch company owner (proprietário)
+    // Fetch company owner (proprietário) - pegar primeiro proprietário ativo
     const { data: ownerData, error: ownerError } = await supabase
       .from('usuarios')
       .select('*')
       .eq('empresa_id', empresaId)
       .eq('tipo_usuario', 'proprietario')
       .eq('ativo', true)
-      .single();
+      .limit(1)
+      .maybeSingle();
 
     if (ownerError) {
       console.warn('No owner found for company:', ownerError);
