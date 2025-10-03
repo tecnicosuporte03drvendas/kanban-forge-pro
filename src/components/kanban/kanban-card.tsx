@@ -58,30 +58,20 @@ export function KanbanCard({
   // Click handling is now managed by the parent KanbanBoard component
 
   const dateStatus = getDateStatus(task.dueDate);
-  const isExecuting = task.status === 'executando';
   
   const cardClass = `
-    p-4 bg-card border rounded-lg shadow-sm cursor-grab 
+    p-4 bg-card border border-card-border rounded-lg shadow-sm cursor-grab 
     hover:shadow-md transition-all duration-200 select-none
     ${isDragging || isSortableDragging ? 'opacity-50 rotate-2 scale-105 shadow-lg' : ''}
     ${isDragging ? 'cursor-grabbing' : ''}
-    ${isExecuting ? 'border-yellow-500 border-2 ring-2 ring-yellow-500/20' : 'border-card-border'}
   `;
   return <div ref={setNodeRef} style={style} className={cardClass} {...attributes} {...listeners}>
       <div className="space-y-3">
           <div className="space-y-2">
             <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2 flex-1">
-                <h4 className="font-medium text-card-foreground text-sm leading-tight flex-1">
-                  {task.title}
-                </h4>
-                {isExecuting && (
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
-                    <span className="text-xs text-yellow-600 font-medium">Em execução</span>
-                  </div>
-                )}
-              </div>
+              <h4 className="font-medium text-card-foreground text-sm leading-tight flex-1">
+                {task.title}
+              </h4>
               {task.isCurrentUserAssigned && <div className="w-2 h-2 bg-green-500 rounded-full ml-2 mt-1 flex-shrink-0" title="Você está nesta tarefa" />}
             </div>
             <div className="flex items-center gap-1 flex-wrap">

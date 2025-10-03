@@ -32,19 +32,8 @@ export function TaskTimeBadge({ tempoGastoMinutos, status, className }: TaskTime
     );
   }
 
-  // Para tarefas assumidas/executando, mostrar apenas ícone ou ícone + tempo acumulado
-  if (status === 'assumida') {
-    return (
-      <Badge 
-        variant="outline" 
-        className={`flex items-center gap-1 ${className}`}
-      >
-        <Clock className="h-3 w-3" />
-      </Badge>
-    );
-  }
-
-  if (status === 'executando') {
+  // Para tarefas assumidas/executando, mostrar badge piscando
+  if (status === 'assumida' || status === 'executando') {
     return (
       <Badge 
         variant="default" 
