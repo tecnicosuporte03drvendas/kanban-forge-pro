@@ -15,6 +15,7 @@ import { DeactivateCompanyModal } from '@/components/modals/DeactivateCompanyMod
 import { ReactivateCompanyModal } from '@/components/modals/ReactivateCompanyModal';
 import { DeleteUserModal } from '@/components/modals/DeleteUserModal';
 import { DeleteCompanyModal } from '@/components/modals/DeleteCompanyModal';
+import { DeactivateUserModal } from '@/components/modals/DeactivateUserModal';
 interface Empresa {
   id: string;
   cnpj: string | null;
@@ -50,6 +51,7 @@ export default function CompanyView() {
   const [isReactivateModalOpen, setIsReactivateModalOpen] = useState(false);
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
   const [isDeleteCompanyModalOpen, setIsDeleteCompanyModalOpen] = useState(false);
+  const [isDeactivateUserModalOpen, setIsDeactivateUserModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
   const fetchEmpresa = async () => {
     if (!empresaId) return;
@@ -110,6 +112,15 @@ export default function CompanyView() {
   const handleDeleteUser = (user: Usuario) => {
     setSelectedUser(user);
     setIsDeleteUserModalOpen(true);
+  };
+
+  const handleDeactivateUser = (user: Usuario) => {
+    setSelectedUser(user);
+    setIsDeactivateUserModalOpen(true);
+  };
+
+  const handleUserDeactivated = async () => {
+    await fetchUsuarios();
   };
   const handleInspectCompany = () => {
     // Navegar para o ambiente corporativo da empresa em modo stealth
@@ -348,7 +359,39 @@ export default function CompanyView() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleDeleteUser(usuarioItem)} className="text-destructive focus:text-destructive">
+                                  {usuarioItem.ativo ? (
+                                    <DropdownMenuItem 
+                                      onClick={() => handleDeactivateUser(usuarioItem)}
+                                      className="text-warning focus:text-warning"
+                                    >
+                                      <AlertTriangle className="w-4 h-4 mr-2" />
+                                      Desativar Usuário
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem 
+                                      onClick={() => {
+                                        // Reativar usuário
+                                        supabase
+                                          .from('usuarios')
+                                          .update({ ativo: true })
+                                          .eq('id', usuarioItem.id)
+                                          .then(() => {
+                                            toast({
+                                              title: "Usuário reativado",
+                                              description: `${usuarioItem.nome} foi reativado com sucesso.`,
+                                            });
+                                            fetchUsuarios();
+                                          });
+                                      }}
+                                    >
+                                      <Eye className="w-4 h-4 mr-2" />
+                                      Reativar Usuário
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteUser(usuarioItem)} 
+                                    className="text-destructive focus:text-destructive"
+                                  >
                                     <Trash2 className="w-4 h-4 mr-2" />
                                     Excluir Usuário
                                   </DropdownMenuItem>
@@ -372,6 +415,14 @@ export default function CompanyView() {
       <ReactivateCompanyModal open={isReactivateModalOpen} onOpenChange={setIsReactivateModalOpen} onCompanyReactivated={handleCompanyReactivated} company={empresa} />
 
       <DeleteUserModal open={isDeleteUserModalOpen} onOpenChange={setIsDeleteUserModalOpen} onUserDeleted={handleUserDeleted} user={selectedUser} companyName={empresa.nome_fantasia} />
+
+      <DeactivateUserModal 
+        open={isDeactivateUserModalOpen} 
+        onOpenChange={setIsDeactivateUserModalOpen} 
+        onUserDeactivated={handleUserDeactivated} 
+        user={selectedUser} 
+        companyName={empresa.nome_fantasia} 
+      />
 
       <DeleteCompanyModal open={isDeleteCompanyModalOpen} onOpenChange={setIsDeleteCompanyModalOpen} onCompanyDeleted={handleCompanyDeleted} company={empresa} />
     </div>;
