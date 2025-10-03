@@ -451,7 +451,7 @@ const Empresa = () => {
                 : "space-y-3"
               }>
                 {filteredUsuarios.map((member) => (
-                  <Card key={member.id} className="border-border bg-card hover:shadow-md transition-all duration-200">
+                  <Card key={member.id} className={`border-border bg-card hover:shadow-md transition-all duration-200 ${!member.ativo ? 'opacity-50' : ''}`}>
                     <CardHeader className="pb-2 pt-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
@@ -462,9 +462,16 @@ const Empresa = () => {
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <h3 className="font-semibold text-card-foreground text-sm truncate">{member.nome}</h3>
-                            <Badge variant={getTipoUsuarioBadgeVariant(member.tipo_usuario)} className="mt-1 text-xs">
-                              {getTipoUsuarioLabel(member.tipo_usuario)}
-                            </Badge>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant={getTipoUsuarioBadgeVariant(member.tipo_usuario)} className="text-xs">
+                                {getTipoUsuarioLabel(member.tipo_usuario)}
+                              </Badge>
+                              {!member.ativo && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Inativo
+                                </Badge>
+                              )}
+                            </div>
                             {member.funcao_empresa && (
                               <div className="text-xs text-muted-foreground mt-1 truncate">
                                 {member.funcao_empresa}
