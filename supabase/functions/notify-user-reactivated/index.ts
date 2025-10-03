@@ -52,7 +52,7 @@ serve(async (req) => {
       console.error('Erro ao buscar configuração do webhook:', configError);
     }
 
-    const webhookUrl = configData?.valor || 'https://felipedev.app.n8n.cloud/webhook/38c65d9f-05fa-48a3-aa15-4b77fc18bb1a';
+    const webhookUrl = configData?.valor || Deno.env.get('N8N_WEBHOOK_URL') || 'https://felipedev.app.n8n.cloud/webhook/38c65d9f-05fa-48a3-aa15-4b77fc18bb1a';
 
     // Buscar dados do usuário
     const { data: userData, error: userError } = await supabase
@@ -145,11 +145,12 @@ serve(async (req) => {
     });
 
     if (!webhookResponse.ok) {
-      console.error('Erro ao enviar para webhook:', await webhookResponse.text());
+      const errorText = await webhookResponse.text();
+      console.error('Erro ao enviar para webhook:', errorText);
       return new Response(
         JSON.stringify({ 
           error: 'Erro ao enviar notificação',
-          details: await webhookResponse.text()
+          details: errorText
         }),
         { 
           status: 500, 
