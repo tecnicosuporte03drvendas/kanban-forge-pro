@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -191,108 +192,101 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto flex-1 pr-2">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <ScrollArea className="flex-1 px-1">
+            <div className="space-y-4 pr-3">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-          <div className="space-y-2">
-            <Label htmlFor="nome">Nome Completo *</Label>
-            <Input
-              id="nome"
-              type="text"
-              placeholder="Nome completo do usuário"
-              value={formData.nome}
-              onChange={(e) => handleInputChange('nome', e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="nome">Nome Completo *</Label>
+                <Input
+                  id="nome"
+                  type="text"
+                  value={formData.nome}
+                  onChange={(e) => handleInputChange('nome', e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="email@exemplo.com"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="senha">Senha *</Label>
-            <Input
-              id="senha"
-              type="password"
-              placeholder="Mínimo 6 caracteres"
-              value={formData.senha}
-              onChange={(e) => handleInputChange('senha', e.target.value)}
-              required
-              disabled={loading}
-              minLength={6}
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="senha">Senha *</Label>
+                <Input
+                  id="senha"
+                  type="password"
+                  value={formData.senha}
+                  onChange={(e) => handleInputChange('senha', e.target.value)}
+                  required
+                  minLength={6}
+                  disabled={loading}
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="celular">Celular *</Label>
-            <Input
-              id="celular"
-              type="tel"
-              placeholder="(11) 99999-9999"
-              value={formData.celular}
-              onChange={(e) => handleInputChange('celular', e.target.value)}
-              required
-              disabled={loading}
-            />
-            <p className="text-xs text-muted-foreground">
-              Formato: (XX) XXXXX-XXXX
-            </p>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="celular">Celular *</Label>
+                <Input
+                  id="celular"
+                  type="text"
+                  value={formData.celular}
+                  onChange={(e) => handleInputChange('celular', e.target.value)}
+                  placeholder="(00) 00000-0000"
+                  required
+                  disabled={loading}
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="funcao_empresa">Função na Empresa</Label>
-            <Input
-              id="funcao_empresa"
-              type="text"
-              placeholder="Ex: Designer, Auxiliar Técnico, Desenvolvedor..."
-              value={formData.funcao_empresa}
-              onChange={(e) => handleInputChange('funcao_empresa', e.target.value)}
-              disabled={loading}
-            />
-            <p className="text-xs text-muted-foreground">
-              Cargo específico dentro da empresa (opcional)
-            </p>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="funcao_empresa">Função na Empresa</Label>
+                <Input
+                  id="funcao_empresa"
+                  type="text"
+                  value={formData.funcao_empresa}
+                  onChange={(e) => handleInputChange('funcao_empresa', e.target.value)}
+                  disabled={loading}
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="tipo_usuario">Tipo de Usuário *</Label>
-            <Select 
-              value={formData.tipo_usuario} 
-              onValueChange={(value) => handleInputChange('tipo_usuario', value)}
-              disabled={loading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo de usuário" />
-              </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="proprietario">Proprietário</SelectItem>
-                          <SelectItem value="gestor">Gestor</SelectItem>
-                          <SelectItem value="colaborador">Colaborador</SelectItem>
-                        </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              <strong>Proprietário:</strong> Acesso total à empresa<br/>
-              <strong>Gestor:</strong> Gerencia usuários e tarefas<br/>
-              <strong>Colaborador:</strong> Acesso básico aos módulos
-            </p>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="tipo_usuario">Tipo de Usuário *</Label>
+                <Select
+                  value={formData.tipo_usuario}
+                  onValueChange={(value) => handleInputChange('tipo_usuario', value)}
+                  disabled={loading}
+                >
+                  <SelectTrigger id="tipo_usuario">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="proprietario">Proprietário</SelectItem>
+                    <SelectItem value="gestor">Gestor</SelectItem>
+                    <SelectItem value="colaborador">Colaborador</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="flex justify-end space-x-2 pt-4 sticky bottom-0 bg-background pb-2">
+              <div className="text-xs text-muted-foreground border-t pt-4">
+                <p>* Campos obrigatórios</p>
+              </div>
+            </div>
+          </ScrollArea>
+
+          <div className="flex justify-end space-x-2 pt-4 border-t flex-shrink-0">
             <Button
               type="button"
               variant="outline"
