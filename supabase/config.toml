@@ -15,6 +15,9 @@ verify_jwt = false
 [functions.notify-user-deactivated]
 verify_jwt = false
 
+[functions.notify-user-reactivated]
+verify_jwt = false
+
 [functions.notify-meeting-created]
 verify_jwt = false
 

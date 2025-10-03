@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ArrowLeft, Users, Plus, Building2, Search, MoreVertical, Trash2, AlertTriangle, Eye } from 'lucide-react';
+import { ArrowLeft, Users, Plus, Building2, Search, MoreVertical, Trash2, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffectiveUser } from '@/hooks/use-effective-user';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +16,7 @@ import { ReactivateCompanyModal } from '@/components/modals/ReactivateCompanyMod
 import { DeleteUserModal } from '@/components/modals/DeleteUserModal';
 import { DeleteCompanyModal } from '@/components/modals/DeleteCompanyModal';
 import { DeactivateUserModal } from '@/components/modals/DeactivateUserModal';
+import { ReactivateUserModal } from '@/components/modals/ReactivateUserModal';
 interface Empresa {
   id: string;
   cnpj: string | null;
@@ -52,6 +53,7 @@ export default function CompanyView() {
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
   const [isDeleteCompanyModalOpen, setIsDeleteCompanyModalOpen] = useState(false);
   const [isDeactivateUserModalOpen, setIsDeactivateUserModalOpen] = useState(false);
+  const [isReactivateUserModalOpen, setIsReactivateUserModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
   const fetchEmpresa = async () => {
     if (!empresaId) return;
@@ -119,7 +121,16 @@ export default function CompanyView() {
     setIsDeactivateUserModalOpen(true);
   };
 
+  const handleReactivateUser = (user: Usuario) => {
+    setSelectedUser(user);
+    setIsReactivateUserModalOpen(true);
+  };
+
   const handleUserDeactivated = async () => {
+    await fetchUsuarios();
+  };
+
+  const handleUserReactivated = async () => {
     await fetchUsuarios();
   };
   const handleInspectCompany = () => {
@@ -369,22 +380,9 @@ export default function CompanyView() {
                                     </DropdownMenuItem>
                                   ) : (
                                     <DropdownMenuItem 
-                                      onClick={() => {
-                                        // Reativar usuário
-                                        supabase
-                                          .from('usuarios')
-                                          .update({ ativo: true })
-                                          .eq('id', usuarioItem.id)
-                                          .then(() => {
-                                            toast({
-                                              title: "Usuário reativado",
-                                              description: `${usuarioItem.nome} foi reativado com sucesso.`,
-                                            });
-                                            fetchUsuarios();
-                                          });
-                                      }}
+                                      onClick={() => handleReactivateUser(usuarioItem)}
                                     >
-                                      <Eye className="w-4 h-4 mr-2" />
+                                      <CheckCircle className="w-4 h-4 mr-2" />
                                       Reativar Usuário
                                     </DropdownMenuItem>
                                   )}
@@ -420,6 +418,14 @@ export default function CompanyView() {
         open={isDeactivateUserModalOpen} 
         onOpenChange={setIsDeactivateUserModalOpen} 
         onUserDeactivated={handleUserDeactivated} 
+        user={selectedUser} 
+        companyName={empresa.nome_fantasia} 
+      />
+
+      <ReactivateUserModal 
+        open={isReactivateUserModalOpen} 
+        onOpenChange={setIsReactivateUserModalOpen} 
+        onUserReactivated={handleUserReactivated} 
         user={selectedUser} 
         companyName={empresa.nome_fantasia} 
       />
