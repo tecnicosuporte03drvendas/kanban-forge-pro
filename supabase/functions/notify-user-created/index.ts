@@ -21,12 +21,20 @@ interface EmpresaData {
   id: string;
 }
 
+interface EvolutionData {
+  nome: string;
+  telefone: string;
+  status: string;
+  webhook_url?: string;
+}
+
 interface NotificationData {
   action: string;
   timestamp: string;
   user: UserData;
   empresa: EmpresaData;
   created_by: string;
+  evolution_instance?: EvolutionData;
 }
 
 serve(async (req) => {
@@ -62,6 +70,21 @@ serve(async (req) => {
       );
     }
 
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch Evolution instance data
+    const { data: evolutionInstance, error: evolutionError } = await supabase
+      .from('instancias_whatsapp')
+      .select('nome, telefone, status, webhook_url')
+      .single();
+
+    if (evolutionError) {
+      console.error('Error fetching Evolution instance:', evolutionError);
+    }
+
     // Format celular to remove 55 prefix if present
     let celularFormatted = user.celular;
     if (celularFormatted && celularFormatted.startsWith('55') && celularFormatted.length === 13) {
@@ -84,7 +107,15 @@ serve(async (req) => {
         nome: empresa.nome,
         id: empresa.id
       },
-      created_by
+      created_by,
+      ...(evolutionInstance && {
+        evolution_instance: {
+          nome: evolutionInstance.nome,
+          telefone: evolutionInstance.telefone,
+          status: evolutionInstance.status,
+          webhook_url: evolutionInstance.webhook_url
+        }
+      })
     };
 
     console.log('Sending notification to n8n:', JSON.stringify(notificationData, null, 2));
