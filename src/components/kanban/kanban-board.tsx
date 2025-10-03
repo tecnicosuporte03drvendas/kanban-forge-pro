@@ -411,9 +411,6 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         })
       }
 
-      // Reload tasks to get updated data
-      await loadTasks()
-
       // Show success toast
       toast({
         title: "Status atualizado",
@@ -450,13 +447,21 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         description: "Não foi possível mover a tarefa. Tente novamente.",
         variant: "destructive"
       })
-      
-      // Reload tasks to ensure consistency
-      await loadTasks()
     }
   }
 
   const updateTaskPosition = async (reorderedTasks: Task[], status: StatusTarefa) => {
+    // Update local state optimistically
+    setTasks(prev => {
+      const newTasks = [...prev]
+      const tasksInOtherColumns = newTasks.filter(t => t.status !== status)
+      const updatedTasksInColumn = reorderedTasks.map((task, index) => ({
+        ...task,
+        posicao_coluna: index
+      }))
+      return [...tasksInOtherColumns, ...updatedTasksInColumn]
+    })
+
     try {
       // Update all positions in database with batch update
       const updates = reorderedTasks.map((task, index) => ({
@@ -474,9 +479,6 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         if (error) throw error
       }
 
-      // Reload tasks to reflect new positions
-      await loadTasks()
-
       toast({
         title: "Posição atualizada",
         description: "Ordem das tarefas atualizada com sucesso",
@@ -490,7 +492,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         variant: "destructive"
       })
       
-      // Reload tasks to ensure consistency
+      // Reload on error to ensure consistency
       await loadTasks()
     }
   }
