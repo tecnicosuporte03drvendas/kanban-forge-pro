@@ -25,15 +25,17 @@ export function DeleteCompanyModal({ open, onOpenChange, onCompanyDeleted, compa
     
     try {
       // Enviar notificação ANTES de deletar (para pegar dados do proprietário)
+      console.log('🔔 Enviando notificação de exclusão de empresa:', company.id);
       try {
-        await supabase.functions.invoke('notify-company-deleted', {
+        const result = await supabase.functions.invoke('notify-company-deleted', {
           body: {
             empresaId: company.id,
             deletedBy: usuario?.tipo_usuario || 'unknown'
           }
         });
+        console.log('✅ Resultado da notificação:', result);
       } catch (notificationError) {
-        console.error('Erro ao enviar notificação, mas continuando com exclusão:', notificationError);
+        console.error('❌ Erro ao enviar notificação, mas continuando com exclusão:', notificationError);
       }
       // Buscar IDs das tarefas
       const { data: tarefas } = await supabase
