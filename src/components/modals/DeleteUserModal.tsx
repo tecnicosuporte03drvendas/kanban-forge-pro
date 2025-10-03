@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { User, AlertTriangle, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DeleteUserModalProps {
   open: boolean;
@@ -29,6 +30,7 @@ export const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
   user,
   companyName
 }) => {
+  const { usuario } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -57,7 +59,7 @@ export const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
         await supabase.functions.invoke('notify-user-deleted', {
           body: {
             userId: user.id,
-            deletedBy: 'master'
+            deletedBy: usuario?.id || 'system'
           }
         });
       } catch (webhookError) {
