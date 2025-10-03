@@ -182,8 +182,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Novo Usuário</DialogTitle>
           <DialogDescription>
             Cadastre um novo usuário para a empresa <strong>{empresaNome}</strong>. 
@@ -191,7 +191,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto flex-1 pr-2">
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
@@ -292,7 +292,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             </p>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 pt-4 sticky bottom-0 bg-background pb-2">
             <Button
               type="button"
               variant="outline"
