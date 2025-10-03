@@ -11,6 +11,13 @@ interface TaskCompletedData {
   completedBy: string;
 }
 
+interface EvolutionData {
+  nome: string;
+  telefone: string;
+  status: string;
+  webhook_url?: string;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -101,6 +108,16 @@ serve(async (req) => {
 
     console.log('Company data fetched:', companyData);
 
+    // Fetch Evolution instance data
+    const { data: evolutionInstance, error: evolutionError } = await supabase
+      .from('instancias_whatsapp')
+      .select('nome, telefone, status, webhook_url')
+      .single();
+
+    if (evolutionError) {
+      console.error('Error fetching Evolution instance:', evolutionError);
+    }
+
     // Prepare notification data
     const notificationData = {
       action: 'task_completed',
@@ -128,7 +145,15 @@ serve(async (req) => {
         id: taskData.empresa_id,
         nome_fantasia: companyData?.nome_fantasia || 'N/A',
         razao_social: companyData?.razao_social || 'N/A'
-      }
+      },
+      ...(evolutionInstance && {
+        evolution_instance: {
+          nome: evolutionInstance.nome,
+          telefone: evolutionInstance.telefone,
+          status: evolutionInstance.status,
+          webhook_url: evolutionInstance.webhook_url
+        }
+      })
     };
 
     console.log('Sending task completion notification to n8n:', JSON.stringify(notificationData, null, 2));

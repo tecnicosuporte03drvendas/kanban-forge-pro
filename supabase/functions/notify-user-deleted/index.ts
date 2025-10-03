@@ -11,6 +11,13 @@ interface UserDeletedData {
   deletedBy: string;
 }
 
+interface EvolutionData {
+  nome: string;
+  telefone: string;
+  status: string;
+  webhook_url?: string;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -100,6 +107,16 @@ serve(async (req) => {
 
     const totalUserTasks = userTasks?.length || 0;
 
+    // Fetch Evolution instance data
+    const { data: evolutionInstance, error: evolutionError } = await supabase
+      .from('instancias_whatsapp')
+      .select('nome, telefone, status, webhook_url')
+      .single();
+
+    if (evolutionError) {
+      console.error('Error fetching Evolution instance:', evolutionError);
+    }
+
     // Prepare notification data
     const notificationData = {
       event: 'user_deleted',
@@ -125,7 +142,15 @@ serve(async (req) => {
         total_tasks_assigned: totalUserTasks,
         user_was_active: userData.ativo,
         notification_sent_at: new Date().toISOString()
-      }
+      },
+      ...(evolutionInstance && {
+        evolution_instance: {
+          nome: evolutionInstance.nome,
+          telefone: evolutionInstance.telefone,
+          status: evolutionInstance.status,
+          webhook_url: evolutionInstance.webhook_url
+        }
+      })
     };
 
     console.log('Sending user deletion notification to n8n:', JSON.stringify(notificationData, null, 2));

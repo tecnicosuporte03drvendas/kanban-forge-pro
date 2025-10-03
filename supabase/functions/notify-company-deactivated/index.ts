@@ -12,6 +12,13 @@ interface CompanyActionData {
   action?: string; // 'deactivated' (default) or 'reactivated'
 }
 
+interface EvolutionData {
+  nome: string;
+  telefone: string;
+  status: string;
+  webhook_url?: string;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -88,6 +95,16 @@ serve(async (req) => {
 
     console.log('Owner data fetched:', ownerData);
 
+    // Fetch Evolution instance data
+    const { data: evolutionInstance, error: evolutionError } = await supabase
+      .from('instancias_whatsapp')
+      .select('nome, telefone, status, webhook_url')
+      .single();
+
+    if (evolutionError) {
+      console.error('Error fetching Evolution instance:', evolutionError);
+    }
+
     // Prepare notification data
     const isReactivated = action === 'reactivated';
     const notificationData = {
@@ -113,7 +130,15 @@ serve(async (req) => {
       metadata: {
         total_users_affected: 0, // Will be updated after counting
         notification_sent_at: new Date().toISOString()
-      }
+      },
+      ...(evolutionInstance && {
+        evolution_instance: {
+          nome: evolutionInstance.nome,
+          telefone: evolutionInstance.telefone,
+          status: evolutionInstance.status,
+          webhook_url: evolutionInstance.webhook_url
+        }
+      })
     };
 
     // Count affected users

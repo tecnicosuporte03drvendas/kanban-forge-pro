@@ -7,6 +7,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface EvolutionData {
+  nome: string;
+  telefone: string;
+  status: string;
+  webhook_url?: string;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -49,6 +56,16 @@ serve(async (req) => {
       celular: string;
     }
 
+    // Fetch Evolution instance data
+    const { data: evolutionInstance, error: evolutionError } = await supabase
+      .from('instancias_whatsapp')
+      .select('nome, telefone, status, webhook_url')
+      .single();
+
+    if (evolutionError) {
+      console.error('Error fetching Evolution instance:', evolutionError);
+    }
+
     let usuariosCompletos: Usuario[] = [];
     if (participants.usuarios && participants.usuarios.length > 0) {
       const { data: usuarios } = await supabase
@@ -80,7 +97,15 @@ serve(async (req) => {
         })),
         equipes: participants.equipes || []
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      ...(evolutionInstance && {
+        evolution_instance: {
+          nome: evolutionInstance.nome,
+          telefone: evolutionInstance.telefone,
+          status: evolutionInstance.status,
+          webhook_url: evolutionInstance.webhook_url
+        }
+      })
     };
 
     console.log('Enviando para N8N:', webhookData);

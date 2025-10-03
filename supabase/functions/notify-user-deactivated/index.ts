@@ -10,6 +10,13 @@ interface UserDeactivatedData {
   userId: string;
 }
 
+interface EvolutionData {
+  nome: string;
+  telefone: string;
+  status: string;
+  webhook_url?: string;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -82,6 +89,16 @@ serve(async (req) => {
       .select('*', { count: 'exact', head: true })
       .eq('usuario_id', userId);
 
+    // Fetch Evolution instance data
+    const { data: evolutionInstance, error: evolutionError } = await supabase
+      .from('instancias_whatsapp')
+      .select('nome, telefone, status, webhook_url')
+      .single();
+
+    if (evolutionError) {
+      console.error('Error fetching Evolution instance:', evolutionError);
+    }
+
     // Preparar payload para o webhook
     const payload = {
       event: 'user_deactivated',
@@ -105,6 +122,14 @@ serve(async (req) => {
       metadata: {
         tarefas_atribuidas: tarefasCount || 0,
       },
+      ...(evolutionInstance && {
+        evolution_instance: {
+          nome: evolutionInstance.nome,
+          telefone: evolutionInstance.telefone,
+          status: evolutionInstance.status,
+          webhook_url: evolutionInstance.webhook_url
+        }
+      })
     };
 
     console.log('Enviando notificação para webhook:', webhookUrl);
