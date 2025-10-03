@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Plus, Wifi, WifiOff, QrCode, X, Trash2, RotateCcw } from 'lucide-react';
+import { Settings, Plus, Wifi, WifiOff, QrCode, X, Trash2, RotateCcw, User } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 
 interface Configuracao {
@@ -36,6 +37,7 @@ export const AdminConfiguracoes: React.FC = () => {
   const { usuario } = useEffectiveUser();
   const { toast } = useToast();
   
+  // Estados para WhatsApp
   const [urlMensagens, setUrlMensagens] = useState('');
   const [urlInstancias, setUrlInstancias] = useState('');
   const [instancias, setInstancias] = useState<InstanciaWhatsApp[]>([]);
@@ -47,6 +49,12 @@ export const AdminConfiguracoes: React.FC = () => {
   const [currentQrCode, setCurrentQrCode] = useState<string | null>(null);
   const [currentInstanceName, setCurrentInstanceName] = useState<string>('');
 
+  // Estados para dados do usuário
+  const [nome, setNome] = useState(usuario?.nome || '');
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+
   // Verificar se usuário é master
   if (!usuario || usuario.tipo_usuario !== 'master') {
     return <Navigate to="/admin" replace />;
@@ -55,7 +63,10 @@ export const AdminConfiguracoes: React.FC = () => {
   useEffect(() => {
     carregarConfiguracoes();
     carregarInstancias();
-  }, []);
+    if (usuario) {
+      setNome(usuario.nome || '');
+    }
+  }, [usuario]);
 
   const carregarConfiguracoes = async () => {
     try {
@@ -666,6 +677,111 @@ export const AdminConfiguracoes: React.FC = () => {
     }
   };
 
+  const atualizarDadosUsuario = async () => {
+    if (!nome.trim()) {
+      toast({
+        title: "Erro",
+        description: "O nome não pode estar vazio",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('usuarios')
+        .update({ 
+          nome: nome.trim()
+        })
+        .eq('id', usuario?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Sucesso",
+        description: "Dados atualizados com sucesso",
+      });
+    } catch (error: any) {
+      console.error('Erro ao atualizar dados:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar dados",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const alterarSenha = async () => {
+    if (!senhaAtual || !novaSenha || !confirmarSenha) {
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos de senha",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (novaSenha !== confirmarSenha) {
+      toast({
+        title: "Erro",
+        description: "A nova senha e a confirmação não coincidem",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (novaSenha.length < 6) {
+      toast({
+        title: "Erro",
+        description: "A nova senha deve ter pelo menos 6 caracteres",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Verificar senha atual
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: usuario?.email || '',
+        password: senhaAtual,
+      });
+
+      if (signInError) {
+        throw new Error('Senha atual incorreta');
+      }
+
+      // Atualizar senha
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: novaSenha
+      });
+
+      if (updateError) throw updateError;
+
+      // Limpar campos
+      setSenhaAtual('');
+      setNovaSenha('');
+      setConfirmarSenha('');
+
+      toast({
+        title: "Sucesso",
+        description: "Senha alterada com sucesso",
+      });
+    } catch (error: any) {
+      console.error('Erro ao alterar senha:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao alterar senha",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
@@ -674,8 +790,98 @@ export const AdminConfiguracoes: React.FC = () => {
           <h1 className="text-3xl font-bold">Configurações do Sistema</h1>
         </div>
 
-        {/* Configuração de Mensagens */}
-        <Card className="mb-8">
+        <Tabs defaultValue="usuario" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="usuario">
+              <User className="h-4 w-4 mr-2" />
+              Dados do Usuário
+            </TabsTrigger>
+            <TabsTrigger value="whatsapp">
+              <Settings className="h-4 w-4 mr-2" />
+              WhatsApp
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Aba Dados do Usuário */}
+          <TabsContent value="usuario" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações Pessoais</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="nome">Nome</Label>
+                  <Input
+                    id="nome"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    placeholder="Seu nome completo"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    value={usuario?.email || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    O email não pode ser alterado
+                  </p>
+                </div>
+                <Button onClick={atualizarDadosUsuario} disabled={loading}>
+                  Salvar Alterações
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Alterar Senha</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="senha-atual">Senha Atual</Label>
+                  <Input
+                    id="senha-atual"
+                    type="password"
+                    value={senhaAtual}
+                    onChange={(e) => setSenhaAtual(e.target.value)}
+                    placeholder="Digite sua senha atual"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="nova-senha">Nova Senha</Label>
+                  <Input
+                    id="nova-senha"
+                    type="password"
+                    value={novaSenha}
+                    onChange={(e) => setNovaSenha(e.target.value)}
+                    placeholder="Digite a nova senha"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="confirmar-senha">Confirmar Nova Senha</Label>
+                  <Input
+                    id="confirmar-senha"
+                    type="password"
+                    value={confirmarSenha}
+                    onChange={(e) => setConfirmarSenha(e.target.value)}
+                    placeholder="Confirme a nova senha"
+                  />
+                </div>
+                <Button onClick={alterarSenha} disabled={loading}>
+                  Alterar Senha
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Aba WhatsApp */}
+          <TabsContent value="whatsapp" className="space-y-6">
+
+            <Card>
           <CardHeader>
             <CardTitle>Configuração do N8N - Mensagens</CardTitle>
           </CardHeader>
@@ -701,8 +907,7 @@ export const AdminConfiguracoes: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Configuração de Instâncias */}
-        <Card className="mb-8">
+            <Card>
           <CardHeader>
             <CardTitle>Configuração do N8N - Instâncias WhatsApp</CardTitle>
           </CardHeader>
@@ -728,8 +933,7 @@ export const AdminConfiguracoes: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Gerenciamento de Instâncias */}
-        <Card>
+            <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Instâncias WhatsApp</CardTitle>
@@ -917,9 +1121,11 @@ export const AdminConfiguracoes: React.FC = () => {
                   </Card>
                 ))}
               </div>
-            )}
+           )}
           </CardContent>
         </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
