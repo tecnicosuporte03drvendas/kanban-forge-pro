@@ -20,6 +20,9 @@ import { ViewUserProfileModal } from "@/components/modals/ViewUserProfileModal"
 import { DeactivateUserModal } from "@/components/modals/DeactivateUserModal"
 import { ReactivateUserModal } from "@/components/modals/ReactivateUserModal"
 import { DeleteUserModal } from "@/components/modals/DeleteUserModal"
+import { DeleteTeamModal } from "@/components/modals/DeleteTeamModal"
+import { EditTeamModal } from "@/components/modals/EditTeamModal"
+import { ViewTeamMembersModal } from "@/components/modals/ViewTeamMembersModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { supabase } from "@/integrations/supabase/client"
@@ -60,7 +63,11 @@ const Empresa = () => {
   const [isDeactivateUserOpen, setIsDeactivateUserOpen] = useState(false);
   const [isReactivateUserOpen, setIsReactivateUserOpen] = useState(false);
   const [isDeleteUserOpen, setIsDeleteUserOpen] = useState(false);
+  const [isDeleteTeamOpen, setIsDeleteTeamOpen] = useState(false);
+  const [isEditTeamOpen, setIsEditTeamOpen] = useState(false);
+  const [isViewTeamMembersOpen, setIsViewTeamMembersOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UsuarioEmpresa | null>(null);
+  const [selectedTeamForAction, setSelectedTeamForAction] = useState<Equipe | null>(null);
   const [usuarios, setUsuarios] = useState<UsuarioEmpresa[]>([]);
   const [filteredUsuarios, setFilteredUsuarios] = useState<UsuarioEmpresa[]>([]);
   const [equipes, setEquipes] = useState<Equipe[]>([]);
@@ -167,7 +174,10 @@ const Empresa = () => {
               id,
               nome,
               email,
-              funcao_empresa
+              celular,
+              funcao_empresa,
+              tipo_usuario,
+              ativo
             )
           )
         `)
@@ -280,6 +290,29 @@ const Empresa = () => {
     fetchUsuarios();
   };
 
+  const handleEditTeam = (team: Equipe) => {
+    setSelectedTeamForAction(team);
+    setIsEditTeamOpen(true);
+  };
+
+  const handleDeleteTeam = (team: Equipe) => {
+    setSelectedTeamForAction(team);
+    setIsDeleteTeamOpen(true);
+  };
+
+  const handleViewTeamMembers = (team: Equipe) => {
+    setSelectedTeamForAction(team);
+    setIsViewTeamMembersOpen(true);
+  };
+
+  const handleTeamDeleted = () => {
+    fetchEquipes();
+  };
+
+  const handleTeamUpdated = () => {
+    fetchEquipes();
+  };
+
   // Verificar se pode editar usuário
   const canEditUser = (targetUser: UsuarioEmpresa) => {
     if (!usuario) return false;
@@ -313,6 +346,31 @@ const Empresa = () => {
     
     return false;
   };
+
+  // Bloquear acesso para colaboradores
+  if (usuario?.tipo_usuario === 'colaborador') {
+    return (
+      <div className="flex flex-col h-screen">
+        <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex items-center h-full px-4">
+            <SidebarTrigger />
+          </div>
+        </header>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <Card className="max-w-md w-full">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <AlertTriangle className="w-12 h-12 text-warning mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Acesso Restrito</h3>
+              <p className="text-muted-foreground text-center">
+                Você não tem permissão para acessar a página de gestão da empresa. 
+                Entre em contato com um gestor ou proprietário para obter acesso.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -606,12 +664,19 @@ const Empresa = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-background border-border">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewTeamMembers(equipe)}>
+                              <Users className="w-4 h-4 mr-2" />
+                              Ver Membros
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditTeam(equipe)}>
                               <Edit className="w-4 h-4 mr-2" />
                               Editar Equipe
                             </DropdownMenuItem>
-                            <DropdownMenuItem>Ver Membros</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteTeam(equipe)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
                               Excluir Equipe
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -682,6 +747,26 @@ const Empresa = () => {
           onUserDeleted={handleUserDeleted}
           user={selectedUser}
           companyName={empresa?.nome_fantasia || ''}
+        />
+
+        <DeleteTeamModal
+          open={isDeleteTeamOpen}
+          onOpenChange={setIsDeleteTeamOpen}
+          onTeamDeleted={handleTeamDeleted}
+          team={selectedTeamForAction}
+        />
+
+        <EditTeamModal
+          open={isEditTeamOpen}
+          onOpenChange={setIsEditTeamOpen}
+          onTeamUpdated={handleTeamUpdated}
+          team={selectedTeamForAction}
+        />
+
+        <ViewTeamMembersModal
+          open={isViewTeamMembersOpen}
+          onOpenChange={setIsViewTeamMembersOpen}
+          team={selectedTeamForAction}
         />
       </div>
     </div>
