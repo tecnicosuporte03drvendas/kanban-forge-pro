@@ -12,14 +12,16 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { DeleteTaskConfirmationModal } from "@/components/modals/DeleteTaskConfirmationModal"
 import { CreateTaskModal } from "@/components/modals/CreateTaskModal"
+import { ViewTaskModal } from "@/components/modals/ViewTaskModal"
 import type { Tarefa } from "@/types/task"
 
 interface TarefasListProps {
   onCreateTask?: () => void
   showArchived?: boolean
+  onTaskUpdated?: () => void
 }
 
-export function TarefasList({ onCreateTask, showArchived = false }: TarefasListProps) {
+export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated }: TarefasListProps) {
   const { usuario } = useEffectiveUser()
   const [tasks, setTasks] = useState<Tarefa[]>([])
   const [loading, setLoading] = useState(false)
@@ -31,6 +33,8 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false)
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
+  const [showViewModal, setShowViewModal] = useState(false)
 
   useEffect(() => {
     if (usuario?.empresa_id) {
@@ -181,6 +185,12 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
 
   const handleTaskAction = async (taskId: string, action: string) => {
     try {
+      if (action === 'view') {
+        setSelectedTaskId(taskId)
+        setShowViewModal(true)
+        return
+      }
+      
       if (action === 'archive') {
         await supabase
           .from('tarefas')
@@ -456,7 +466,11 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
         </div>
 
         {filteredTasks.map((task) => (
-          <Card key={task.id} className="border-border bg-card hover:shadow-md transition-all duration-200">
+          <Card 
+            key={task.id} 
+            className="border-border bg-card hover:shadow-md transition-all duration-200 cursor-pointer"
+            onClick={() => handleTaskAction(task.id, 'view')}
+          >
             <CardContent className="p-6">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 space-y-3">
@@ -465,7 +479,11 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
                       type="checkbox" 
                       className="w-4 h-4 rounded border-border" 
                       checked={selectedTasks.includes(task.id)}
-                      onChange={() => toggleTaskSelection(task.id)}
+                      onChange={(e) => {
+                        e.stopPropagation()
+                        toggleTaskSelection(task.id)
+                      }}
+                      onClick={(e) => e.stopPropagation()}
                     />
                     <h4 className="font-medium text-card-foreground">{task.titulo}</h4>
                   </div>
@@ -499,12 +517,12 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
                 
                 {selectedTasks.length === 0 && (
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                         <MoreHorizontal className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
                       {!showArchived ? (
                         <DropdownMenuItem onClick={() => handleTaskAction(task.id, 'archive')}>
                           <Archive className="w-4 h-4 mr-2" />
@@ -598,6 +616,16 @@ export function TarefasList({ onCreateTask, showArchived = false }: TarefasListP
           updated_at: '',
           tempo_gasto_minutos: 0,
           arquivada: false
+        }}
+      />
+
+      <ViewTaskModal
+        taskId={selectedTaskId}
+        open={showViewModal}
+        onOpenChange={setShowViewModal}
+        onTaskUpdated={() => {
+          loadTasks()
+          onTaskUpdated?.()
         }}
       />
     </div>

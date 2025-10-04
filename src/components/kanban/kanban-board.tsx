@@ -50,6 +50,7 @@ export interface Task {
 interface KanbanBoardProps {
   onTaskClick?: (taskId: string) => void;
   onCreateTask?: () => void;
+  onTaskUpdated?: () => void;
 }
 
 const columns = [
@@ -60,7 +61,7 @@ const columns = [
   { id: "validada", title: "Validada", tasks: 0, color: "kanban-validated" }
 ]
 
-export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
+export function KanbanBoard({ onTaskClick, onCreateTask, onTaskUpdated }: KanbanBoardProps) {
   const { usuario } = useEffectiveUser()
   const { shouldSuppressLogs } = useStealth()
   const [tasks, setTasks] = useState<Task[]>([])
@@ -416,6 +417,9 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         title: "Status atualizado",
         description: `Tarefa movida para ${columns.find(c => c.id === newStatus)?.title}`,
       })
+
+      // Notify parent component to refresh
+      onTaskUpdated?.()
 
       // If task completed, send webhook notification
       if (newStatus === 'concluida') {

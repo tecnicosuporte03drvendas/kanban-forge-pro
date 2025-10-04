@@ -20,6 +20,10 @@ const Tarefas = () => {
     setRefreshTasks(prev => prev + 1)
   }
 
+  const handleTaskUpdated = () => {
+    setRefreshTasks(prev => prev + 1)
+  }
+
   return (
     <div className="flex flex-col h-screen">
       <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -50,7 +54,7 @@ const Tarefas = () => {
           </TabsList>
 
           <TabsContent value="tarefas" className="space-y-6">
-            <TarefasList key={refreshTasks} />
+            <TarefasList key={refreshTasks} onTaskUpdated={handleTaskUpdated} />
           </TabsContent>
 
           <TabsContent value="analise" className="space-y-6">

@@ -63,7 +63,7 @@ const Index = () => {
 
       <div className="p-6 bg-gradient-kanban">
         <DashboardStats />
-        <KanbanBoard key={refreshTasks} onTaskClick={handleTaskClick} onCreateTask={() => setCreateTaskOpen(true)} />
+        <KanbanBoard key={refreshTasks} onTaskClick={handleTaskClick} onCreateTask={() => setCreateTaskOpen(true)} onTaskUpdated={handleTaskUpdated} />
       </div>
 
       <CreateTaskModal open={createTaskOpen} onOpenChange={setCreateTaskOpen} onTaskCreated={handleTaskCreated} />
