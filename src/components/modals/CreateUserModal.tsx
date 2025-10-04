@@ -121,27 +121,36 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       });
 
       // Notificar webhook n8n
+      console.log('🔔 Iniciando notificação de criação de usuário');
       try {
-        await supabase.functions.invoke('notify-user-created', {
-          body: {
-            user: {
-              nome: formData.nome.trim(),
-              email: formData.email.trim().toLowerCase(),
-              senha: formData.senha,
-              celular: formatCelularForDB(formData.celular),
-              funcao_empresa: formData.funcao_empresa.trim() || '',
-              tipo_usuario: formData.tipo_usuario
-            },
-            empresa: {
-              nome: empresaNome,
-              id: empresaId
-            },
-            created_by: createdBy
-          }
+        const notificationPayload = {
+          user: {
+            nome: formData.nome.trim(),
+            email: formData.email.trim().toLowerCase(),
+            senha: formData.senha,
+            celular: formatCelularForDB(formData.celular),
+            funcao_empresa: formData.funcao_empresa.trim() || '',
+            tipo_usuario: formData.tipo_usuario
+          },
+          empresa: {
+            nome: empresaNome,
+            id: empresaId
+          },
+          created_by: usuario?.id || 'unknown'
+        };
+        console.log('📦 Payload da notificação:', notificationPayload);
+        
+        const result = await supabase.functions.invoke('notify-user-created', {
+          body: notificationPayload
         });
-        console.log('Notificação n8n enviada com sucesso');
+        
+        console.log('✅ Resultado da notificação:', result);
+        
+        if (result.error) {
+          console.error('❌ Erro retornado pela função:', result.error);
+        }
       } catch (webhookError) {
-        console.error('Erro ao notificar webhook n8n:', webhookError);
+        console.error('❌ Erro ao notificar webhook n8n:', webhookError);
         // Não exibir erro para o usuário, apenas logar
       }
 
