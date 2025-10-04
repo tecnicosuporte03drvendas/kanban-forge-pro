@@ -75,15 +75,17 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch Evolution instance data
-    const { data: evolutionInstance, error: evolutionError } = await supabase
+    // Fetch Evolution instance data (first active instance)
+    const { data: evolutionInstances, error: evolutionError } = await supabase
       .from('instancias_whatsapp')
       .select('nome, telefone, status, webhook_url')
-      .single();
+      .limit(1);
 
     if (evolutionError) {
       console.error('Error fetching Evolution instance:', evolutionError);
     }
+
+    const evolutionInstance = evolutionInstances?.[0] || null;
 
     // Format celular to remove 55 prefix if present
     let celularFormatted = user.celular;
@@ -132,14 +134,19 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('n8n webhook error:', response.status, errorText);
+      
+      // Return success to client but log the webhook error
+      // This prevents user creation from failing due to n8n issues
       return new Response(
         JSON.stringify({ 
-          error: 'Webhook notification failed', 
-          details: errorText,
-          status: response.status 
+          success: true,
+          message: 'User created but notification failed',
+          warning: 'Webhook n8n não respondeu corretamente. Verifique se o workflow está ativo no n8n.',
+          webhook_error: errorText,
+          webhook_status: response.status 
         }),
         { 
-          status: 500, 
+          status: 200, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );

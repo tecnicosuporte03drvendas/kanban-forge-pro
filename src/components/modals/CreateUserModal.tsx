@@ -149,6 +149,11 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         if (result.error) {
           console.error('❌ Erro retornado pela função:', result.error);
         }
+        
+        // Verificar se há warning do webhook
+        if (result.data?.warning) {
+          console.warn('⚠️ Aviso do webhook:', result.data.warning);
+        }
       } catch (webhookError) {
         console.error('❌ Erro ao notificar webhook n8n:', webhookError);
         // Não exibir erro para o usuário, apenas logar
