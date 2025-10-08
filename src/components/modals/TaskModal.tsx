@@ -868,7 +868,6 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
             <TaskActivityTabs
               comments={tarefa.comentarios}
               activities={tarefa.atividades}
-              tasks={[]}
               newComment={novoComentario}
               onCommentChange={setNovoComentario}
               onSubmitComment={enviarComentario}
