@@ -29,6 +29,14 @@ export function TaskActivityTabs({
 }: TaskActivityTabsProps) {
   const [activeTab, setActiveTab] = useState('comments')
 
+  // Debug logs
+  console.log('🎨 [TaskActivityTabs] Renderizando com dados:', {
+    quantidadeComentarios: comments.length,
+    quantidadeAtividades: activities.length,
+    atividades: activities,
+    activeTab
+  })
+
   const getActivityIcon = (action: string) => {
     switch (action.toLowerCase()) {
       case 'criou':
@@ -144,6 +152,13 @@ export function TaskActivityTabs({
             <div className="flex-1 overflow-hidden">
               <ScrollArea key={`activities-${activities.length}`} className="h-full">
                 <div className="p-4 space-y-4">
+                  {(() => {
+                    console.log('🔄 [TaskActivityTabs] Renderizando lista de atividades:', {
+                      quantidadeAtividades: activities.length,
+                      primeiraAtividade: activities[0]
+                    });
+                    return null;
+                  })()}
                   {activities.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
                       <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />

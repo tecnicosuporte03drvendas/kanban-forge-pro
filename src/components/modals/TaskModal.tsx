@@ -214,6 +214,12 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
         .order("created_at", {
           ascending: false,
         });
+
+      console.log('🔍 [TaskModal] Atividades carregadas do banco:', {
+        taskId,
+        quantidade: atividadesData?.length || 0,
+        atividades: atividadesData
+      });
       const { data: anexosData } = await supabase
         .from("tarefas_anexos")
         .select("*")
@@ -243,6 +249,13 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
         atividades: atividadesData || [],
         tempo_sessoes: tempoSessoesData || [],
       };
+      
+      console.log('✅ [TaskModal] Tarefa completa montada:', {
+        titulo: tarefaCompleta.titulo,
+        quantidadeAtividades: tarefaCompleta.atividades.length,
+        atividades: tarefaCompleta.atividades
+      });
+      
       setTarefa(tarefaCompleta);
       setAttachments((anexosData || []) as TaskAttachment[]);
     } catch (error) {
