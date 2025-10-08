@@ -140,8 +140,8 @@ export function TaskActivityTabs({
             </div>
           </TabsContent>
 
-          <TabsContent value="activity" className="h-full mt-0 data-[state=active]:block">
-            <div className="h-full overflow-hidden">
+          <TabsContent value="activity" className="h-full flex flex-col mt-0 data-[state=active]:flex">
+            <div className="flex-1 overflow-hidden">
               <ScrollArea key={`activities-${activities.length}`} className="h-full">
                 <div className="p-4 space-y-4">
                   {activities.length === 0 ? (
