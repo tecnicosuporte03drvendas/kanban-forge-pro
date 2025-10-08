@@ -33,7 +33,7 @@ export function KanbanColumn({
     return `${baseClass} border-border bg-card shadow-sm`;
   };
   return <div className={getColumnClass()}>
-      <div className={`p-4 rounded-t-lg ${getColumnHeaderClass()}`}>
+      <div className={`p-3 rounded-t-lg ${getColumnHeaderClass()}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-white">{title}</h3>
