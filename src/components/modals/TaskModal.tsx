@@ -69,6 +69,7 @@ export function TaskModal({
   const [novoComentario, setNovoComentario] = useState('');
   const [enviandoComentario, setEnviandoComentario] = useState(false);
   const [responsibleOptions, setResponsibleOptions] = useState<ResponsibleOption[]>([]);
+  const [teamMembers, setTeamMembers] = useState<Record<string, string[]>>({});
   const [saving, setSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
@@ -216,6 +217,23 @@ export function TaskModal({
         nome: e.nome,
         type: 'team' as const
       })));
+      
+      // Load team members
+      const { data: teamMembersData } = await supabase
+        .from('usuarios_equipes')
+        .select('equipe_id, usuario_id')
+        .in('equipe_id', teamsData.map(t => t.id));
+      
+      if (teamMembersData) {
+        const membersMap: Record<string, string[]> = {};
+        teamMembersData.forEach(member => {
+          if (!membersMap[member.equipe_id]) {
+            membersMap[member.equipe_id] = [];
+          }
+          membersMap[member.equipe_id].push(member.usuario_id);
+        });
+        setTeamMembers(membersMap);
+      }
     }
     setResponsibleOptions(options);
   };
@@ -649,7 +667,7 @@ export function TaskModal({
             </div>
 
             {/* Responsibles */}
-            <TaskResponsibles responsibles={tarefa.responsaveis} options={responsibleOptions} selectedIds={form.watch('responsaveis') || []} onSelectionChange={async (ids) => {
+            <TaskResponsibles responsibles={tarefa.responsaveis} options={responsibleOptions} teamMembers={teamMembers} selectedIds={form.watch('responsaveis') || []} onSelectionChange={async (ids) => {
             if (!tarefa || !usuario) return;
             
             setSaving(true);
