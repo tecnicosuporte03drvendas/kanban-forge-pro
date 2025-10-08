@@ -109,7 +109,7 @@ export function TaskActivityTabs({
 
             {/* Comments List - Scrollable */}
             <div className="flex-1 overflow-hidden">
-              <ScrollArea className="h-full">
+              <ScrollArea key={`comments-${comments.length}`} className="h-full">
                 <div className="p-4 space-y-4">
                   {comments.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
@@ -142,7 +142,7 @@ export function TaskActivityTabs({
 
           <TabsContent value="activity" className="h-full mt-0 data-[state=active]:block">
             <div className="h-full overflow-hidden">
-              <ScrollArea className="h-full">
+              <ScrollArea key={`activities-${activities.length}`} className="h-full">
                 <div className="p-4 space-y-4">
                   {activities.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
