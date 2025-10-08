@@ -326,50 +326,151 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="responsaveis"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Responsáveis</FormLabel>
-                  <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
-                    {responsibleOptions.map((option) => {
-                      const isDisabled = option.type === 'user' && isUserDisabled(option.id, field.value || [])
-                      
-                      return (
-                        <div key={option.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={option.id}
-                            checked={field.value?.includes(option.id) || false}
-                            disabled={isDisabled}
-                            onCheckedChange={(checked) => {
-                              const updatedValue = field.value || []
-                              if (checked) {
-                                field.onChange([...updatedValue, option.id])
-                              } else {
-                                field.onChange(updatedValue.filter((id) => id !== option.id))
-                              }
-                            }}
-                          />
-                          <Label 
-                            htmlFor={option.id} 
-                            className={cn(
-                              "flex items-center gap-2 cursor-pointer",
-                              isDisabled && "opacity-50 cursor-not-allowed"
-                            )}
-                          >
-                            {option.type === 'user' ? <User className="w-4 h-4" /> : <Users className="w-4 h-4" />}
-                            {option.nome}
-                            {isDisabled && <span className="text-xs text-muted-foreground">(já incluído na equipe)</span>}
-                          </Label>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="responsaveis"
+                render={({ field }) => {
+                  const teams = responsibleOptions.filter(r => r.type === 'team')
+                  const selectedTeams = (field.value || []).filter(id => 
+                    teams.some(t => t.id === id)
+                  )
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        Equipes
+                      </FormLabel>
+                      <Select
+                        value=""
+                        onValueChange={(teamId) => {
+                          const updatedValue = field.value || []
+                          if (!updatedValue.includes(teamId)) {
+                            field.onChange([...updatedValue, teamId])
+                          }
+                        }}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione equipes" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {teams.map((team) => (
+                            <SelectItem 
+                              key={team.id} 
+                              value={team.id}
+                              disabled={selectedTeams.includes(team.id)}
+                            >
+                              {team.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedTeams.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {selectedTeams.map((teamId) => {
+                            const team = teams.find(t => t.id === teamId)
+                            return (
+                              <Badge key={teamId} variant="secondary" className="flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                {team?.nome}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    field.onChange((field.value || []).filter(id => id !== teamId))
+                                  }}
+                                  className="ml-1 hover:text-destructive"
+                                >
+                                  ×
+                                </button>
+                              </Badge>
+                            )
+                          })}
                         </div>
-                      )
-                    })}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name="responsaveis"
+                render={({ field }) => {
+                  const users = responsibleOptions.filter(r => r.type === 'user')
+                  const selectedUsers = (field.value || []).filter(id => 
+                    users.some(u => u.id === id)
+                  )
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Colaboradores
+                      </FormLabel>
+                      <Select
+                        value=""
+                        onValueChange={(userId) => {
+                          const updatedValue = field.value || []
+                          if (!updatedValue.includes(userId)) {
+                            field.onChange([...updatedValue, userId])
+                          }
+                        }}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione colaboradores" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {users.map((user) => {
+                            const isDisabled = isUserDisabled(user.id, field.value || [])
+                            return (
+                              <SelectItem 
+                                key={user.id} 
+                                value={user.id}
+                                disabled={isDisabled || selectedUsers.includes(user.id)}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {user.nome}
+                                  {isDisabled && <span className="text-xs text-muted-foreground">(na equipe)</span>}
+                                </div>
+                              </SelectItem>
+                            )
+                          })}
+                        </SelectContent>
+                      </Select>
+                      {selectedUsers.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {selectedUsers.map((userId) => {
+                            const user = users.find(u => u.id === userId)
+                            return (
+                              <Badge key={userId} variant="secondary" className="flex items-center gap-1">
+                                <User className="w-3 h-3" />
+                                {user?.nome}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    field.onChange((field.value || []).filter(id => id !== userId))
+                                  }}
+                                  className="ml-1 hover:text-destructive"
+                                >
+                                  ×
+                                </button>
+                              </Badge>
+                            )
+                          })}
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
