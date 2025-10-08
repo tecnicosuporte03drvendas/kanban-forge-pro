@@ -97,6 +97,7 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
   const [novoComentario, setNovoComentario] = useState("");
   const [enviandoComentario, setEnviandoComentario] = useState(false);
   const [responsibleOptions, setResponsibleOptions] = useState<ResponsibleOption[]>([]);
+  const [teamMembers, setTeamMembers] = useState<Record<string, string[]>>({});
   const [saving, setSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
@@ -257,6 +258,8 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
   };
   const loadResponsibleOptions = async () => {
     const options: ResponsibleOption[] = [];
+    const members: Record<string, string[]> = {};
+    
     const { data: usersData } = await supabase
       .from("usuarios")
       .select("id, nome, email")
@@ -280,8 +283,21 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
           type: "team" as const,
         })),
       );
+      
+      // Load team members
+      for (const team of teamsData) {
+        const { data: teamMembersData } = await supabase
+          .from('usuarios_equipes')
+          .select('usuario_id')
+          .eq('equipe_id', team.id);
+        
+        if (teamMembersData) {
+          members[team.id] = teamMembersData.map(m => m.usuario_id);
+        }
+      }
     }
     setResponsibleOptions(options);
+    setTeamMembers(members);
   };
   const generateActivityDescription = (oldValues: any, newValues: z.infer<typeof taskSchema>) => {
     const changes = [];
@@ -742,6 +758,7 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
             <TaskResponsibles
               responsibles={tarefa.responsaveis}
               options={responsibleOptions}
+              teamMembers={teamMembers}
               selectedIds={form.watch("responsaveis") || []}
               onSelectionChange={async (ids) => {
                 if (!tarefa || !usuario) return;
