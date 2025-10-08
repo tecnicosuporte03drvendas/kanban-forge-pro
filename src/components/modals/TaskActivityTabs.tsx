@@ -13,19 +13,11 @@ import type { TarefaComentario, TarefaAtividade, Tarefa } from "@/types/task";
 interface TaskActivityTabsProps {
   comments: TarefaComentario[];
   activities: TarefaAtividade[];
-  tasks: Tarefa[]; // Added tasks prop
+  tasks: Tarefa[];
   newComment: string;
   onCommentChange: (comment: string) => void;
   onSubmitComment: () => void;
   isSubmitting: boolean;
-}
-
-interface Tarefa {
-  id: string;
-  titulo: string;
-  created_at: string;
-  usuario?: { nome: string };
-  // Add other task fields as needed (e.g., status, descricao)
 }
 
 export function TaskActivityTabs({
@@ -223,11 +215,10 @@ export function TaskActivityTabs({
                     tasks.map((tarefa) => (
                       <div key={tarefa.id} className="flex items-start gap-3">
                         <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-                          {tarefa.usuario?.nome?.[0]?.toUpperCase() || "T"}
+                          T
                         </div>
                         <div className="flex-1 space-y-1 min-w-0">
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span className="font-medium">{tarefa.usuario?.nome || "Sem responsável"}</span>
                             <span>
                               {format(new Date(tarefa.created_at), "dd/MM/yyyy HH:mm", {
                                 locale: ptBR,
