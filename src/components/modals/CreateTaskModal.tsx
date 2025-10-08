@@ -5,6 +5,7 @@ import * as z from 'zod'
 import { format } from 'date-fns'
 import { CalendarIcon, AlertCircle, Clock, User, Users, Zap } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -243,13 +244,14 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
+      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="text-lg font-semibold">Nova Tarefa</DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <ScrollArea className="flex-1 px-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-6">
             <FormField
               control={form.control}
               name="titulo"
@@ -544,6 +546,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
             </div>
           </form>
         </Form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   )
