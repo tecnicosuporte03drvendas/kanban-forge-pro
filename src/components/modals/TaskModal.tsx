@@ -214,12 +214,6 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
         .order("created_at", {
           ascending: false,
         });
-
-      console.log('🔍 [TaskModal] Atividades carregadas do banco:', {
-        taskId,
-        quantidade: atividadesData?.length || 0,
-        atividades: atividadesData
-      });
       const { data: anexosData } = await supabase
         .from("tarefas_anexos")
         .select("*")
@@ -250,12 +244,6 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
         tempo_sessoes: tempoSessoesData || [],
       };
       
-      console.log('✅ [TaskModal] Tarefa completa montada:', {
-        titulo: tarefaCompleta.titulo,
-        quantidadeAtividades: tarefaCompleta.atividades.length,
-        atividades: tarefaCompleta.atividades
-      });
-      
       setTarefa(tarefaCompleta);
       setAttachments((anexosData || []) as TaskAttachment[]);
     } catch (error) {
@@ -273,10 +261,13 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
     const options: ResponsibleOption[] = [];
     const members: Record<string, string[]> = {};
     
+    if (!usuario?.empresa_id) return;
+    
     const { data: usersData } = await supabase
       .from("usuarios")
       .select("id, nome, email")
       .eq("ativo", true)
+      .eq("empresa_id", usuario.empresa_id)
       .neq("tipo_usuario", "master");
     if (usersData) {
       options.push(
@@ -287,7 +278,10 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
         })),
       );
     }
-    const { data: teamsData } = await supabase.from("equipes").select("id, nome, descricao");
+    const { data: teamsData } = await supabase
+      .from("equipes")
+      .select("id, nome, descricao")
+      .eq("empresa_id", usuario.empresa_id);
     if (teamsData) {
       options.push(
         ...teamsData.map((e) => ({

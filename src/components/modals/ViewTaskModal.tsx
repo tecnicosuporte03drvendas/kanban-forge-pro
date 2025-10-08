@@ -242,11 +242,14 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
   const loadResponsibleOptions = async () => {
     const options: ResponsibleOption[] = []
     
+    if (!usuario?.empresa_id) return;
+    
     // Load users (excluding master users)
     const { data: usersData } = await supabase
       .from('usuarios')
       .select('id, nome, email')
       .eq('ativo', true)
+      .eq('empresa_id', usuario.empresa_id)
       .neq('tipo_usuario', 'master')
     
     if (usersData) {
@@ -261,6 +264,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
     const { data: teamsData } = await supabase
       .from('equipes')
       .select('id, nome, descricao')
+      .eq('empresa_id', usuario.empresa_id)
     
     if (teamsData) {
       options.push(...teamsData.map(e => ({ 
