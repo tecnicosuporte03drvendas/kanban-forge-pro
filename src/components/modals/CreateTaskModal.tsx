@@ -249,9 +249,10 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
           <DialogTitle className="text-lg font-semibold">Nova Tarefa</DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-6">
+        <ScrollArea className="flex-1 overflow-auto">
+          <div className="px-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-6">
             <FormField
               control={form.control}
               name="titulo"
@@ -543,9 +544,10 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
               <Button type="submit" disabled={loading} className="bg-primary text-primary-foreground hover:bg-primary-hover">
                 {loading ? 'Criando...' : 'Criar Tarefa'}
               </Button>
-            </div>
-          </form>
-        </Form>
+              </div>
+            </form>
+          </Form>
+          </div>
         </ScrollArea>
       </DialogContent>
     </Dialog>
