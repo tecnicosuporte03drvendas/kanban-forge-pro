@@ -141,6 +141,7 @@ export function TaskActivityTabs({
           </TabsContent>
 
           <TabsContent value="activity" className="h-full flex flex-col mt-0 data-[state=active]:flex">
+            {/* Mantém a consistência visual e estrutura de rolagem */}
             <div className="flex-1 overflow-hidden">
               <ScrollArea key={`activities-${activities.length}`} className="h-full">
                 <div className="p-4 space-y-4">
@@ -153,13 +154,13 @@ export function TaskActivityTabs({
                   ) : (
                     activities.map((atividade) => (
                       <div key={atividade.id} className="flex items-start gap-3">
-                        <div className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0",
-                          getActivityColor(atividade.acao)
-                        )}>
-                          <span className="text-xs">
-                            {getActivityIcon(atividade.acao)}
-                          </span>
+                        <div
+                          className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0",
+                            getActivityColor(atividade.acao)
+                          )}
+                        >
+                          <span className="text-xs">{getActivityIcon(atividade.acao)}</span>
                         </div>
                         <div className="flex-1 space-y-1 min-w-0">
                           <div className="text-sm">
