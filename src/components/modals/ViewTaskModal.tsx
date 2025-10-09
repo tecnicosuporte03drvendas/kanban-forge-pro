@@ -783,7 +783,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
               </div>
 
               {/* Activities List */}
-              <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+              <div className="space-y-4">
                 {tarefa.atividades.slice(0, visibleActivities).map((atividade) => (
                   <div key={atividade.id} className="space-y-1">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
