@@ -775,54 +775,15 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
               </div>
             )}
 
-            {/* Comments Section */}
+            {/* Activities Section */}
             <div className="border-t pt-6 mt-6">
               <div className="flex items-center gap-2 mb-4">
-                <MessageSquare className="h-4 w-4" />
-                <h4 className="font-medium">Comentários</h4>
+                <Activity className="h-4 w-4" />
+                <h4 className="font-medium">Atividades</h4>
               </div>
 
-              {/* Add Comment */}
-              <div className="space-y-2 mb-4">
-                <Textarea
-                  placeholder="Adicione um comentário..."
-                  value={novoComentario}
-                  onChange={(e) => setNovoComentario(e.target.value)}
-                  rows={3}
-                />
-                <Button 
-                  onClick={enviarComentario} 
-                  disabled={!novoComentario.trim() || enviandoComentario}
-                  size="sm"
-                >
-                  {enviandoComentario ? 'Enviando...' : 'Enviar'}
-                </Button>
-              </div>
-
-              {/* Comments List */}
+              {/* Activities List */}
               <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
-                {tarefa.comentarios.map((comentario) => (
-                  <div key={comentario.id} className="space-y-1">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="font-medium">{comentario.usuario?.nome || 'Usuário'}</span>
-                      <span>•</span>
-                      <span>{format(new Date(comentario.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</span>
-                    </div>
-                    <p className="text-sm">{comentario.comentario}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Activities */}
-          <div className="border-l pl-6 overflow-hidden flex flex-col h-full">
-            <div className="flex items-center gap-2 mb-4">
-              <Activity className="h-4 w-4" />
-              <h4 className="font-medium">Atividades</h4>
-            </div>
-            <ScrollArea className="flex-1 h-full">
-              <div className="space-y-4 pr-4">
                 {tarefa.atividades.slice(0, visibleActivities).map((atividade) => (
                   <div key={atividade.id} className="space-y-1">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -840,12 +801,55 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full"
+                    className="w-full mt-2"
                     onClick={() => setVisibleActivities(prev => prev + 5)}
                   >
                     Ver mais
                   </Button>
                 )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Comments */}
+          <div className="border-l pl-6 overflow-hidden flex flex-col h-full">
+            <div className="flex items-center gap-2 mb-4">
+              <MessageSquare className="h-4 w-4" />
+              <h4 className="font-medium">Comentários</h4>
+            </div>
+            
+            {/* Add Comment */}
+            <div className="space-y-2 flex-shrink-0 mb-4">
+              <Textarea
+                placeholder="Adicione um comentário..."
+                value={novoComentario}
+                onChange={(e) => setNovoComentario(e.target.value)}
+                rows={3}
+              />
+              <Button 
+                onClick={enviarComentario} 
+                disabled={!novoComentario.trim() || enviandoComentario}
+                size="sm"
+              >
+                {enviandoComentario ? 'Enviando...' : 'Enviar'}
+              </Button>
+            </div>
+
+            <Separator className="mb-4" />
+
+            {/* Comments List */}
+            <ScrollArea className="flex-1 h-full">
+              <div className="space-y-4 pr-4">
+                {tarefa.comentarios.map((comentario) => (
+                  <div key={comentario.id} className="space-y-1">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="font-medium">{comentario.usuario?.nome || 'Usuário'}</span>
+                      <span>•</span>
+                      <span>{format(new Date(comentario.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</span>
+                    </div>
+                    <p className="text-sm">{comentario.comentario}</p>
+                  </div>
+                ))}
               </div>
             </ScrollArea>
           </div>
