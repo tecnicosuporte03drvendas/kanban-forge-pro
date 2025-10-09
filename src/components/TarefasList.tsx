@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Plus, Search, Filter, Download, Calendar, User, MoreHorizontal, Archive, Clock, PlayCircle, CheckSquare, Trash2, X } from "lucide-react"
-import { getDateStatus } from "@/utils/date-utils"
+import { getDateStatus, parseLocalDate } from "@/utils/date-utils"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import { useEffectiveUser } from '@/hooks/use-effective-user'
@@ -510,7 +510,7 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated 
                     </div>
                     <div className={`flex items-center gap-1 ${getDateStatus(task.data_conclusao).className}`}>
                       <Calendar className="w-3 h-3" />
-                      <span>{new Date(task.data_conclusao).toLocaleDateString("pt-BR")}</span>
+                      <span>{parseLocalDate(task.data_conclusao).toLocaleDateString("pt-BR")}</span>
                     </div>
                   </div>
                 </div>
