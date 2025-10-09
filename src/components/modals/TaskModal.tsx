@@ -145,6 +145,23 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
     if (taskId && open) {
       loadTask();
       loadResponsibleOptions();
+    } else if (!open) {
+      // Limpar dados ao fechar o modal
+      setTarefa(null);
+      setNovoComentario('');
+      setEditingTitle(false);
+      setEditingDescription(false);
+      setTempTitle('');
+      setTempDescription('');
+      setHasUnsavedChanges(false);
+      setAttachments([]);
+      form.reset({
+        titulo: '',
+        descricao: '',
+        prioridade: 'media',
+        horario_conclusao: '18:00',
+        responsaveis: [],
+      });
     }
   }, [taskId, open]);
   useEffect(() => {

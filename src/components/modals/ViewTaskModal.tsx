@@ -92,6 +92,18 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
     if (taskId && open) {
       loadTask()
       loadResponsibleOptions()
+    } else if (!open) {
+      // Limpar dados ao fechar o modal
+      setTarefa(null)
+      setNovoComentario('')
+      setIsEditing(false)
+      form.reset({
+        titulo: '',
+        descricao: '',
+        prioridade: 'media',
+        horario_conclusao: '18:00',
+        responsaveis: [],
+      })
     }
   }, [taskId, open])
 
