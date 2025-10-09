@@ -947,12 +947,7 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
                   sessoes={tarefa.tempo_sessoes}
                 />
               </div>
-              <ScrollBar
-                orientation="vertical"
-                className="w-2 bg-transparent hover:bg-transparent transition-all"
-              >
-                <div className="bg-muted-foreground/30 hover:bg-muted-foreground/50 rounded-full w-full" />
-              </ScrollBar>
+              <ScrollBar orientation="vertical" />
             </ScrollArea>
           </div>
 
