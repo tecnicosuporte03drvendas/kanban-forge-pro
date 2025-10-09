@@ -57,7 +57,7 @@ export function TaskActivityTabs({
         </div>
 
         {/* Lista de comentários com scroll */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-auto">
           <ScrollArea key={`comments-${comments.length}`} className="h-full">
             <div className="p-4 space-y-4 overflow-y-scroll">
               {comments.length === 0 ? (
