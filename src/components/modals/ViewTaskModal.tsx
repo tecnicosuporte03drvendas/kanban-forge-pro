@@ -336,19 +336,31 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
   }
 
   const enviarComentario = async () => {
-    if (!novoComentario.trim() || !tarefa) return
+    if (!novoComentario.trim() || !tarefa || !usuario) return
 
+    const tempComment = {
+      id: `temp-${Date.now()}`,
+      tarefa_id: tarefa.id,
+      usuario_id: usuario.id,
+      comentario: novoComentario.trim(),
+      created_at: new Date().toISOString(),
+      usuario: { nome: usuario.nome }
+    }
+
+    // Optimistic update - adicionar comentário imediatamente na UI
+    setTarefa({
+      ...tarefa,
+      comentarios: [tempComment, ...tarefa.comentarios]
+    })
+    setNovoComentario('')
+
+    // Salvar no banco em segundo plano
     setEnviandoComentario(true)
     try {
-      if (!usuario) {
-        toast({ title: 'Erro', description: 'Usuário não autenticado', variant: 'destructive' })
-        return
-      }
-
       const { error } = await supabase.from('tarefas_comentarios').insert({
         tarefa_id: tarefa.id,
         usuario_id: usuario.id,
-        comentario: novoComentario.trim(),
+        comentario: tempComment.comentario,
       })
 
       if (error) throw error
@@ -361,11 +373,15 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
         descricao: 'Adicionou um comentário',
       })
 
-      setNovoComentario('')
-      toast({ title: 'Sucesso', description: 'Comentário adicionado!' })
       loadTask() // Refresh data
+      onTaskUpdated?.()
     } catch (error) {
       console.error('Error adding comment:', error)
+      // Reverter em caso de erro
+      setTarefa({
+        ...tarefa,
+        comentarios: tarefa.comentarios.filter(c => c.id !== tempComment.id)
+      })
       toast({ title: 'Erro', description: 'Erro ao adicionar comentário', variant: 'destructive' })
     } finally {
       setEnviandoComentario(false)
@@ -661,7 +677,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
                 {tarefa.atividades.slice(0, visibleActivities).map((atividade) => (
                   <div key={atividade.id} className="space-y-1">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="font-medium">{atividade.usuario?.nome || 'Usuário'}</span>
+                      <span className="font-medium">{atividade.usuario?.nome || usuario?.nome || 'Usuário'}</span>
                       <span>•</span>
                       <span>{format(new Date(atividade.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</span>
                     </div>
@@ -717,7 +733,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
                 {tarefa.comentarios.map((comentario) => (
                   <div key={comentario.id} className="space-y-1">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="font-medium">{comentario.usuario?.nome || 'Usuário'}</span>
+                      <span className="font-medium">{comentario.usuario?.nome || usuario?.nome || 'Usuário'}</span>
                       <span>•</span>
                       <span>{format(new Date(comentario.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</span>
                     </div>
