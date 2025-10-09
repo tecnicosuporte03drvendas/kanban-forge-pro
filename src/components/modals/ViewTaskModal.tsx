@@ -33,7 +33,6 @@ interface ResponsibleOption {
   nome: string;
   type: 'user' | 'team';
 }
-
 interface TaskAttachment {
   id: string;
   tarefa_id: string;
@@ -164,13 +163,11 @@ export function ViewTaskModal({
       }
 
       // Load attachments
-      const { data: anexosData } = await supabase
-        .from('tarefas_anexos')
-        .select('*')
-        .eq('tarefa_id', taskId)
-        .order('created_at', {
-          ascending: false,
-        });
+      const {
+        data: anexosData
+      } = await supabase.from('tarefas_anexos').select('*').eq('tarefa_id', taskId).order('created_at', {
+        ascending: false
+      });
       const tarefaCompleta: TarefaCompleta = {
         ...tarefaData,
         responsaveis: responsaveisData || [],
@@ -522,84 +519,84 @@ export function ViewTaskModal({
             {/* Date and Time Picker */}
             <div className="flex items-center gap-4 flex-wrap">
               <TaskDatePicker date={parseLocalDate(tarefa.data_conclusao)} time={tarefa.horario_conclusao} onDateChange={async date => {
-              if (!tarefa || !usuario) return;
-              const previousDate = tarefa.data_conclusao;
+                if (!tarefa || !usuario) return;
+                const previousDate = tarefa.data_conclusao;
 
-              // Optimistic update
-              setTarefa({
-                ...tarefa,
-                data_conclusao: format(date, 'yyyy-MM-dd')
-              });
-              setSaving(true);
-              try {
-                const {
-                  error
-                } = await supabase.from('tarefas').update({
+                // Optimistic update
+                setTarefa({
+                  ...tarefa,
                   data_conclusao: format(date, 'yyyy-MM-dd')
-                }).eq('id', tarefa.id);
-                if (error) throw error;
-                await supabase.from('tarefas_atividades').insert({
-                  tarefa_id: tarefa.id,
-                  usuario_id: usuario.id,
-                  acao: 'editou',
-                  descricao: `Alterou a data de conclusão para ${format(date, 'dd/MM/yyyy')}`
                 });
-                loadTask();
-                onTaskUpdated?.();
-              } catch (error) {
-                console.error('Error saving date:', error);
-                setTarefa({
-                  ...tarefa,
-                  data_conclusao: previousDate
-                });
-                toast({
-                  title: 'Erro',
-                  description: 'Erro ao salvar data',
-                  variant: 'destructive'
-                });
-              } finally {
-                setSaving(false);
-              }
-            }} onTimeChange={async time => {
-              if (!tarefa || !usuario) return;
-              const previousTime = tarefa.horario_conclusao;
+                setSaving(true);
+                try {
+                  const {
+                    error
+                  } = await supabase.from('tarefas').update({
+                    data_conclusao: format(date, 'yyyy-MM-dd')
+                  }).eq('id', tarefa.id);
+                  if (error) throw error;
+                  await supabase.from('tarefas_atividades').insert({
+                    tarefa_id: tarefa.id,
+                    usuario_id: usuario.id,
+                    acao: 'editou',
+                    descricao: `Alterou a data de conclusão para ${format(date, 'dd/MM/yyyy')}`
+                  });
+                  loadTask();
+                  onTaskUpdated?.();
+                } catch (error) {
+                  console.error('Error saving date:', error);
+                  setTarefa({
+                    ...tarefa,
+                    data_conclusao: previousDate
+                  });
+                  toast({
+                    title: 'Erro',
+                    description: 'Erro ao salvar data',
+                    variant: 'destructive'
+                  });
+                } finally {
+                  setSaving(false);
+                }
+              }} onTimeChange={async time => {
+                if (!tarefa || !usuario) return;
+                const previousTime = tarefa.horario_conclusao;
 
-              // Optimistic update
-              setTarefa({
-                ...tarefa,
-                horario_conclusao: time
-              });
-              setSaving(true);
-              try {
-                const {
-                  error
-                } = await supabase.from('tarefas').update({
-                  horario_conclusao: time
-                }).eq('id', tarefa.id);
-                if (error) throw error;
-                await supabase.from('tarefas_atividades').insert({
-                  tarefa_id: tarefa.id,
-                  usuario_id: usuario.id,
-                  acao: 'editou',
-                  descricao: `Alterou o horário de conclusão para ${time}`
-                });
-                loadTask();
-                onTaskUpdated?.();
-              } catch (error) {
-                console.error('Error saving time:', error);
+                // Optimistic update
                 setTarefa({
                   ...tarefa,
-                  horario_conclusao: previousTime
+                  horario_conclusao: time
                 });
-                toast({
-                  title: 'Erro',
-                  description: 'Erro ao salvar horário',
-                  variant: 'destructive'
-                });
-              } finally {
-                setSaving(false);
-              }
-            }} />
+                setSaving(true);
+                try {
+                  const {
+                    error
+                  } = await supabase.from('tarefas').update({
+                    horario_conclusao: time
+                  }).eq('id', tarefa.id);
+                  if (error) throw error;
+                  await supabase.from('tarefas_atividades').insert({
+                    tarefa_id: tarefa.id,
+                    usuario_id: usuario.id,
+                    acao: 'editou',
+                    descricao: `Alterou o horário de conclusão para ${time}`
+                  });
+                  loadTask();
+                  onTaskUpdated?.();
+                } catch (error) {
+                  console.error('Error saving time:', error);
+                  setTarefa({
+                    ...tarefa,
+                    horario_conclusao: previousTime
+                  });
+                  toast({
+                    title: 'Erro',
+                    description: 'Erro ao salvar horário',
+                    variant: 'destructive'
+                  });
+                } finally {
+                  setSaving(false);
+                }
+              }} />
             </div>
 
             {/* Status and Priority Badges */}
@@ -617,134 +614,127 @@ export function ViewTaskModal({
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Descrição</Label>
               {editingDescription ? <Textarea value={tempDescription} onChange={e => setTempDescription(e.target.value)} onBlur={handleDescriptionSave} rows={5} className="resize-none" onKeyDown={e => {
-              if (e.key === 'Escape') {
-                setTempDescription(tarefa.descricao || '');
-                setEditingDescription(false);
-              }
-            }} autoFocus /> : <div className="min-h-[100px] p-3 rounded-md border border-dashed border-muted-foreground/30 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setEditingDescription(true)}>
+                if (e.key === 'Escape') {
+                  setTempDescription(tarefa.descricao || '');
+                  setEditingDescription(false);
+                }
+              }} autoFocus /> : <div className="min-h-[100px] p-3 rounded-md border border-dashed border-muted-foreground/30 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setEditingDescription(true)}>
                   {tarefa.descricao ? <p className="text-sm text-foreground whitespace-pre-wrap">{tarefa.descricao}</p> : <p className="text-sm text-muted-foreground">Adicione uma descrição mais detalhada...</p>}
                 </div>}
             </div>
 
             {/* Responsibles */}
             <TaskResponsibles responsibles={tarefa.responsaveis} options={responsibleOptions} teamMembers={teamMembers} selectedIds={tarefa.responsaveis.map(r => r.usuario_id || r.equipe_id || '').filter(Boolean)} onSelectionChange={async ids => {
-            if (!tarefa || !usuario) return;
-            const oldResponsibles = tarefa.responsaveis;
-            const oldIds = tarefa.responsaveis.map(r => r.usuario_id || r.equipe_id || '').filter(Boolean);
+              if (!tarefa || !usuario) return;
+              const oldResponsibles = tarefa.responsaveis;
+              const oldIds = tarefa.responsaveis.map(r => r.usuario_id || r.equipe_id || '').filter(Boolean);
 
-            // Optimistic update - atualizar UI imediatamente
-            const newResponsibles = ids.map(responsibleId => {
-              const responsible = responsibleOptions.find(r => r.id === responsibleId);
-              if (responsible) {
-                return {
-                  id: `temp-${responsibleId}`,
-                  tarefa_id: tarefa.id,
-                  usuario_id: responsible.type === 'user' ? responsible.id : null,
-                  equipe_id: responsible.type === 'team' ? responsible.id : null,
-                  created_at: new Date().toISOString(),
-                  usuarios: responsible.type === 'user' ? {
-                    nome: responsible.nome,
-                    email: ''
-                  } : null,
-                  equipes: responsible.type === 'team' ? {
-                    nome: responsible.nome,
-                    descricao: ''
-                  } : null
-                };
-              }
-              return null;
-            }).filter(Boolean);
-            setTarefa({
-              ...tarefa,
-              responsaveis: newResponsibles as any
-            });
-
-            // Fazer update no banco em segundo plano
-            setSaving(true);
-            try {
-              // Delete existing responsibles
-              await supabase.from('tarefas_responsaveis').delete().eq('tarefa_id', tarefa.id);
-
-              // Add new responsibles
-              if (ids.length > 0) {
-                const responsibleInserts = ids.map(responsibleId => {
-                  const responsible = responsibleOptions.find(r => r.id === responsibleId);
-                  if (responsible) {
-                    return {
-                      tarefa_id: tarefa.id,
-                      usuario_id: responsible.type === 'user' ? responsible.id : null,
-                      equipe_id: responsible.type === 'team' ? responsible.id : null
-                    };
-                  }
-                  return null;
-                }).filter(Boolean);
-                if (responsibleInserts.length > 0) {
-                  await supabase.from('tarefas_responsaveis').insert(responsibleInserts);
-                }
-              }
-
-              // Log activity
-              const added = ids.filter(id => !oldIds.includes(id));
-              const removed = oldIds.filter(id => !ids.includes(id));
-              const changes = [];
-              added.forEach(id => {
-                const responsible = responsibleOptions.find(r => r.id === id);
+              // Optimistic update - atualizar UI imediatamente
+              const newResponsibles = ids.map(responsibleId => {
+                const responsible = responsibleOptions.find(r => r.id === responsibleId);
                 if (responsible) {
-                  changes.push(`${responsible.type === 'user' ? 'Adicionou o usuário' : 'Adicionou a equipe'} ${responsible.nome}`);
+                  return {
+                    id: `temp-${responsibleId}`,
+                    tarefa_id: tarefa.id,
+                    usuario_id: responsible.type === 'user' ? responsible.id : null,
+                    equipe_id: responsible.type === 'team' ? responsible.id : null,
+                    created_at: new Date().toISOString(),
+                    usuarios: responsible.type === 'user' ? {
+                      nome: responsible.nome,
+                      email: ''
+                    } : null,
+                    equipes: responsible.type === 'team' ? {
+                      nome: responsible.nome,
+                      descricao: ''
+                    } : null
+                  };
                 }
-              });
-              removed.forEach(id => {
-                const responsible = responsibleOptions.find(r => r.id === id);
-                if (responsible) {
-                  changes.push(`${responsible.type === 'user' ? 'Removeu o usuário' : 'Removeu a equipe'} ${responsible.nome}`);
-                }
-              });
-              if (changes.length > 0) {
-                await supabase.from('tarefas_atividades').insert({
-                  tarefa_id: tarefa.id,
-                  usuario_id: usuario.id,
-                  acao: 'editou',
-                  descricao: changes.join(', ')
-                });
-              }
-              loadTask();
-              onTaskUpdated?.();
-            } catch (error) {
-              console.error('Error saving responsibles:', error);
-              // Reverter para responsáveis anteriores em caso de erro
+                return null;
+              }).filter(Boolean);
               setTarefa({
                 ...tarefa,
-                responsaveis: oldResponsibles
+                responsaveis: newResponsibles as any
               });
-              toast({
-                title: 'Erro',
-                description: 'Erro ao salvar responsáveis',
-                variant: 'destructive'
-              });
-            } finally {
-              setSaving(false);
-            }
-          }} />
+
+              // Fazer update no banco em segundo plano
+              setSaving(true);
+              try {
+                // Delete existing responsibles
+                await supabase.from('tarefas_responsaveis').delete().eq('tarefa_id', tarefa.id);
+
+                // Add new responsibles
+                if (ids.length > 0) {
+                  const responsibleInserts = ids.map(responsibleId => {
+                    const responsible = responsibleOptions.find(r => r.id === responsibleId);
+                    if (responsible) {
+                      return {
+                        tarefa_id: tarefa.id,
+                        usuario_id: responsible.type === 'user' ? responsible.id : null,
+                        equipe_id: responsible.type === 'team' ? responsible.id : null
+                      };
+                    }
+                    return null;
+                  }).filter(Boolean);
+                  if (responsibleInserts.length > 0) {
+                    await supabase.from('tarefas_responsaveis').insert(responsibleInserts);
+                  }
+                }
+
+                // Log activity
+                const added = ids.filter(id => !oldIds.includes(id));
+                const removed = oldIds.filter(id => !ids.includes(id));
+                const changes = [];
+                added.forEach(id => {
+                  const responsible = responsibleOptions.find(r => r.id === id);
+                  if (responsible) {
+                    changes.push(`${responsible.type === 'user' ? 'Adicionou o usuário' : 'Adicionou a equipe'} ${responsible.nome}`);
+                  }
+                });
+                removed.forEach(id => {
+                  const responsible = responsibleOptions.find(r => r.id === id);
+                  if (responsible) {
+                    changes.push(`${responsible.type === 'user' ? 'Removeu o usuário' : 'Removeu a equipe'} ${responsible.nome}`);
+                  }
+                });
+                if (changes.length > 0) {
+                  await supabase.from('tarefas_atividades').insert({
+                    tarefa_id: tarefa.id,
+                    usuario_id: usuario.id,
+                    acao: 'editou',
+                    descricao: changes.join(', ')
+                  });
+                }
+                loadTask();
+                onTaskUpdated?.();
+              } catch (error) {
+                console.error('Error saving responsibles:', error);
+                // Reverter para responsáveis anteriores em caso de erro
+                setTarefa({
+                  ...tarefa,
+                  responsaveis: oldResponsibles
+                });
+                toast({
+                  title: 'Erro',
+                  description: 'Erro ao salvar responsáveis',
+                  variant: 'destructive'
+                });
+              } finally {
+                setSaving(false);
+              }
+            }} />
 
             {/* Checklists */}
-            <TaskChecklists
-              taskId={tarefa.id}
-              checklists={tarefa.checklists}
-              onChecklistsChange={(newChecklists) => {
-                setTarefa({ ...tarefa, checklists: newChecklists });
-              }}
-              onReload={loadTask}
-            />
+            <TaskChecklists taskId={tarefa.id} checklists={tarefa.checklists} onChecklistsChange={newChecklists => {
+              setTarefa({
+                ...tarefa,
+                checklists: newChecklists
+              });
+            }} onReload={loadTask} />
 
             {/* Attachments */}
-            <TaskAttachments
-              taskId={tarefa.id}
-              attachments={attachments}
-              onAttachmentsChange={(newAttachments) => {
-                setAttachments(newAttachments);
-              }}
-              onReload={loadTask}
-            />
+            <TaskAttachments taskId={tarefa.id} attachments={attachments} onAttachmentsChange={newAttachments => {
+              setAttachments(newAttachments);
+            }} onReload={loadTask} />
 
             {/* Activities Section */}
             <div className="border-t pt-6 mt-6">
@@ -760,8 +750,8 @@ export function ViewTaskModal({
                       <span className="font-medium">{atividade.usuario?.nome || usuario?.nome || 'Usuário'}</span>
                       <span>•</span>
                       <span>{format(new Date(atividade.created_at), 'dd/MM/yyyy HH:mm', {
-                      locale: ptBR
-                    })}</span>
+                        locale: ptBR
+                      })}</span>
                     </div>
                     <p className="text-sm">
                       <span className="font-medium">{atividade.acao}</span>
@@ -800,7 +790,7 @@ export function ViewTaskModal({
                 {tarefa.comentarios.map(comentario => <div key={comentario.id} className="space-y-1">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span className="font-medium">{comentario.usuario?.nome || 'Usuário'}</span>
-                      <span className="opacity-50">({comentario.usuario?.nome || 'Usuário'} - ID: {comentario.usuario_id.substring(0, 8)}...)</span>
+                      
                       <span>•</span>
                       <span>{format(new Date(comentario.created_at), 'dd/MM/yyyy HH:mm', {
                       locale: ptBR
