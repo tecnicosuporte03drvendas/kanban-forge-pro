@@ -44,12 +44,6 @@ interface TaskAttachment {
   usuario_id: string;
   created_at: string;
 }
-const priorityColors = {
-  baixa: 'bg-gray-100 text-gray-700',
-  media: 'bg-blue-100 text-blue-700',
-  alta: 'bg-orange-100 text-orange-700',
-  urgente: 'bg-red-100 text-red-700'
-};
 const statusColors = {
   criada: 'bg-gray-100 text-gray-700',
   assumida: 'bg-blue-100 text-blue-700',
@@ -258,11 +252,11 @@ export function ViewTaskModal({
       case 'urgente':
         return 'bg-red-500 text-white';
       case 'alta':
-        return 'bg-orange-500 text-white';
+        return 'bg-priority-high text-white';
       case 'media':
-        return 'bg-yellow-500 text-white';
+        return 'bg-priority-medium text-white';
       case 'baixa':
-        return 'bg-green-500 text-white';
+        return 'bg-priority-low text-white';
     }
   };
   const handleTitleSave = async () => {
@@ -609,14 +603,13 @@ export function ViewTaskModal({
 
             {/* Status and Priority Badges */}
             <div className="flex items-center gap-4 flex-wrap">
-              <Badge className={priorityColors[tarefa.prioridade]}>
+              <Badge className={cn("flex items-center gap-1", getPriorityColor(tarefa.prioridade))}>
+                {getPriorityIcon(tarefa.prioridade)}
                 {tarefa.prioridade.charAt(0).toUpperCase() + tarefa.prioridade.slice(1)}
               </Badge>
               <Badge className={statusColors[tarefa.status]}>
                 {tarefa.status.charAt(0).toUpperCase() + tarefa.status.slice(1)}
               </Badge>
-              
-              
             </div>
 
             {/* Description */}
