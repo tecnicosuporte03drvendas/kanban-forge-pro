@@ -453,7 +453,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-6xl h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -775,8 +775,8 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
           </div>
 
           {/* Right Column - Comments & Activities */}
-          <div className="border-l pl-6 overflow-hidden">
-            <Tabs defaultValue="comentarios" className="h-full flex flex-col">
+          <div className="border-l pl-6 overflow-hidden flex flex-col h-full">
+            <Tabs defaultValue="comentarios" className="flex-1 flex flex-col overflow-hidden">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="comentarios">
                   <MessageSquare className="h-4 w-4 mr-1" />
@@ -788,9 +788,9 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="comentarios" className="flex-1 flex flex-col space-y-4">
+              <TabsContent value="comentarios" className="flex-1 flex flex-col space-y-4 overflow-hidden mt-0 data-[state=active]:flex">
                 {/* Add Comment */}
-                <div className="space-y-2">
+                <div className="space-y-2 flex-shrink-0">
                   <Textarea
                     placeholder="Adicione um comentário..."
                     value={novoComentario}
@@ -809,8 +809,8 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
                 <Separator />
 
                 {/* Comments List */}
-                <ScrollArea className="flex-1">
-                  <div className="space-y-4">
+                <ScrollArea className="flex-1 h-full">
+                  <div className="space-y-4 pr-4">
                     {tarefa.comentarios.map((comentario) => (
                       <div key={comentario.id} className="space-y-1">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -825,9 +825,9 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
                 </ScrollArea>
               </TabsContent>
 
-              <TabsContent value="atividades" className="flex-1">
-                <ScrollArea className="h-full">
-                  <div className="space-y-4">
+              <TabsContent value="atividades" className="flex-1 overflow-hidden mt-0 data-[state=active]:flex">
+                <ScrollArea className="h-full w-full">
+                  <div className="space-y-4 pr-4">
                     {tarefa.atividades.map((atividade) => (
                       <div key={atividade.id} className="space-y-1">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
