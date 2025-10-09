@@ -1,11 +1,11 @@
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { MessageSquare, Activity } from "lucide-react"
-import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
-import { cn } from "@/lib/utils"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { MessageSquare, Activity } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 export function TaskActivityTabs({
   comments = [],
@@ -31,10 +31,7 @@ export function TaskActivityTabs({
       </TabsList>
 
       {/* 🗨️ COMENTÁRIOS */}
-      <TabsContent
-        value="comments"
-        className="h-full flex flex-col mt-0 data-[state=active]:flex"
-      >
+      <TabsContent value="comments" className="h-full flex flex-col mt-0 data-[state=active]:flex">
         {/* Formulário de novo comentário */}
         <div className="flex-shrink-0 p-4 border-b border-border bg-background">
           <div className="space-y-2">
@@ -74,16 +71,8 @@ export function TaskActivityTabs({
                     </div>
                     <div className="flex-1 space-y-1 min-w-0">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="font-medium">
-                          {comentario.usuario?.nome || "Usuário"}
-                        </span>
-                        <span>
-                          {format(
-                            new Date(comentario.created_at),
-                            "dd/MM/yyyy HH:mm",
-                            { locale: ptBR }
-                          )}
-                        </span>
+                        <span className="font-medium">{comentario.usuario?.nome || "Usuário"}</span>
+                        <span>{format(new Date(comentario.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
                       </div>
                       <div className="text-sm bg-background border rounded-lg p-3 shadow-sm">
                         {comentario.comentario}
@@ -99,10 +88,7 @@ export function TaskActivityTabs({
       </TabsContent>
 
       {/* ⚙️ ATIVIDADES */}
-      <TabsContent
-        value="activity"
-        className="h-full flex flex-col mt-0 data-[state=active]:flex"
-      >
+      <TabsContent value="activity" className="h-full flex flex-col mt-0 data-[state=active]:flex">
         <div className="flex-1 overflow-hidden">
           <ScrollArea key={`activities-${activities.length}`} className="h-full">
             <div className="p-4 space-y-4">
@@ -118,36 +104,24 @@ export function TaskActivityTabs({
                     <div
                       className={cn(
                         "w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0",
-                        getActivityColor(atividade.acao)
+                        getActivityColor(atividade.acao),
                       )}
                     >
-                      <span className="text-xs">
-                        {getActivityIcon(atividade.acao)}
-                      </span>
+                      <span className="text-xs">{getActivityIcon(atividade.acao)}</span>
                     </div>
                     <div className="flex-1 space-y-1 min-w-0">
                       <div className="text-sm">
-                        <span className="font-medium">
-                          {atividade.usuario?.nome || "Usuário"}
-                        </span>
-                        <span className="text-muted-foreground ml-1">
-                          {atividade.acao}
-                        </span>
+                        <span className="font-medium">{atividade.usuario?.nome || "Usuário"}</span>
+                        <span className="text-muted-foreground ml-1">{atividade.acao}</span>
                         {atividade.descricao && (
                           <>
                             <span className="text-muted-foreground">: </span>
-                            <span className="text-muted-foreground">
-                              {atividade.descricao}
-                            </span>
+                            <span className="text-muted-foreground">{atividade.descricao}</span>
                           </>
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {format(
-                          new Date(atividade.created_at),
-                          "dd/MM/yyyy HH:mm",
-                          { locale: ptBR }
-                        )}
+                        {format(new Date(atividade.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                       </div>
                     </div>
                   </div>
@@ -159,5 +133,5 @@ export function TaskActivityTabs({
         </div>
       </TabsContent>
     </Tabs>
-  )
+  );
 }
