@@ -46,7 +46,7 @@ export const RecentActivities = ({ userId }: RecentActivitiesProps) => {
         `)
         .eq('tarefas.empresa_id', usuario?.empresa_id)
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(5);
 
       // Se userId for especificado, filtrar apenas atividades desse usuário
       if (userId) {
