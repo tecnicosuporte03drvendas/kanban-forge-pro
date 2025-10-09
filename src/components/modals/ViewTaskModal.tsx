@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -517,12 +517,10 @@ export function ViewTaskModal({
 
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
           {/* Left Column - Main Content */}
-          <div className="lg:col-span-2">
-            <ScrollArea className="h-full">
-              <div className="p-6 space-y-6">
-                {/* Date and Time Picker */}
-                <div className="flex items-center gap-4 flex-wrap">
-                  <TaskDatePicker date={parseLocalDate(tarefa.data_conclusao)} time={tarefa.horario_conclusao} onDateChange={async date => {
+          <div className="lg:col-span-2 space-y-6 overflow-y-auto p-6">
+            {/* Date and Time Picker */}
+            <div className="flex items-center gap-4 flex-wrap">
+              <TaskDatePicker date={parseLocalDate(tarefa.data_conclusao)} time={tarefa.horario_conclusao} onDateChange={async date => {
               if (!tarefa || !usuario) return;
               const previousDate = tarefa.data_conclusao;
 
@@ -598,10 +596,10 @@ export function ViewTaskModal({
                   variant: 'destructive'
                 });
               } finally {
-              setSaving(false);
-            }
-          }} />
-                </div>
+                setSaving(false);
+              }
+            }} />
+            </div>
 
             {/* Status and Priority Badges */}
             <div className="flex items-center gap-4 flex-wrap">
@@ -772,9 +770,6 @@ export function ViewTaskModal({
                   </Button>}
               </div>
             </div>
-              </div>
-              <ScrollBar orientation="vertical" className="z-50" />
-            </ScrollArea>
           </div>
 
           {/* Right Column - Comments */}
