@@ -9,11 +9,16 @@ import { TarefasList } from "@/components/TarefasList"
 import { ArchivedTasksList } from "@/components/ArchivedTasksList"
 import { TemporalAnalysis } from "@/components/temporal-analysis/TemporalAnalysis"
 import { CreateTaskModal } from "@/components/modals/CreateTaskModal"
-import { useState } from "react"
+import { ViewTaskModal } from "@/components/modals/ViewTaskModal"
+import { useState, useEffect } from "react"
+import { supabase } from "@/integrations/supabase/client"
+import { toast } from "sonner"
 
 
 const Tarefas = () => {
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showViewModal, setShowViewModal] = useState(false)
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [refreshTasks, setRefreshTasks] = useState(0)
 
   const handleTaskCreated = () => {
@@ -22,6 +27,30 @@ const Tarefas = () => {
 
   const handleTaskUpdated = () => {
     setRefreshTasks(prev => prev + 1)
+  }
+
+  const handleOpenSecondAssumedTask = async () => {
+    try {
+      const { data: tasks, error } = await supabase
+        .from('tarefas')
+        .select('id')
+        .eq('status', 'assumida')
+        .eq('arquivada', false)
+        .order('posicao_coluna', { ascending: true })
+        .limit(2)
+
+      if (error) throw error
+
+      if (tasks && tasks.length >= 2) {
+        setSelectedTaskId(tasks[1].id)
+        setShowViewModal(true)
+      } else {
+        toast.error('Não há uma segunda tarefa assumida disponível')
+      }
+    } catch (error) {
+      console.error('Erro ao buscar tarefa:', error)
+      toast.error('Erro ao buscar tarefa')
+    }
   }
 
   return (
@@ -35,13 +64,21 @@ const Tarefas = () => {
               <p className="text-muted-foreground">Gerencie, filtre e organize suas tarefas com ferramentas avançadas</p>
             </div>
           </div>
-          <Button 
-            className="bg-primary hover:bg-primary-hover text-primary-foreground"
-            onClick={() => setShowCreateModal(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Tarefa
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={handleOpenSecondAssumedTask}
+            >
+              Teste
+            </Button>
+            <Button 
+              className="bg-primary hover:bg-primary-hover text-primary-foreground"
+              onClick={() => setShowCreateModal(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Tarefa
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -72,6 +109,15 @@ const Tarefas = () => {
         onOpenChange={setShowCreateModal}
         onTaskCreated={handleTaskCreated}
       />
+
+      {selectedTaskId && (
+        <ViewTaskModal
+          taskId={selectedTaskId}
+          open={showViewModal}
+          onOpenChange={setShowViewModal}
+          onTaskUpdated={handleTaskUpdated}
+        />
+      )}
     </div>
   );
 };
