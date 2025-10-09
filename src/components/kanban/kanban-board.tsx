@@ -50,7 +50,6 @@ export interface Task {
 interface KanbanBoardProps {
   onTaskClick?: (taskId: string) => void;
   onCreateTask?: () => void;
-  onTaskUpdated?: () => void;
 }
 
 const columns = [
@@ -61,7 +60,7 @@ const columns = [
   { id: "validada", title: "Validada", tasks: 0, color: "kanban-validated" }
 ]
 
-export function KanbanBoard({ onTaskClick, onCreateTask, onTaskUpdated }: KanbanBoardProps) {
+export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
   const { usuario } = useEffectiveUser()
   const { shouldSuppressLogs } = useStealth()
   const [tasks, setTasks] = useState<Task[]>([])
@@ -431,9 +430,6 @@ export function KanbanBoard({ onTaskClick, onCreateTask, onTaskUpdated }: Kanban
         })
       }
 
-      // Notify parent component to refresh
-      onTaskUpdated?.()
-      
       // Show success toast ONLY after successful save
       toast({
         title: "Status atualizado",
