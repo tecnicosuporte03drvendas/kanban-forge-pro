@@ -76,6 +76,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
   const [responsibleOptions, setResponsibleOptions] = useState<ResponsibleOption[]>([])
   const [saving, setSaving] = useState(false)
   const [archiving, setArchiving] = useState(false)
+  const [visibleActivities, setVisibleActivities] = useState(5)
 
   const form = useForm<z.infer<typeof taskEditSchema>>({
     resolver: zodResolver(taskEditSchema),
@@ -97,6 +98,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
       setTarefa(null)
       setNovoComentario('')
       setIsEditing(false)
+      setVisibleActivities(5)
       form.reset({
         titulo: '',
         descricao: '',
@@ -821,7 +823,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
             </div>
             <ScrollArea className="flex-1 h-full">
               <div className="space-y-4 pr-4">
-                {tarefa.atividades.map((atividade) => (
+                {tarefa.atividades.slice(0, visibleActivities).map((atividade) => (
                   <div key={atividade.id} className="space-y-1">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span className="font-medium">{atividade.usuario?.nome || 'Usuário'}</span>
@@ -834,6 +836,16 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
                     </p>
                   </div>
                 ))}
+                {tarefa.atividades.length > visibleActivities && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setVisibleActivities(prev => prev + 5)}
+                  >
+                    Ver mais
+                  </Button>
+                )}
               </div>
             </ScrollArea>
           </div>
