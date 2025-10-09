@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreateTaskModal } from "@/components/modals/CreateTaskModal";
 import { TaskModal } from "@/components/modals/TaskModal";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 const Index = () => {
   const {
     usuario,
@@ -46,8 +47,8 @@ const Index = () => {
   const handleTaskUpdated = () => {
     setRefreshTasks(prev => prev + 1);
   };
-  return <div className="flex flex-col min-h-screen">
-      <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+  return <div className="flex flex-col h-screen overflow-hidden">
+      <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
         <div className="flex items-center justify-between h-full px-6 pt-5">
           <div className="flex items-center gap-4">
             <div>
@@ -61,10 +62,13 @@ const Index = () => {
         </div>
       </header>
 
-      <div className="p-6 bg-gradient-kanban">
-        <DashboardStats />
-        <KanbanBoard key={refreshTasks} onTaskClick={handleTaskClick} onCreateTask={() => setCreateTaskOpen(true)} />
-      </div>
+      <ScrollArea className="flex-1">
+        <div className="p-6 bg-gradient-kanban min-h-full">
+          <DashboardStats />
+          <KanbanBoard key={refreshTasks} onTaskClick={handleTaskClick} onCreateTask={() => setCreateTaskOpen(true)} />
+        </div>
+        <ScrollBar orientation="vertical" />
+      </ScrollArea>
 
       <CreateTaskModal open={createTaskOpen} onOpenChange={setCreateTaskOpen} onTaskCreated={handleTaskCreated} />
 
