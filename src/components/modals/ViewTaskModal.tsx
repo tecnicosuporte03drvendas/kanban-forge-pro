@@ -18,6 +18,7 @@ import { toast } from '@/hooks/use-toast'
 import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { TaskResponsibles } from './TaskResponsibles'
 import { TaskDatePicker } from './TaskDatePicker'
+import { parseLocalDate } from '@/utils/date-utils'
 import type { TarefaCompleta, TarefaComentario, TarefaAtividade, PrioridadeTarefa, StatusTarefa } from '@/types/task'
 
 
@@ -552,7 +553,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
             {/* Date and Time Picker */}
             <div className="flex items-center gap-4 flex-wrap">
               <TaskDatePicker
-                date={new Date(tarefa.data_conclusao)}
+                date={parseLocalDate(tarefa.data_conclusao)}
                 time={tarefa.horario_conclusao}
                 onDateChange={async (date) => {
                   if (!tarefa || !usuario) return

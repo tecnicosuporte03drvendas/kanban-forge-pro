@@ -1,5 +1,10 @@
+export const parseLocalDate = (dateString: string): Date => {
+  const [year, month, day] = dateString.split('-').map(Number)
+  return new Date(year, month - 1, day) // month - 1 porque Date usa 0-11 para meses
+}
+
 export const getDateStatus = (dateString: string) => {
-  const dueDate = new Date(dateString)
+  const dueDate = parseLocalDate(dateString)
   const today = new Date()
   const tomorrow = new Date(today)
   tomorrow.setDate(today.getDate() + 1)
@@ -21,7 +26,7 @@ export const getDateStatus = (dateString: string) => {
 }
 
 export const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
+  const date = parseLocalDate(dateString)
   return date.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
@@ -29,7 +34,7 @@ export const formatDate = (dateString: string) => {
 }
 
 export const isOverdue = (dateString: string) => {
-  const dueDate = new Date(dateString)
+  const dueDate = parseLocalDate(dateString)
   const today = new Date()
   dueDate.setHours(0, 0, 0, 0)
   today.setHours(0, 0, 0, 0)
