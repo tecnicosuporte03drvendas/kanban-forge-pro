@@ -17,6 +17,7 @@ import { supabase } from '@/integrations/supabase/client'
 import { toast } from '@/hooks/use-toast'
 import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { TaskResponsibles } from './TaskResponsibles'
+import { TaskDatePicker } from './TaskDatePicker'
 import type { TarefaCompleta, TarefaComentario, TarefaAtividade, PrioridadeTarefa, StatusTarefa } from '@/types/task'
 
 
@@ -548,6 +549,82 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6 overflow-y-auto p-6">
+            {/* Date and Time Picker */}
+            <div className="flex items-center gap-4 flex-wrap">
+              <TaskDatePicker
+                date={new Date(tarefa.data_conclusao)}
+                time={tarefa.horario_conclusao}
+                onDateChange={async (date) => {
+                  if (!tarefa || !usuario) return
+
+                  const previousDate = tarefa.data_conclusao
+
+                  // Optimistic update
+                  setTarefa({ ...tarefa, data_conclusao: format(date, 'yyyy-MM-dd') })
+
+                  setSaving(true)
+                  try {
+                    const { error } = await supabase
+                      .from('tarefas')
+                      .update({ data_conclusao: format(date, 'yyyy-MM-dd') })
+                      .eq('id', tarefa.id)
+
+                    if (error) throw error
+
+                    await supabase.from('tarefas_atividades').insert({
+                      tarefa_id: tarefa.id,
+                      usuario_id: usuario.id,
+                      acao: 'editou',
+                      descricao: `Alterou a data de conclusão para ${format(date, 'dd/MM/yyyy')}`,
+                    })
+
+                    loadTask()
+                    onTaskUpdated?.()
+                  } catch (error) {
+                    console.error('Error saving date:', error)
+                    setTarefa({ ...tarefa, data_conclusao: previousDate })
+                    toast({ title: 'Erro', description: 'Erro ao salvar data', variant: 'destructive' })
+                  } finally {
+                    setSaving(false)
+                  }
+                }}
+                onTimeChange={async (time) => {
+                  if (!tarefa || !usuario) return
+
+                  const previousTime = tarefa.horario_conclusao
+
+                  // Optimistic update
+                  setTarefa({ ...tarefa, horario_conclusao: time })
+
+                  setSaving(true)
+                  try {
+                    const { error } = await supabase
+                      .from('tarefas')
+                      .update({ horario_conclusao: time })
+                      .eq('id', tarefa.id)
+
+                    if (error) throw error
+
+                    await supabase.from('tarefas_atividades').insert({
+                      tarefa_id: tarefa.id,
+                      usuario_id: usuario.id,
+                      acao: 'editou',
+                      descricao: `Alterou o horário de conclusão para ${time}`,
+                    })
+
+                    loadTask()
+                    onTaskUpdated?.()
+                  } catch (error) {
+                    console.error('Error saving time:', error)
+                    setTarefa({ ...tarefa, horario_conclusao: previousTime })
+                    toast({ title: 'Erro', description: 'Erro ao salvar horário', variant: 'destructive' })
+                  } finally {
+                    setSaving(false)
+                  }
+                }}
+              />
+            </div>
+
             {/* Status and Priority Badges */}
             <div className="flex items-center gap-4 flex-wrap">
               <Badge className={priorityColors[tarefa.prioridade]}>
