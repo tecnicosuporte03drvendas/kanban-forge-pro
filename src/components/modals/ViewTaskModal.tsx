@@ -526,10 +526,33 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
               onSelectionChange={async (ids) => {
                 if (!tarefa || !usuario) return
 
+                const oldResponsibles = tarefa.responsaveis
+                const oldIds = tarefa.responsaveis.map(r => r.usuario_id || r.equipe_id || '').filter(Boolean)
+
+                // Optimistic update - atualizar UI imediatamente
+                const newResponsibles = ids
+                  .map((responsibleId) => {
+                    const responsible = responsibleOptions.find(r => r.id === responsibleId)
+                    if (responsible) {
+                      return {
+                        id: `temp-${responsibleId}`,
+                        tarefa_id: tarefa.id,
+                        usuario_id: responsible.type === 'user' ? responsible.id : null,
+                        equipe_id: responsible.type === 'team' ? responsible.id : null,
+                        created_at: new Date().toISOString(),
+                        usuarios: responsible.type === 'user' ? { nome: responsible.nome, email: '' } : null,
+                        equipes: responsible.type === 'team' ? { nome: responsible.nome, descricao: '' } : null,
+                      }
+                    }
+                    return null
+                  })
+                  .filter(Boolean)
+
+                setTarefa({ ...tarefa, responsaveis: newResponsibles as any })
+
+                // Fazer update no banco em segundo plano
                 setSaving(true)
                 try {
-                  const oldIds = tarefa.responsaveis.map(r => r.usuario_id || r.equipe_id || '').filter(Boolean)
-
                   // Delete existing responsibles
                   await supabase.from('tarefas_responsaveis').delete().eq('tarefa_id', tarefa.id)
 
@@ -588,9 +611,10 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
 
                   loadTask()
                   onTaskUpdated?.()
-                  toast({ title: 'Sucesso', description: 'Responsáveis atualizados' })
                 } catch (error) {
                   console.error('Error saving responsibles:', error)
+                  // Reverter para responsáveis anteriores em caso de erro
+                  setTarefa({ ...tarefa, responsaveis: oldResponsibles })
                   toast({ title: 'Erro', description: 'Erro ao salvar responsáveis', variant: 'destructive' })
                 } finally {
                   setSaving(false)
