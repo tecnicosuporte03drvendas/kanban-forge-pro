@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Archive, RefreshCw, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { TarefasList } from "@/components/TarefasList"
 import { ArchivedTasksList } from "@/components/ArchivedTasksList"
 import { TemporalAnalysis } from "@/components/temporal-analysis/TemporalAnalysis"
@@ -82,27 +83,30 @@ const Tarefas = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
-        <Tabs defaultValue="tarefas" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-card">
-            <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
-            <TabsTrigger value="analise">Análise Temporal</TabsTrigger>
-            <TabsTrigger value="arquivadas">Tarefas Arquivadas</TabsTrigger>
-          </TabsList>
+      <ScrollArea className="flex-1">
+        <div className="p-6 bg-gradient-kanban">
+          <Tabs defaultValue="tarefas" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 bg-card">
+              <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
+              <TabsTrigger value="analise">Análise Temporal</TabsTrigger>
+              <TabsTrigger value="arquivadas">Tarefas Arquivadas</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="tarefas" className="space-y-6">
-            <TarefasList key={refreshTasks} onTaskUpdated={handleTaskUpdated} />
-          </TabsContent>
+            <TabsContent value="tarefas" className="space-y-6">
+              <TarefasList key={refreshTasks} onTaskUpdated={handleTaskUpdated} />
+            </TabsContent>
 
-          <TabsContent value="analise" className="space-y-6">
-            <TemporalAnalysis />
-          </TabsContent>
+            <TabsContent value="analise" className="space-y-6">
+              <TemporalAnalysis />
+            </TabsContent>
 
-          <TabsContent value="arquivadas" className="space-y-6">
-            <ArchivedTasksList />
-          </TabsContent>
-        </Tabs>
-      </div>
+            <TabsContent value="arquivadas" className="space-y-6">
+              <ArchivedTasksList />
+            </TabsContent>
+          </Tabs>
+        </div>
+        <ScrollBar orientation="vertical" />
+      </ScrollArea>
 
       <CreateTaskModal
         open={showCreateModal}
