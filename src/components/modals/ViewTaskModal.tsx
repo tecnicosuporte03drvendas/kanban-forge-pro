@@ -772,79 +772,70 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
                 </div>
               </div>
             )}
+
+            {/* Comments Section */}
+            <div className="border-t pt-6 mt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <MessageSquare className="h-4 w-4" />
+                <h4 className="font-medium">Comentários</h4>
+              </div>
+
+              {/* Add Comment */}
+              <div className="space-y-2 mb-4">
+                <Textarea
+                  placeholder="Adicione um comentário..."
+                  value={novoComentario}
+                  onChange={(e) => setNovoComentario(e.target.value)}
+                  rows={3}
+                />
+                <Button 
+                  onClick={enviarComentario} 
+                  disabled={!novoComentario.trim() || enviandoComentario}
+                  size="sm"
+                >
+                  {enviandoComentario ? 'Enviando...' : 'Enviar'}
+                </Button>
+              </div>
+
+              {/* Comments List */}
+              <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+                {tarefa.comentarios.map((comentario) => (
+                  <div key={comentario.id} className="space-y-1">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="font-medium">{comentario.usuario?.nome || 'Usuário'}</span>
+                      <span>•</span>
+                      <span>{format(new Date(comentario.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</span>
+                    </div>
+                    <p className="text-sm">{comentario.comentario}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Right Column - Comments & Activities */}
+          {/* Right Column - Activities */}
           <div className="border-l pl-6 overflow-hidden flex flex-col h-full">
-            <Tabs defaultValue="comentarios" className="flex-1 flex flex-col overflow-hidden">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="comentarios">
-                  <MessageSquare className="h-4 w-4 mr-1" />
-                  Comentários
-                </TabsTrigger>
-                <TabsTrigger value="atividades">
-                  <Activity className="h-4 w-4 mr-1" />
-                  Atividade
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="comentarios" className="flex-1 flex flex-col space-y-4 overflow-hidden mt-0 data-[state=active]:flex">
-                {/* Add Comment */}
-                <div className="space-y-2 flex-shrink-0">
-                  <Textarea
-                    placeholder="Adicione um comentário..."
-                    value={novoComentario}
-                    onChange={(e) => setNovoComentario(e.target.value)}
-                    rows={3}
-                  />
-                  <Button 
-                    onClick={enviarComentario} 
-                    disabled={!novoComentario.trim() || enviandoComentario}
-                    size="sm"
-                  >
-                    {enviandoComentario ? 'Enviando...' : 'Enviar'}
-                  </Button>
-                </div>
-
-                <Separator />
-
-                {/* Comments List */}
-                <ScrollArea className="flex-1 h-full">
-                  <div className="space-y-4 pr-4">
-                    {tarefa.comentarios.map((comentario) => (
-                      <div key={comentario.id} className="space-y-1">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="font-medium">{comentario.usuario?.nome || 'Usuário'}</span>
-                          <span>•</span>
-                          <span>{format(new Date(comentario.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</span>
-                        </div>
-                        <p className="text-sm">{comentario.comentario}</p>
-                      </div>
-                    ))}
+            <div className="flex items-center gap-2 mb-4">
+              <Activity className="h-4 w-4" />
+              <h4 className="font-medium">Atividades</h4>
+            </div>
+            <ScrollArea className="flex-1 h-full">
+              <div className="space-y-4 pr-4">
+                {tarefa.atividades.map((atividade) => (
+                  <div key={atividade.id} className="space-y-1">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="font-medium">{atividade.usuario?.nome || 'Usuário'}</span>
+                      <span>•</span>
+                      <span>{format(new Date(atividade.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</span>
+                    </div>
+                    <p className="text-sm">
+                      <span className="font-medium">{atividade.acao}</span>
+                      {atividade.descricao && `: ${atividade.descricao}`}
+                    </p>
                   </div>
-                </ScrollArea>
-              </TabsContent>
-
-              <TabsContent value="atividades" className="flex-1 flex flex-col space-y-4 overflow-hidden mt-0 data-[state=active]:flex">
-                <ScrollArea className="h-full w-full">
-                  <div className="space-y-4 pr-4">
-                    {tarefa.atividades.map((atividade) => (
-                      <div key={atividade.id} className="space-y-1">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="font-medium">{atividade.usuario?.nome || 'Usuário'}</span>
-                          <span>•</span>
-                          <span>{format(new Date(atividade.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</span>
-                        </div>
-                        <p className="text-sm">
-                          <span className="font-medium">{atividade.acao}</span>
-                          {atividade.descricao && `: ${atividade.descricao}`}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-            </Tabs>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
         </div>
       </DialogContent>
