@@ -55,8 +55,8 @@ const Tarefas = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen">
-      <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="flex flex-col h-screen overflow-hidden">
+      <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
         <div className="flex items-center justify-between h-full px-6">
           <div className="flex items-center gap-4">
             <SidebarTrigger className="lg:hidden" />
@@ -84,7 +84,7 @@ const Tarefas = () => {
       </header>
 
       <ScrollArea className="flex-1">
-        <div className="p-6 bg-gradient-kanban">
+        <div className="p-6 bg-gradient-kanban min-h-full">
           <Tabs defaultValue="tarefas" className="space-y-6">
             <TabsList className="grid w-full grid-cols-3 bg-card">
               <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
