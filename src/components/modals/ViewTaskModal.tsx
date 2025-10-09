@@ -45,11 +45,11 @@ interface TaskAttachment {
   created_at: string;
 }
 const statusColors = {
-  criada: 'bg-gray-100 text-gray-700',
-  assumida: 'bg-blue-100 text-blue-700',
-  executando: 'bg-yellow-100 text-yellow-700',
-  concluida: 'bg-green-100 text-green-700',
-  validada: 'bg-purple-100 text-purple-700'
+  criada: 'bg-status-created text-white',
+  assumida: 'bg-status-assigned text-white',
+  executando: 'bg-status-in-progress text-white',
+  concluida: 'bg-status-completed text-white',
+  validada: 'bg-status-validated text-white'
 };
 export function ViewTaskModal({
   taskId,
