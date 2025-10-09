@@ -45,11 +45,11 @@ interface TaskAttachment {
   created_at: string;
 }
 const statusColors = {
-  criada: 'bg-status-created text-white',
-  assumida: 'bg-status-assigned text-white',
-  executando: 'bg-status-in-progress text-white',
-  concluida: 'bg-status-completed text-white',
-  validada: 'bg-status-validated text-white'
+  criada: 'bg-kanban-created text-white',
+  assumida: 'bg-kanban-assigned text-white',
+  executando: 'bg-kanban-executing text-white',
+  concluida: 'bg-kanban-completed text-white',
+  validada: 'bg-kanban-validated text-white'
 };
 export function ViewTaskModal({
   taskId,
