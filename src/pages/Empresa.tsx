@@ -386,8 +386,45 @@ const Empresa = () => {
             </div>
           </div>
         </header>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="flex-1 p-6 bg-gradient-kanban">
+          <div className="space-y-6">
+            {/* Shimmer para filtros */}
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <div className="h-6 w-48 bg-muted animate-pulse rounded"></div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="h-10 w-full bg-muted animate-pulse rounded"></div>
+                <div className="h-10 w-full bg-muted animate-pulse rounded"></div>
+              </CardContent>
+            </Card>
+
+            {/* Shimmer para ações */}
+            <div className="flex justify-between items-center">
+              <div className="h-5 w-32 bg-muted animate-pulse rounded"></div>
+              <div className="flex gap-2">
+                <div className="h-9 w-20 bg-muted animate-pulse rounded"></div>
+                <div className="h-9 w-40 bg-muted animate-pulse rounded"></div>
+              </div>
+            </div>
+
+            {/* Shimmer para cards em grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Card key={i} className="border-border bg-card">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="h-10 w-10 bg-muted animate-pulse rounded-full"></div>
+                    <div className="h-8 w-8 bg-muted animate-pulse rounded"></div>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="h-5 w-32 bg-muted animate-pulse rounded"></div>
+                    <div className="h-4 w-24 bg-muted animate-pulse rounded"></div>
+                    <div className="h-4 w-full bg-muted animate-pulse rounded"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -409,7 +446,7 @@ const Empresa = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
+      <div className="flex-1 p-6 bg-gradient-kanban">
         <Tabs defaultValue="membros" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="membros">Membros</TabsTrigger>
