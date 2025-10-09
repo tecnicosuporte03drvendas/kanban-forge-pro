@@ -9,12 +9,14 @@ interface KanbanColumnProps {
   title: string;
   tasks: Task[];
   color: string;
+  savingTasks: Set<string>;
 }
 export function KanbanColumn({
   id,
   title,
   tasks,
-  color
+  color,
+  savingTasks
 }: KanbanColumnProps) {
   const {
     setNodeRef,
@@ -53,7 +55,7 @@ export function KanbanColumn({
             <p className="text-sm text-muted-foreground">Nenhuma tarefa nesta coluna</p>
             
           </div> : <>
-            {tasks.map(task => <KanbanCard key={task.id} task={task} />)}
+            {tasks.map(task => <KanbanCard key={task.id} task={task} isSaving={savingTasks.has(task.id)} />)}
           </>}
       </div>
     </div>;

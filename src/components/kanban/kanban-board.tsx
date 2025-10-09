@@ -70,6 +70,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask, onTaskUpdated }: Kanban
   const [activeColumn, setActiveColumn] = useState<string | null>(null)
   const [dragStartTime, setDragStartTime] = useState<number | null>(null)
   const [isDragInProgress, setIsDragInProgress] = useState(false)
+  const [savingTasks, setSavingTasks] = useState<Set<string>>(new Set())
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     assignee: 'all',
@@ -339,17 +340,39 @@ export function KanbanBoard({ onTaskClick, onCreateTask, onTaskUpdated }: Kanban
       
       // Only update if position actually changed
       if (oldIndex !== newIndex) {
-        // Reorder array using arrayMove
+        // Optimistic update - reorder locally FIRST
         const reorderedTasks = arrayMove(tasksInColumn, oldIndex, newIndex)
-        updateTaskPosition(reorderedTasks, finalStatus)
+        const updatedTasks = reorderedTasks.map((task, index) => ({
+          ...task,
+          posicao_coluna: index
+        }))
+        
+        // Update local state immediately for instant UI feedback
+        setTasks(prev => {
+          const tasksInOtherColumns = prev.filter(t => t.status !== finalStatus)
+          return [...tasksInOtherColumns, ...updatedTasks]
+        })
+        
+        // Mark task as saving
+        setSavingTasks(prev => new Set(prev).add(taskId))
+        
+        // Then save to database
+        updateTaskPosition(updatedTasks, finalStatus, taskId)
       }
     }
   }
 
   const updateTaskStatusAndPosition = async (taskId: string, originalStatus: StatusTarefa, newStatus: StatusTarefa) => {
-    // Otimistic update - atualiza estado local primeiro
+    // Mark task as saving
+    setSavingTasks(prev => new Set(prev).add(taskId))
+    
+    // Calculate new position BEFORE optimistic update to use current state
+    const tasksInNewColumn = tasks.filter(t => t.status === newStatus && t.id !== taskId)
+    const newPosition = tasksInNewColumn.length
+    
+    // Optimistic update - update local state first
     setTasks(prev => prev.map(task => 
-      task.id === taskId ? { ...task, status: newStatus } : task
+      task.id === taskId ? { ...task, status: newStatus, posicao_coluna: newPosition } : task
     ))
 
     try {
@@ -365,10 +388,6 @@ export function KanbanBoard({ onTaskClick, onCreateTask, onTaskUpdated }: Kanban
 
       // Handle time tracking logic
       const now = new Date().toISOString()
-      
-      // Calcular posição na nova coluna (sem incluir a própria tarefa)
-      const tasksInNewColumn = tasks.filter(t => t.status === newStatus && t.id !== taskId)
-      const newPosition = tasksInNewColumn.length
       
       let updateFields: any = { 
         status: newStatus,
@@ -412,14 +431,14 @@ export function KanbanBoard({ onTaskClick, onCreateTask, onTaskUpdated }: Kanban
         })
       }
 
-      // Show success toast
+      // Notify parent component to refresh
+      onTaskUpdated?.()
+      
+      // Show success toast ONLY after successful save
       toast({
         title: "Status atualizado",
         description: `Tarefa movida para ${columns.find(c => c.id === newStatus)?.title}`,
       })
-
-      // Notify parent component to refresh
-      onTaskUpdated?.()
 
       // If task completed, send webhook notification
       if (newStatus === 'concluida') {
@@ -451,21 +470,18 @@ export function KanbanBoard({ onTaskClick, onCreateTask, onTaskUpdated }: Kanban
         description: "Não foi possível mover a tarefa. Tente novamente.",
         variant: "destructive"
       })
+    } finally {
+      // Remove saving state
+      setSavingTasks(prev => {
+        const next = new Set(prev)
+        next.delete(taskId)
+        return next
+      })
     }
   }
 
-  const updateTaskPosition = async (reorderedTasks: Task[], status: StatusTarefa) => {
-    // Update local state optimistically
-    setTasks(prev => {
-      const newTasks = [...prev]
-      const tasksInOtherColumns = newTasks.filter(t => t.status !== status)
-      const updatedTasksInColumn = reorderedTasks.map((task, index) => ({
-        ...task,
-        posicao_coluna: index
-      }))
-      return [...tasksInOtherColumns, ...updatedTasksInColumn]
-    })
-
+  const updateTaskPosition = async (reorderedTasks: Task[], status: StatusTarefa, taskId: string) => {
+    // Local state already updated optimistically in handleDragEnd
     try {
       // Update all positions in database with batch update
       const updates = reorderedTasks.map((task, index) => ({
@@ -483,10 +499,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask, onTaskUpdated }: Kanban
         if (error) throw error
       }
 
-      toast({
-        title: "Posição atualizada",
-        description: "Ordem das tarefas atualizada com sucesso",
-      })
+      // Success - no toast to avoid UI clutter
     } catch (error) {
       console.error('Error updating task position:', error)
       
@@ -498,6 +511,13 @@ export function KanbanBoard({ onTaskClick, onCreateTask, onTaskUpdated }: Kanban
       
       // Reload on error to ensure consistency
       await loadTasks()
+    } finally {
+      // Remove saving state
+      setSavingTasks(prev => {
+        const next = new Set(prev)
+        next.delete(taskId)
+        return next
+      })
     }
   }
 
@@ -597,6 +617,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask, onTaskUpdated }: Kanban
                       title={column.title}
                       tasks={columnTasks}
                       color={column.color}
+                      savingTasks={savingTasks}
                     />
                   </SortableContext>
                 </div>

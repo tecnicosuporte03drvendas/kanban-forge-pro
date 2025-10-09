@@ -8,10 +8,12 @@ import { TaskTimeBadge } from "@/components/task-time/TaskTimeBadge";
 interface KanbanCardProps {
   task: Task;
   isDragging?: boolean;
+  isSaving?: boolean;
 }
 export function KanbanCard({
   task,
-  isDragging = false
+  isDragging = false,
+  isSaving = false
 }: KanbanCardProps) {
   const {
     attributes,
@@ -64,6 +66,7 @@ export function KanbanCard({
     hover:shadow-md transition-all duration-200 select-none
     ${isDragging || isSortableDragging ? 'opacity-50 rotate-2 scale-105 shadow-lg' : ''}
     ${isDragging ? 'cursor-grabbing' : ''}
+    ${isSaving ? 'opacity-70' : ''}
   `;
   return <div ref={setNodeRef} style={style} className={cardClass} {...attributes} {...listeners}>
       <div className="space-y-3">
