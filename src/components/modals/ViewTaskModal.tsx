@@ -603,11 +603,11 @@ export function ViewTaskModal({
 
             {/* Status and Priority Badges */}
             <div className="flex items-center gap-4 flex-wrap">
-              <Badge className={cn("flex items-center gap-1", getPriorityColor(tarefa.prioridade))}>
+              <Badge className={cn("flex items-center gap-1 border-0", getPriorityColor(tarefa.prioridade))}>
                 {getPriorityIcon(tarefa.prioridade)}
                 {tarefa.prioridade.charAt(0).toUpperCase() + tarefa.prioridade.slice(1)}
               </Badge>
-              <Badge className={statusColors[tarefa.status]}>
+              <Badge className={cn("border-0", statusColors[tarefa.status])}>
                 {tarefa.status.charAt(0).toUpperCase() + tarefa.status.slice(1)}
               </Badge>
             </div>
