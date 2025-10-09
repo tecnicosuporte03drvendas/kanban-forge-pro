@@ -101,7 +101,6 @@ export function TaskAttachments({ taskId, attachments, onAttachmentsChange, onRe
       }
 
       onReload()
-      toast({ title: 'Sucesso', description: 'Imagens enviadas com sucesso' })
     } catch (error) {
       console.error('Error uploading files:', error)
       onAttachmentsChange(oldAttachments)
@@ -150,7 +149,6 @@ export function TaskAttachments({ taskId, attachments, onAttachmentsChange, onRe
       })
 
       onReload()
-      toast({ title: 'Sucesso', description: 'Link adicionado com sucesso' })
     } catch (error) {
       console.error('Error adding link:', error)
       onAttachmentsChange(oldAttachments)

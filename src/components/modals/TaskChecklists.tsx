@@ -58,7 +58,6 @@ export function TaskChecklists({ taskId, checklists, onChecklistsChange, onReloa
       })
 
       onReload()
-      toast({ title: 'Sucesso', description: 'Checklist criado' })
     } catch (error) {
       console.error('Error creating checklist:', error)
       onChecklistsChange(checklists)
@@ -130,7 +129,6 @@ export function TaskChecklists({ taskId, checklists, onChecklistsChange, onReloa
       })
 
       onReload()
-      toast({ title: 'Sucesso', description: 'Item adicionado' })
     } catch (error) {
       console.error('Error adding item:', error)
       onChecklistsChange(oldChecklists)
@@ -203,7 +201,6 @@ export function TaskChecklists({ taskId, checklists, onChecklistsChange, onReloa
       })
 
       onReload()
-      toast({ title: 'Sucesso', description: 'Item atualizado' })
     } catch (error) {
       console.error('Error updating item:', error)
       onChecklistsChange(oldChecklists)
