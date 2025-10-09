@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreateTaskModal } from "@/components/modals/CreateTaskModal";
-import { TaskModal } from "@/components/modals/TaskModal";
+import { ViewTaskModal } from "@/components/modals/ViewTaskModal";
 const Index = () => {
   const {
     usuario,
@@ -68,7 +68,14 @@ const Index = () => {
 
       <CreateTaskModal open={createTaskOpen} onOpenChange={setCreateTaskOpen} onTaskCreated={handleTaskCreated} />
 
-      <TaskModal taskId={viewTaskId} open={!!viewTaskId} onOpenChange={open => !open && setViewTaskId(null)} onTaskUpdated={handleTaskUpdated} />
+      {viewTaskId && (
+        <ViewTaskModal 
+          taskId={viewTaskId} 
+          open={!!viewTaskId} 
+          onOpenChange={open => !open && setViewTaskId(null)} 
+          onTaskUpdated={handleTaskUpdated} 
+        />
+      )}
     </div>;
 };
 export default Index;

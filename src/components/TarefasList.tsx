@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { DeleteTaskConfirmationModal } from "@/components/modals/DeleteTaskConfirmationModal"
 import { CreateTaskModal } from "@/components/modals/CreateTaskModal"
-import { TaskModal } from "@/components/modals/TaskModal"
+import { ViewTaskModal } from "@/components/modals/ViewTaskModal"
 import type { Tarefa } from "@/types/task"
 
 interface TarefasListProps {
@@ -619,15 +619,17 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated 
         }}
       />
 
-      <TaskModal
-        taskId={selectedTaskId}
-        open={showViewModal}
-        onOpenChange={setShowViewModal}
-        onTaskUpdated={() => {
-          loadTasks()
-          onTaskUpdated?.()
-        }}
-      />
+      {selectedTaskId && (
+        <ViewTaskModal
+          taskId={selectedTaskId}
+          open={showViewModal}
+          onOpenChange={setShowViewModal}
+          onTaskUpdated={() => {
+            loadTasks()
+            onTaskUpdated?.()
+          }}
+        />
+      )}
     </div>
   )
 }
