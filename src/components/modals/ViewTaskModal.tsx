@@ -63,6 +63,8 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
   // Edit states for inline editing
   const [editingDescription, setEditingDescription] = useState(false)
   const [tempDescription, setTempDescription] = useState('')
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [tempTitle, setTempTitle] = useState('')
 
   useEffect(() => {
     if (taskId && open) {
@@ -74,6 +76,8 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
       setNovoComentario('')
       setEditingDescription(false)
       setTempDescription('')
+      setEditingTitle(false)
+      setTempTitle('')
       setVisibleActivities(5)
     }
   }, [taskId, open])
@@ -81,6 +85,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
   useEffect(() => {
     if (tarefa) {
       setTempDescription(tarefa.descricao || '')
+      setTempTitle(tarefa.titulo || '')
     }
   }, [tarefa])
 
@@ -284,6 +289,47 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
     }
   }
 
+  const handleTitleSave = async () => {
+    if (!tarefa || !usuario || !tempTitle.trim() || tempTitle === tarefa.titulo) {
+      setEditingTitle(false)
+      return
+    }
+
+    const previousTitle = tarefa.titulo
+
+    // Optimistic update - atualizar UI imediatamente
+    setTarefa({ ...tarefa, titulo: tempTitle.trim() })
+    setEditingTitle(false)
+
+    // Fazer update no banco em segundo plano
+    setSaving(true)
+    try {
+      const { error } = await supabase
+        .from('tarefas')
+        .update({ titulo: tempTitle.trim() })
+        .eq('id', tarefa.id)
+
+      if (error) throw error
+
+      await supabase.from('tarefas_atividades').insert({
+        tarefa_id: tarefa.id,
+        usuario_id: usuario.id,
+        acao: 'editou',
+        descricao: 'Alterou o título da tarefa',
+      })
+
+      loadTask()
+      onTaskUpdated?.()
+    } catch (error) {
+      console.error('Error saving title:', error)
+      // Reverter para título anterior em caso de erro
+      setTarefa({ ...tarefa, titulo: previousTitle })
+      toast({ title: 'Erro', description: 'Erro ao salvar título', variant: 'destructive' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const handleDescriptionSave = async () => {
     if (!tarefa || !usuario || tempDescription === (tarefa.descricao || '')) {
       setEditingDescription(false)
@@ -436,10 +482,29 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
       <DialogContent className="max-w-6xl h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CheckSquare className="h-5 w-5" />
-              {tarefa.titulo}
-            </div>
+            {editingTitle ? (
+              <input
+                type="text"
+                value={tempTitle}
+                onChange={(e) => setTempTitle(e.target.value)}
+                onBlur={handleTitleSave}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleTitleSave()
+                  } else if (e.key === 'Escape') {
+                    setTempTitle(tarefa.titulo)
+                    setEditingTitle(false)
+                  }
+                }}
+                className="flex-1 text-lg font-semibold bg-transparent border-b-2 border-primary focus:outline-none px-2 py-1"
+                autoFocus
+              />
+            ) : (
+              <div className="flex items-center gap-2 cursor-pointer hover:opacity-70 transition-opacity" onClick={() => setEditingTitle(true)}>
+                <CheckSquare className="h-5 w-5" />
+                {tarefa.titulo}
+              </div>
+            )}
             <div className="flex items-center gap-2">
               {saving && <span className="text-sm text-muted-foreground">Salvando...</span>}
               <DropdownMenu>
