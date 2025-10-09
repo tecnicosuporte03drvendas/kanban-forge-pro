@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -517,7 +517,8 @@ export function ViewTaskModal({
 
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
           {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-6 overflow-y-auto p-6">
+          <ScrollArea className="lg:col-span-2 h-full">
+            <div className="space-y-6 p-6">
             {/* Date and Time Picker */}
             <div className="flex items-center gap-4 flex-wrap">
               <TaskDatePicker date={parseLocalDate(tarefa.data_conclusao)} time={tarefa.horario_conclusao} onDateChange={async date => {
@@ -772,7 +773,9 @@ export function ViewTaskModal({
                   </Button>}
               </div>
             </div>
-          </div>
+            </div>
+            <ScrollBar orientation="vertical" className="w-2" />
+          </ScrollArea>
 
           {/* Right Column - Comments */}
           <div className="border-l pl-6 overflow-hidden flex flex-col h-full">
