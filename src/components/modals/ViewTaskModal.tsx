@@ -290,6 +290,13 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
       return
     }
 
+    const previousDescription = tarefa.descricao
+
+    // Optimistic update - atualizar UI imediatamente
+    setTarefa({ ...tarefa, descricao: tempDescription || null })
+    setEditingDescription(false)
+
+    // Fazer update no banco em segundo plano
     setSaving(true)
     try {
       const { error } = await supabase
@@ -299,7 +306,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
 
       if (error) throw error
 
-      const oldDesc = tarefa.descricao || ''
+      const oldDesc = previousDescription || ''
       let activityDesc = ''
       if (!oldDesc && tempDescription) {
         activityDesc = 'Adicionou descrição'
@@ -316,12 +323,12 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
         descricao: activityDesc,
       })
 
-      setEditingDescription(false)
       loadTask()
       onTaskUpdated?.()
-      toast({ title: 'Sucesso', description: 'Descrição atualizada' })
     } catch (error) {
       console.error('Error saving description:', error)
+      // Reverter para descrição anterior em caso de erro
+      setTarefa({ ...tarefa, descricao: previousDescription })
       toast({ title: 'Erro', description: 'Erro ao salvar descrição', variant: 'destructive' })
     } finally {
       setSaving(false)
