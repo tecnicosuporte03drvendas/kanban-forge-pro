@@ -136,7 +136,7 @@ export function ViewTaskModal({
           usuario_id,
           comentario,
           created_at,
-          usuarios!usuario_id(nome)
+          usuario:usuarios!tarefas_comentarios_usuario_id_fkey(id, nome, email)
         `).eq('tarefa_id', taskId).order('created_at', {
         ascending: false
       });
@@ -800,7 +800,7 @@ export function ViewTaskModal({
                 {tarefa.comentarios.map(comentario => <div key={comentario.id} className="space-y-1">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span className="font-medium">{comentario.usuario?.nome || 'Usuário'}</span>
-                      <span className="opacity-50">({comentario.usuario?.nome || 'Usuário'} - {comentario.usuario_id})</span>
+                      <span className="opacity-50">({comentario.usuario?.nome || 'Usuário'} - ID: {comentario.usuario_id.substring(0, 8)}...)</span>
                       <span>•</span>
                       <span>{format(new Date(comentario.created_at), 'dd/MM/yyyy HH:mm', {
                       locale: ptBR
