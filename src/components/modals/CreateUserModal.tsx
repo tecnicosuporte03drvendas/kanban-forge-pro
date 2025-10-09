@@ -5,7 +5,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -206,15 +205,14 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 -mx-6 px-6">
-          <form id="user-form" onSubmit={handleSubmit} className="space-y-4 pr-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto flex-1 pr-2">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-            <div className="space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="nome">Nome Completo *</Label>
             <Input
               id="nome"
@@ -307,22 +305,21 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               <strong>Colaborador:</strong> Acesso básico aos módulos
             </p>
           </div>
-          </form>
-        </ScrollArea>
 
-        <div className="flex justify-end space-x-2 pt-4 border-t bg-background">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClose}
-            disabled={loading}
-          >
-            Cancelar
-          </Button>
-          <Button type="submit" form="user-form" disabled={loading}>
-            {loading ? 'Criando...' : 'Criar Usuário'}
-          </Button>
-        </div>
+          <div className="flex justify-end space-x-2 pt-4 sticky bottom-0 bg-background pb-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={loading}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Criando...' : 'Criar Usuário'}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
