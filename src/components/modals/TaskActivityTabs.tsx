@@ -1,5 +1,5 @@
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { TabsContent } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { MessageSquare, Activity } from "lucide-react"
@@ -18,7 +18,18 @@ export function TaskActivityTabs({
   getActivityColor,
 }) {
   return (
-    <>
+    <Tabs defaultValue="comments" className="flex flex-col h-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="comments" className="flex items-center gap-2">
+          <MessageSquare className="h-4 w-4" />
+          Comentários
+        </TabsTrigger>
+        <TabsTrigger value="activity" className="flex items-center gap-2">
+          <Activity className="h-4 w-4" />
+          Atividades
+        </TabsTrigger>
+      </TabsList>
+
       {/* 🗨️ COMENTÁRIOS */}
       <TabsContent
         value="comments"
@@ -145,6 +156,6 @@ export function TaskActivityTabs({
           </ScrollArea>
         </div>
       </TabsContent>
-    </>
+    </Tabs>
   )
 }
