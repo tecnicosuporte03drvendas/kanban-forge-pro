@@ -18,7 +18,7 @@ export function TaskActivityTabs({
   getActivityColor,
 }) {
   return (
-    <Tabs defaultValue="comments" className="flex flex-col h-full">
+    <Tabs defaultValue="comments" className="flex flex-col h-full overflow-y-auto">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="comments" className="flex items-center gap-2">
           <MessageSquare className="h-4 w-4" />
