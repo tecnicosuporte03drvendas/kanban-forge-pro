@@ -14,10 +14,11 @@ import type { TarefaChecklist, TarefaChecklistItem } from '@/types/task'
 interface TaskChecklistsProps {
   taskId: string
   checklists: TarefaChecklist[]
-  onChecklistsChange: () => void
+  onChecklistsChange: (checklists: TarefaChecklist[]) => void
+  onReload: () => void
 }
 
-export function TaskChecklists({ taskId, checklists, onChecklistsChange }: TaskChecklistsProps) {
+export function TaskChecklists({ taskId, checklists, onChecklistsChange, onReload }: TaskChecklistsProps) {
   const { usuario } = useEffectiveUser()
   const [creatingChecklist, setCreatingChecklist] = useState(false)
   const [newChecklistTitle, setNewChecklistTitle] = useState('')
@@ -29,37 +30,49 @@ export function TaskChecklists({ taskId, checklists, onChecklistsChange }: TaskC
   const createChecklist = async () => {
     if (!newChecklistTitle.trim() || !usuario) return
 
-    try {
-      const { data, error } = await supabase
-        .from('tarefas_checklists')
-        .insert({
-          tarefa_id: taskId,
-          titulo: newChecklistTitle.trim(),
-        })
-        .select()
-        .single()
+    const tempChecklist: TarefaChecklist = {
+      id: `temp-${Date.now()}`,
+      tarefa_id: taskId,
+      titulo: newChecklistTitle.trim(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      itens: []
+    }
 
-      if (error) throw error
+    // Optimistic update
+    onChecklistsChange([...checklists, tempChecklist])
+    setNewChecklistTitle('')
+    setCreatingChecklist(false)
+
+    try {
+      await supabase.from('tarefas_checklists').insert({
+        tarefa_id: taskId,
+        titulo: tempChecklist.titulo,
+      })
 
       await supabase.from('tarefas_atividades').insert({
         tarefa_id: taskId,
         usuario_id: usuario.id,
         acao: 'criou_checklist',
-        descricao: `Criou o checklist "${newChecklistTitle.trim()}"`,
+        descricao: `Criou o checklist "${tempChecklist.titulo}"`,
       })
 
-      setNewChecklistTitle('')
-      setCreatingChecklist(false)
-      onChecklistsChange()
+      onReload()
       toast({ title: 'Sucesso', description: 'Checklist criado' })
     } catch (error) {
       console.error('Error creating checklist:', error)
+      onChecklistsChange(checklists)
       toast({ title: 'Erro', description: 'Erro ao criar checklist', variant: 'destructive' })
     }
   }
 
   const deleteChecklist = async (checklistId: string, titulo: string) => {
     if (!usuario) return
+
+    const oldChecklists = checklists
+
+    // Optimistic update
+    onChecklistsChange(checklists.filter(c => c.id !== checklistId))
 
     try {
       await supabase.from('tarefas_checklists').delete().eq('id', checklistId)
@@ -71,10 +84,11 @@ export function TaskChecklists({ taskId, checklists, onChecklistsChange }: TaskC
         descricao: `Removeu o checklist "${titulo}"`,
       })
 
-      onChecklistsChange()
+      onReload()
       toast({ title: 'Sucesso', description: 'Checklist removido' })
     } catch (error) {
       console.error('Error deleting checklist:', error)
+      onChecklistsChange(oldChecklists)
       toast({ title: 'Erro', description: 'Erro ao remover checklist', variant: 'destructive' })
     }
   }
@@ -82,6 +96,25 @@ export function TaskChecklists({ taskId, checklists, onChecklistsChange }: TaskC
   const addItem = async (checklistId: string) => {
     const itemText = newItemTexts[checklistId]?.trim()
     if (!itemText || !usuario) return
+
+    const tempItem: TarefaChecklistItem = {
+      id: `temp-${Date.now()}`,
+      checklist_id: checklistId,
+      item: itemText,
+      concluido: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+
+    const oldChecklists = checklists
+
+    // Optimistic update
+    const updatedChecklists = checklists.map(cl =>
+      cl.id === checklistId ? { ...cl, itens: [...cl.itens, tempItem] } : cl
+    )
+    onChecklistsChange(updatedChecklists)
+    setNewItemTexts(prev => ({ ...prev, [checklistId]: '' }))
+    setAddingItems(prev => ({ ...prev, [checklistId]: false }))
 
     try {
       await supabase.from('tarefas_checklist_itens').insert({
@@ -96,18 +129,28 @@ export function TaskChecklists({ taskId, checklists, onChecklistsChange }: TaskC
         descricao: `Adicionou o item "${itemText}" ao checklist`,
       })
 
-      setNewItemTexts(prev => ({ ...prev, [checklistId]: '' }))
-      setAddingItems(prev => ({ ...prev, [checklistId]: false }))
-      onChecklistsChange()
+      onReload()
       toast({ title: 'Sucesso', description: 'Item adicionado' })
     } catch (error) {
       console.error('Error adding item:', error)
+      onChecklistsChange(oldChecklists)
       toast({ title: 'Erro', description: 'Erro ao adicionar item', variant: 'destructive' })
     }
   }
 
   const toggleItem = async (item: TarefaChecklistItem) => {
     if (!usuario) return
+
+    const oldChecklists = checklists
+
+    // Optimistic update
+    const updatedChecklists = checklists.map(cl => ({
+      ...cl,
+      itens: cl.itens.map(it =>
+        it.id === item.id ? { ...it, concluido: !it.concluido } : it
+      )
+    }))
+    onChecklistsChange(updatedChecklists)
 
     try {
       await supabase
@@ -122,15 +165,29 @@ export function TaskChecklists({ taskId, checklists, onChecklistsChange }: TaskC
         descricao: `${item.concluido ? 'Desmarcou' : 'Marcou'} o item "${item.item}"`,
       })
 
-      onChecklistsChange()
+      onReload()
     } catch (error) {
       console.error('Error toggling item:', error)
+      onChecklistsChange(oldChecklists)
       toast({ title: 'Erro', description: 'Erro ao atualizar item', variant: 'destructive' })
     }
   }
 
   const updateItem = async (itemId: string, newText: string, oldText: string) => {
     if (!usuario || !newText.trim()) return
+
+    const oldChecklists = checklists
+
+    // Optimistic update
+    const updatedChecklists = checklists.map(cl => ({
+      ...cl,
+      itens: cl.itens.map(it =>
+        it.id === itemId ? { ...it, item: newText.trim() } : it
+      )
+    }))
+    onChecklistsChange(updatedChecklists)
+    setEditingItems(prev => ({ ...prev, [itemId]: false }))
+    setEditingItemTexts(prev => ({ ...prev, [itemId]: '' }))
 
     try {
       await supabase
@@ -145,18 +202,26 @@ export function TaskChecklists({ taskId, checklists, onChecklistsChange }: TaskC
         descricao: `Alterou item de "${oldText}" para "${newText.trim()}"`,
       })
 
-      setEditingItems(prev => ({ ...prev, [itemId]: false }))
-      setEditingItemTexts(prev => ({ ...prev, [itemId]: '' }))
-      onChecklistsChange()
+      onReload()
       toast({ title: 'Sucesso', description: 'Item atualizado' })
     } catch (error) {
       console.error('Error updating item:', error)
+      onChecklistsChange(oldChecklists)
       toast({ title: 'Erro', description: 'Erro ao atualizar item', variant: 'destructive' })
     }
   }
 
   const deleteItem = async (itemId: string, itemText: string) => {
     if (!usuario) return
+
+    const oldChecklists = checklists
+
+    // Optimistic update
+    const updatedChecklists = checklists.map(cl => ({
+      ...cl,
+      itens: cl.itens.filter(it => it.id !== itemId)
+    }))
+    onChecklistsChange(updatedChecklists)
 
     try {
       await supabase.from('tarefas_checklist_itens').delete().eq('id', itemId)
@@ -168,10 +233,11 @@ export function TaskChecklists({ taskId, checklists, onChecklistsChange }: TaskC
         descricao: `Removeu o item "${itemText}"`,
       })
 
-      onChecklistsChange()
+      onReload()
       toast({ title: 'Sucesso', description: 'Item removido' })
     } catch (error) {
       console.error('Error deleting item:', error)
+      onChecklistsChange(oldChecklists)
       toast({ title: 'Erro', description: 'Erro ao remover item', variant: 'destructive' })
     }
   }

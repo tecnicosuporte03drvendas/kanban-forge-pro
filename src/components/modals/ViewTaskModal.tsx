@@ -729,18 +729,20 @@ export function ViewTaskModal({
             <TaskChecklists
               taskId={tarefa.id}
               checklists={tarefa.checklists}
-              onChecklistsChange={() => {
-                loadTask();
+              onChecklistsChange={(newChecklists) => {
+                setTarefa({ ...tarefa, checklists: newChecklists });
               }}
+              onReload={loadTask}
             />
 
             {/* Attachments */}
             <TaskAttachments
               taskId={tarefa.id}
               attachments={attachments}
-              onAttachmentsChange={() => {
-                loadTask();
+              onAttachmentsChange={(newAttachments) => {
+                setAttachments(newAttachments);
               }}
+              onReload={loadTask}
             />
 
             {/* Activities Section */}

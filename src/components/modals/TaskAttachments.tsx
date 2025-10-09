@@ -25,10 +25,11 @@ interface TaskAttachment {
 interface TaskAttachmentsProps {
   taskId: string
   attachments: TaskAttachment[]
-  onAttachmentsChange: () => void
+  onAttachmentsChange: (attachments: TaskAttachment[]) => void
+  onReload: () => void
 }
 
-export function TaskAttachments({ taskId, attachments, onAttachmentsChange }: TaskAttachmentsProps) {
+export function TaskAttachments({ taskId, attachments, onAttachmentsChange, onReload }: TaskAttachmentsProps) {
   const { usuario } = useEffectiveUser()
   const [isUploading, setIsUploading] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
@@ -39,38 +40,56 @@ export function TaskAttachments({ taskId, attachments, onAttachmentsChange }: Ta
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return
 
+    if (!usuario) {
+      toast({ title: 'Erro', description: 'Usuário não autenticado', variant: 'destructive' })
+      return
+    }
+
+    const validFiles = Array.from(files).filter(file => {
+      if (!file.type.startsWith('image/')) {
+        toast({ title: 'Erro', description: 'Apenas imagens são permitidas', variant: 'destructive' })
+        return false
+      }
+      return true
+    })
+
+    if (validFiles.length === 0) return
+
+    // Create temp attachments
+    const tempAttachments: TaskAttachment[] = validFiles.map(file => ({
+      id: `temp-${Date.now()}-${Math.random()}`,
+      tarefa_id: taskId,
+      tipo: 'imagem' as const,
+      url: URL.createObjectURL(file),
+      nome: file.name,
+      tamanho: file.size,
+      usuario_id: usuario.id,
+      created_at: new Date().toISOString()
+    }))
+
+    const oldAttachments = attachments
+
+    // Optimistic update
+    onAttachmentsChange([...attachments, ...tempAttachments])
+    setDialogOpen(false)
+
     setIsUploading(true)
     
     try {
-      if (!usuario) throw new Error('Usuário não autenticado')
-
-      for (const file of Array.from(files)) {
-        // Validate file type (images only)
-        if (!file.type.startsWith('image/')) {
-          toast({
-            title: 'Erro',
-            description: 'Apenas imagens são permitidas',
-            variant: 'destructive'
-          })
-          continue
-        }
-
-        // Upload to storage
+      for (const file of validFiles) {
         const fileExt = file.name.split('.').pop()
         const fileName = `${taskId}/${Date.now()}.${fileExt}`
         
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('task-attachments')
           .upload(fileName, file)
 
         if (uploadError) throw uploadError
 
-        // Get public URL
         const { data: urlData } = supabase.storage
           .from('task-attachments')
           .getPublicUrl(fileName)
 
-        // Save to database
         await supabase.from('tarefas_anexos').insert({
           tarefa_id: taskId,
           tipo: 'imagem',
@@ -81,92 +100,85 @@ export function TaskAttachments({ taskId, attachments, onAttachmentsChange }: Ta
         })
       }
 
-      onAttachmentsChange()
-      setDialogOpen(false)
-      toast({
-        title: 'Sucesso',
-        description: 'Imagens enviadas com sucesso'
-      })
+      onReload()
+      toast({ title: 'Sucesso', description: 'Imagens enviadas com sucesso' })
     } catch (error) {
       console.error('Error uploading files:', error)
-      toast({
-        title: 'Erro',
-        description: 'Erro ao enviar imagens',
-        variant: 'destructive'
-      })
+      onAttachmentsChange(oldAttachments)
+      toast({ title: 'Erro', description: 'Erro ao enviar imagens', variant: 'destructive' })
     } finally {
       setIsUploading(false)
     }
   }
 
   const handleAddLink = async () => {
-    if (!linkUrl.trim()) return
+    if (!linkUrl.trim() || !usuario) return
+
+    // Validate URL
+    try {
+      new URL(linkUrl)
+    } catch {
+      toast({ title: 'Erro', description: 'URL inválida', variant: 'destructive' })
+      return
+    }
+
+    const tempAttachment: TaskAttachment = {
+      id: `temp-${Date.now()}`,
+      tarefa_id: taskId,
+      tipo: 'link',
+      url: linkUrl,
+      nome: linkName || linkUrl,
+      usuario_id: usuario.id,
+      created_at: new Date().toISOString()
+    }
+
+    const oldAttachments = attachments
+
+    // Optimistic update
+    onAttachmentsChange([...attachments, tempAttachment])
+    setLinkUrl('')
+    setLinkName('')
+    setDialogOpen(false)
 
     try {
-      if (!usuario) throw new Error('Usuário não autenticado')
-
-      // Validate URL
-      try {
-        new URL(linkUrl)
-      } catch {
-        toast({
-          title: 'Erro',
-          description: 'URL inválida',
-          variant: 'destructive'
-        })
-        return
-      }
-
       await supabase.from('tarefas_anexos').insert({
         tarefa_id: taskId,
         tipo: 'link',
-        url: linkUrl,
-        nome: linkName || linkUrl,
+        url: tempAttachment.url,
+        nome: tempAttachment.nome,
         usuario_id: usuario.id
       })
 
-      onAttachmentsChange()
-      setLinkUrl('')
-      setLinkName('')
-      setDialogOpen(false)
-      toast({
-        title: 'Sucesso',
-        description: 'Link adicionado com sucesso'
-      })
+      onReload()
+      toast({ title: 'Sucesso', description: 'Link adicionado com sucesso' })
     } catch (error) {
       console.error('Error adding link:', error)
-      toast({
-        title: 'Erro',
-        description: 'Erro ao adicionar link',
-        variant: 'destructive'
-      })
+      onAttachmentsChange(oldAttachments)
+      toast({ title: 'Erro', description: 'Erro ao adicionar link', variant: 'destructive' })
     }
   }
 
   const handleRemoveAttachment = async (attachment: TaskAttachment) => {
+    const oldAttachments = attachments
+
+    // Optimistic update
+    onAttachmentsChange(attachments.filter(a => a.id !== attachment.id))
+
     try {
-      // Remove from database
       await supabase.from('tarefas_anexos').delete().eq('id', attachment.id)
 
-      // If it's an image, also remove from storage
       if (attachment.tipo === 'imagem') {
         const urlParts = attachment.url.split('/')
         const fileName = urlParts[urlParts.length - 2] + '/' + urlParts[urlParts.length - 1]
         await supabase.storage.from('task-attachments').remove([fileName])
       }
 
-      onAttachmentsChange()
-      toast({
-        title: 'Sucesso',
-        description: 'Anexo removido com sucesso'
-      })
+      onReload()
+      toast({ title: 'Sucesso', description: 'Anexo removido com sucesso' })
     } catch (error) {
       console.error('Error removing attachment:', error)
-      toast({
-        title: 'Erro',
-        description: 'Erro ao remover anexo',
-        variant: 'destructive'
-      })
+      onAttachmentsChange(oldAttachments)
+      toast({ title: 'Erro', description: 'Erro ao remover anexo', variant: 'destructive' })
     }
   }
 
