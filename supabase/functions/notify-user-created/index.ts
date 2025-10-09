@@ -44,19 +44,6 @@ serve(async (req) => {
   }
 
   try {
-    const webhookUrl = Deno.env.get('N8N_WEBHOOK_URL');
-    
-    if (!webhookUrl) {
-      console.error('N8N_WEBHOOK_URL not configured');
-      return new Response(
-        JSON.stringify({ error: 'Webhook URL not configured' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
     const { user, empresa, created_by } = await req.json();
 
     // Validate required fields
@@ -86,6 +73,23 @@ serve(async (req) => {
     }
 
     const evolutionInstance = evolutionInstances?.[0] || null;
+
+    // Validate webhook URL from Evolution instance
+    if (!evolutionInstance?.webhook_url) {
+      console.error('No Evolution instance with webhook_url configured');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Webhook URL not configured',
+          message: 'Nenhuma instância WhatsApp com webhook configurado foi encontrada' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    const webhookUrl = evolutionInstance.webhook_url;
 
     // Format celular to remove 55 prefix if present
     let celularFormatted = user.celular;
