@@ -430,12 +430,6 @@ export function KanbanBoard({ onTaskClick, onCreateTask }: KanbanBoardProps) {
         })
       }
 
-      // Show success toast ONLY after successful save
-      toast({
-        title: "Status atualizado",
-        description: `Tarefa movida para ${columns.find(c => c.id === newStatus)?.title}`,
-      })
-
       // If task completed, send webhook notification
       if (newStatus === 'concluida') {
         console.log('Task completed! Sending webhook notification...')
