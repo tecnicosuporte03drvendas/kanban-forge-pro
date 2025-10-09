@@ -111,7 +111,8 @@ export function TaskActivityTabs({
                     </div>
                     <div className="flex-1 space-y-1 min-w-0">
                       <div className="text-sm">
-                        <span className="font-medium">{atividade.usuario?.nome || "Usuário"}</span>
+                        <span className="font-medium">{atividade.usuarios?.nome || "Usuário"}</span>
+                        <span className="opacity-50 text-xs ml-1">({atividade.usuario_id?.slice(0, 8)})</span>
                         <span className="text-muted-foreground ml-1">{atividade.acao}</span>
                         {atividade.descricao && (
                           <>
