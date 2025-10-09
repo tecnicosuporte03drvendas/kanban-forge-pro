@@ -74,22 +74,8 @@ serve(async (req) => {
 
     const evolutionInstance = evolutionInstances?.[0] || null;
 
-    // Validate webhook URL from Evolution instance
-    if (!evolutionInstance?.webhook_url) {
-      console.error('No Evolution instance with webhook_url configured');
-      return new Response(
-        JSON.stringify({ 
-          error: 'Webhook URL not configured',
-          message: 'Nenhuma instância WhatsApp com webhook configurado foi encontrada' 
-        }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    const webhookUrl = evolutionInstance.webhook_url;
+    // Use hardcoded webhook URL for n8n
+    const webhookUrl = 'https://n8n-tezeus-agenda-n8n.upvzfg.easypanel.host/webhook/whatsapp-test';
 
     // Format celular to remove 55 prefix if present
     let celularFormatted = user.celular;
