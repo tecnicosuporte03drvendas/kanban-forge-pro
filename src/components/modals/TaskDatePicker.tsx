@@ -73,7 +73,9 @@ export function TaskDatePicker({ date, time, onDateChange, onTimeChange, disable
             <Label>Horário de conclusão</Label>
             <Select value={time} onValueChange={onTimeChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecionar horário" />
+                <SelectValue placeholder="Selecionar horário">
+                  {time || "Selecionar horário"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="h-60">
                 {timeOptions.map((timeOption) => (
