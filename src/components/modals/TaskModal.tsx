@@ -655,7 +655,7 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
   }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+      <DialogContent className="max-w-6xl h-[90vh] overflow-hidden flex flex-col p-0">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border">
           <div className="flex items-center gap-3 flex-1">
