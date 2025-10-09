@@ -18,6 +18,8 @@ import { toast } from '@/hooks/use-toast';
 import { useEffectiveUser } from '@/hooks/use-effective-user';
 import { TaskResponsibles } from './TaskResponsibles';
 import { TaskDatePicker } from './TaskDatePicker';
+import { TaskChecklists } from './TaskChecklists';
+import { TaskAttachments } from './TaskAttachments';
 import { parseLocalDate } from '@/utils/date-utils';
 import type { TarefaCompleta, TarefaComentario, TarefaAtividade, PrioridadeTarefa, StatusTarefa } from '@/types/task';
 interface ViewTaskModalProps {
@@ -30,6 +32,17 @@ interface ResponsibleOption {
   id: string;
   nome: string;
   type: 'user' | 'team';
+}
+
+interface TaskAttachment {
+  id: string;
+  tarefa_id: string;
+  tipo: 'imagem' | 'link';
+  url: string;
+  nome: string;
+  tamanho?: number;
+  usuario_id: string;
+  created_at: string;
 }
 const priorityColors = {
   baixa: 'bg-gray-100 text-gray-700',
@@ -62,6 +75,7 @@ export function ViewTaskModal({
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [visibleActivities, setVisibleActivities] = useState(5);
+  const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
 
   // Edit states for inline editing
   const [editingDescription, setEditingDescription] = useState(false);
@@ -81,6 +95,7 @@ export function ViewTaskModal({
       setEditingTitle(false);
       setTempTitle('');
       setVisibleActivities(5);
+      setAttachments([]);
     }
   }, [taskId, open]);
   useEffect(() => {
@@ -153,6 +168,15 @@ export function ViewTaskModal({
       if (atividadesError) {
         console.error('Error loading activities:', atividadesError);
       }
+
+      // Load attachments
+      const { data: anexosData } = await supabase
+        .from('tarefas_anexos')
+        .select('*')
+        .eq('tarefa_id', taskId)
+        .order('created_at', {
+          ascending: false,
+        });
       const tarefaCompleta: TarefaCompleta = {
         ...tarefaData,
         responsaveis: responsaveisData || [],
@@ -164,6 +188,7 @@ export function ViewTaskModal({
         atividades: atividadesData || []
       };
       setTarefa(tarefaCompleta);
+      setAttachments((anexosData || []) as TaskAttachment[]);
     } catch (error) {
       console.error('Error loading task:', error);
       toast({
@@ -173,49 +198,6 @@ export function ViewTaskModal({
       });
     } finally {
       setLoading(false);
-    }
-  };
-  const toggleChecklistItem = async (itemId: string, concluido: boolean) => {
-    try {
-      const {
-        error
-      } = await supabase.from('tarefas_checklist_itens').update({
-        concluido: !concluido
-      }).eq('id', itemId);
-      if (error) throw error;
-
-      // Update local state
-      setTarefa(prev => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          checklists: prev.checklists.map(checklist => ({
-            ...checklist,
-            itens: checklist.itens.map(item => item.id === itemId ? {
-              ...item,
-              concluido: !concluido
-            } : item)
-          }))
-        };
-      });
-
-      // Create activity
-      if (usuario && tarefa) {
-        await supabase.from('tarefas_atividades').insert({
-          tarefa_id: tarefa.id,
-          usuario_id: usuario.id,
-          acao: concluido ? 'desmarcou' : 'marcou',
-          descricao: `Item do checklist ${concluido ? 'desmarcado' : 'marcado'}`
-        });
-      }
-      loadTask(); // Refresh to get new activity
-    } catch (error) {
-      console.error('Error updating checklist item:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao atualizar item',
-        variant: 'destructive'
-      });
     }
   };
   const loadResponsibleOptions = async () => {
@@ -751,22 +733,22 @@ export function ViewTaskModal({
           }} />
 
             {/* Checklists */}
-            {tarefa.checklists.length > 0 && <div>
-                <h4 className="font-medium mb-3">Checklists</h4>
-                <div className="space-y-4">
-                  {tarefa.checklists.map(checklist => <div key={checklist.id} className="border rounded-lg p-4">
-                      <h5 className="font-medium mb-3">{checklist.titulo}</h5>
-                      <div className="space-y-2">
-                        {checklist.itens.map(item => <div key={item.id} className="flex items-center gap-2">
-                            <Checkbox checked={item.concluido} onCheckedChange={() => toggleChecklistItem(item.id, item.concluido)} />
-                            <span className={`text-sm ${item.concluido ? 'line-through text-muted-foreground' : ''}`}>
-                              {item.item}
-                            </span>
-                          </div>)}
-                      </div>
-                    </div>)}
-                </div>
-              </div>}
+            <TaskChecklists
+              taskId={tarefa.id}
+              checklists={tarefa.checklists}
+              onChecklistsChange={() => {
+                loadTask();
+              }}
+            />
+
+            {/* Attachments */}
+            <TaskAttachments
+              taskId={tarefa.id}
+              attachments={attachments}
+              onAttachmentsChange={() => {
+                loadTask();
+              }}
+            />
 
             {/* Activities Section */}
             <div className="border-t pt-6 mt-6">
