@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { formatCelularForDisplay, formatCelularForDB, validateCelular } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CreateUserModalProps {
   open: boolean;
@@ -196,8 +197,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="flex-shrink-0 px-6 pt-6">
           <DialogTitle>Novo Usuário</DialogTitle>
           <DialogDescription>
             Cadastre um novo usuário para a empresa <strong>{empresaNome}</strong>. 
@@ -205,121 +206,123 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto flex-1 pr-2">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+        <ScrollArea className="flex-1 px-6">
+          <form onSubmit={handleSubmit} className="space-y-4 pb-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-          <div className="space-y-2">
-            <Label htmlFor="nome">Nome Completo *</Label>
-            <Input
-              id="nome"
-              type="text"
-              placeholder="Nome completo do usuário"
-              value={formData.nome}
-              onChange={(e) => handleInputChange('nome', e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="nome">Nome Completo *</Label>
+              <Input
+                id="nome"
+                type="text"
+                placeholder="Nome completo do usuário"
+                value={formData.nome}
+                onChange={(e) => handleInputChange('nome', e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="email@exemplo.com"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="email@exemplo.com"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="senha">Senha *</Label>
-            <Input
-              id="senha"
-              type="password"
-              placeholder="Mínimo 6 caracteres"
-              value={formData.senha}
-              onChange={(e) => handleInputChange('senha', e.target.value)}
-              required
-              disabled={loading}
-              minLength={6}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="senha">Senha *</Label>
+              <Input
+                id="senha"
+                type="password"
+                placeholder="Mínimo 6 caracteres"
+                value={formData.senha}
+                onChange={(e) => handleInputChange('senha', e.target.value)}
+                required
+                disabled={loading}
+                minLength={6}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="celular">Celular *</Label>
-            <Input
-              id="celular"
-              type="tel"
-              placeholder="(11) 99999-9999"
-              value={formData.celular}
-              onChange={(e) => handleInputChange('celular', e.target.value)}
-              required
-              disabled={loading}
-            />
-            <p className="text-xs text-muted-foreground">
-              Formato: (XX) XXXXX-XXXX
-            </p>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="celular">Celular *</Label>
+              <Input
+                id="celular"
+                type="tel"
+                placeholder="(11) 99999-9999"
+                value={formData.celular}
+                onChange={(e) => handleInputChange('celular', e.target.value)}
+                required
+                disabled={loading}
+              />
+              <p className="text-xs text-muted-foreground">
+                Formato: (XX) XXXXX-XXXX
+              </p>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="funcao_empresa">Função na Empresa</Label>
-            <Input
-              id="funcao_empresa"
-              type="text"
-              placeholder="Ex: Designer, Auxiliar Técnico, Desenvolvedor..."
-              value={formData.funcao_empresa}
-              onChange={(e) => handleInputChange('funcao_empresa', e.target.value)}
-              disabled={loading}
-            />
-            <p className="text-xs text-muted-foreground">
-              Cargo específico dentro da empresa (opcional)
-            </p>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="funcao_empresa">Função na Empresa</Label>
+              <Input
+                id="funcao_empresa"
+                type="text"
+                placeholder="Ex: Designer, Auxiliar Técnico, Desenvolvedor..."
+                value={formData.funcao_empresa}
+                onChange={(e) => handleInputChange('funcao_empresa', e.target.value)}
+                disabled={loading}
+              />
+              <p className="text-xs text-muted-foreground">
+                Cargo específico dentro da empresa (opcional)
+              </p>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="tipo_usuario">Tipo de Usuário *</Label>
-            <Select 
-              value={formData.tipo_usuario} 
-              onValueChange={(value) => handleInputChange('tipo_usuario', value)}
-              disabled={loading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo de usuário" />
-              </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="proprietario">Proprietário</SelectItem>
-                          <SelectItem value="gestor">Gestor</SelectItem>
-                          <SelectItem value="colaborador">Colaborador</SelectItem>
-                        </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              <strong>Proprietário:</strong> Acesso total à empresa<br/>
-              <strong>Gestor:</strong> Gerencia usuários e tarefas<br/>
-              <strong>Colaborador:</strong> Acesso básico aos módulos
-            </p>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="tipo_usuario">Tipo de Usuário *</Label>
+              <Select 
+                value={formData.tipo_usuario} 
+                onValueChange={(value) => handleInputChange('tipo_usuario', value)}
+                disabled={loading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo de usuário" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="proprietario">Proprietário</SelectItem>
+                  <SelectItem value="gestor">Gestor</SelectItem>
+                  <SelectItem value="colaborador">Colaborador</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                <strong>Proprietário:</strong> Acesso total à empresa<br/>
+                <strong>Gestor:</strong> Gerencia usuários e tarefas<br/>
+                <strong>Colaborador:</strong> Acesso básico aos módulos
+              </p>
+            </div>
+          </form>
+        </ScrollArea>
 
-          <div className="flex justify-end space-x-2 pt-4 sticky bottom-0 bg-background pb-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={loading}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Criando...' : 'Criar Usuário'}
-            </Button>
-          </div>
-        </form>
+        <div className="flex justify-end space-x-2 px-6 py-4 border-t flex-shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClose}
+            disabled={loading}
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={loading} onClick={handleSubmit}>
+            {loading ? 'Criando...' : 'Criar Usuário'}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
