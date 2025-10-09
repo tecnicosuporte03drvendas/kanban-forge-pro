@@ -1,4 +1,4 @@
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -93,6 +93,12 @@ export function TaskActivityTabs({
                 ))
               )}
             </div>
+            <ScrollBar
+              orientation="vertical"
+              className="w-2 bg-transparent hover:bg-transparent transition-all"
+            >
+              <div className="bg-muted-foreground/30 hover:bg-muted-foreground/50 rounded-full w-full" />
+            </ScrollBar>
           </ScrollArea>
         </div>
       </TabsContent>
@@ -153,6 +159,12 @@ export function TaskActivityTabs({
                 ))
               )}
             </div>
+            <ScrollBar
+              orientation="vertical"
+              className="w-2 bg-transparent hover:bg-transparent transition-all"
+            >
+              <div className="bg-muted-foreground/30 hover:bg-muted-foreground/50 rounded-full w-full" />
+            </ScrollBar>
           </ScrollArea>
         </div>
       </TabsContent>
