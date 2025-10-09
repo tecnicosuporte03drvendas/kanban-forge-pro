@@ -825,7 +825,7 @@ export function ViewTaskModal({ taskId, open, onOpenChange, onTaskUpdated }: Vie
                 </ScrollArea>
               </TabsContent>
 
-              <TabsContent value="atividades" className="flex-1 overflow-hidden mt-0 data-[state=active]:flex">
+              <TabsContent value="atividades" className="flex-1 flex flex-col space-y-4 overflow-hidden mt-0 data-[state=active]:flex">
                 <ScrollArea className="h-full w-full">
                   <div className="space-y-4 pr-4">
                     {tarefa.atividades.map((atividade) => (
