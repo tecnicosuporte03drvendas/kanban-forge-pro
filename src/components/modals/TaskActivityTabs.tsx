@@ -18,7 +18,7 @@ export function TaskActivityTabs({
   getActivityColor,
 }) {
   return (
-    <Tabs defaultValue="comments" className="flex flex-col h-full">
+    <Tabs defaultValue="comments" className="flex flex-col h-full min-h-0">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="comments" className="flex items-center gap-2">
           <MessageSquare className="h-4 w-4" />
@@ -33,9 +33,9 @@ export function TaskActivityTabs({
       {/* 🗨️ COMENTÁRIOS */}
       <TabsContent
         value="comments"
-        className="h-full flex flex-col mt-0 data-[state=active]:flex"
+        className="flex flex-col h-full min-h-0 mt-0 data-[state=active]:flex"
       >
-        {/* Formulário de novo comentário */}
+        {/* Formulário fixo */}
         <div className="flex-shrink-0 p-4 border-b border-border bg-background">
           <div className="space-y-2">
             <Textarea
@@ -56,9 +56,12 @@ export function TaskActivityTabs({
           </div>
         </div>
 
-        {/* Lista de comentários com scroll */}
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea key={`comments-${comments.length}`} className="h-full">
+        {/* Lista com scroll persistente */}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <ScrollArea
+            key={`comments-${comments.length}`}
+            className="h-full pr-2"
+          >
             <div className="p-4 space-y-4">
               {comments.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
@@ -93,6 +96,8 @@ export function TaskActivityTabs({
                 ))
               )}
             </div>
+
+            {/* Scroll estilizado */}
             <ScrollBar
               orientation="vertical"
               className="w-2 bg-transparent hover:bg-transparent transition-all"
@@ -106,10 +111,13 @@ export function TaskActivityTabs({
       {/* ⚙️ ATIVIDADES */}
       <TabsContent
         value="activity"
-        className="h-full flex flex-col mt-0 data-[state=active]:flex"
+        className="flex flex-col h-full min-h-0 mt-0 data-[state=active]:flex"
       >
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea key={`activities-${activities.length}`} className="h-full">
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <ScrollArea
+            key={`activities-${activities.length}`}
+            className="h-full pr-2"
+          >
             <div className="p-4 space-y-4">
               {activities.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
@@ -159,6 +167,8 @@ export function TaskActivityTabs({
                 ))
               )}
             </div>
+
+            {/* Scroll estilizado */}
             <ScrollBar
               orientation="vertical"
               className="w-2 bg-transparent hover:bg-transparent transition-all"
