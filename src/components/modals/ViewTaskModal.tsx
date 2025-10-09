@@ -799,7 +799,7 @@ export function ViewTaskModal({
               <div className="space-y-4 pr-4">
                 {tarefa.comentarios.map(comentario => <div key={comentario.id} className="space-y-1">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="font-medium">{comentario.usuario?.nome || usuario?.nome || 'Usuário'}</span>
+                      <span className="font-medium">{comentario.usuario?.nome || 'Usuário'}</span>
                       <span>•</span>
                       <span>{format(new Date(comentario.created_at), 'dd/MM/yyyy HH:mm', {
                       locale: ptBR
