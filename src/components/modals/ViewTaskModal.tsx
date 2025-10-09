@@ -518,7 +518,7 @@ export function ViewTaskModal({
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
           {/* Left Column - Main Content */}
           <ScrollArea className="lg:col-span-2 h-full">
-            <div className="space-y-6 p-6">
+            <div className="space-y-6 p-4">
             {/* Date and Time Picker */}
             <div className="flex items-center gap-4 flex-wrap">
               <TaskDatePicker date={parseLocalDate(tarefa.data_conclusao)} time={tarefa.horario_conclusao} onDateChange={async date => {
