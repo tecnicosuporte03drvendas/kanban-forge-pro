@@ -28,54 +28,30 @@ import { AdminDashboard } from '@/pages/AdminDashboard';
 import { AdminConfiguracoes } from '@/pages/AdminConfiguracoes';
 import NotFound from "./pages/NotFound";
 import { lazy, Suspense } from "react";
-
 const CompanyView = lazy(() => import("./pages/CompanyView"));
-
 const queryClient = new QueryClient();
-
 const HeaderWithBackButton = () => {
   const navigate = useNavigate();
-  const { originalUser, usuario } = useEffectiveUser();
-  
-  return (
-    <SidebarProvider defaultOpen={true}>
+  const {
+    originalUser,
+    usuario
+  } = useEffectiveUser();
+  return <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-14 border-b bg-background flex items-center px-4 sticky top-0 z-10">
-            <SidebarTrigger className="mr-4" />
-            {originalUser?.tipo_usuario === 'master' && usuario?.empresa_id && (
-              <Button 
-                variant="outline" 
-                onClick={() => navigate(`/admin/empresa/${usuario.empresa_id}`)}
-                className="hover:bg-accent"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Voltar ao perfil da empresa
-              </Button>
-            )}
-          </header>
+          
           <main className="flex-1 overflow-auto">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={<Index />} />
-              <Route 
-                path="/tarefas" 
-                element={
-                  <ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
+              <Route path="/tarefas" element={<ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
                     <Tarefas />
-                  </ProtectedRoute>
-                } 
-              />
+                  </ProtectedRoute>} />
               <Route path="/calendario" element={<Calendario />} />
-              <Route 
-                path="/relatorios" 
-                element={
-                  <ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
+              <Route path="/relatorios" element={<ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
                     <Relatorios />
-                  </ProtectedRoute>
-                } 
-              />
+                  </ProtectedRoute>} />
               <Route path="/empresa" element={<Empresa />} />
               <Route path="/desempenho" element={<Desempenho />} />
               <Route path="/integracoes" element={<Integracoes />} />
@@ -86,12 +62,9 @@ const HeaderWithBackButton = () => {
           </main>
         </div>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 };
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+const App = () => <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="light" storageKey="tezeus-ui-theme">
       <TooltipProvider>
         <AuthProvider>
@@ -105,64 +78,37 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               
               {/* Rota específica do Admin Master */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute allowedRoles={['master']}>
+              <Route path="/admin" element={<ProtectedRoute allowedRoles={['master']}>
                     <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
+                  </ProtectedRoute>} />
               
               {/* Rota de configurações do Admin Master */}
-              <Route
-                path="/admin/configuracoes"
-                element={
-                  <ProtectedRoute allowedRoles={['master']}>
+              <Route path="/admin/configuracoes" element={<ProtectedRoute allowedRoles={['master']}>
                     <AdminConfiguracoes />
-                  </ProtectedRoute>
-                }
-              />
+                  </ProtectedRoute>} />
               
               {/* Rota para visualizar empresa */}
-              <Route
-                path="/admin/empresa/:empresaId"
-                element={
-                  <ProtectedRoute allowedRoles={['master']}>
+              <Route path="/admin/empresa/:empresaId" element={<ProtectedRoute allowedRoles={['master']}>
                     <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>}>
                       <CompanyView />
                     </Suspense>
-                  </ProtectedRoute>
-                }
-              />
+                  </ProtectedRoute>} />
               
               {/* Rota stealth para master acessar ambiente da empresa */}
-              <Route
-                path="/empresa/:empresaId/*"
-                element={
-                  <StealthUserProvider>
+              <Route path="/empresa/:empresaId/*" element={<StealthUserProvider>
                     <HeaderWithBackButton />
-                  </StealthUserProvider>
-                }
-              />
+                  </StealthUserProvider>} />
               
               {/* Rotas protegidas com sidebar */}
-              <Route
-                path="/*"
-                element={
-                  <ProtectedRoute allowedRoles={['proprietario', 'gestor', 'colaborador']}>
+              <Route path="/*" element={<ProtectedRoute allowedRoles={['proprietario', 'gestor', 'colaborador']}>
                     <HeaderWithBackButton />
-                  </ProtectedRoute>
-                }
-              />
+                  </ProtectedRoute>} />
             </Routes>
           </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>
     </ThemeProvider>
-  </QueryClientProvider>
-);
-
+  </QueryClientProvider>;
 export default App;
