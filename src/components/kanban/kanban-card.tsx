@@ -75,6 +75,9 @@ export function KanbanCard({
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <div className={`h-6 w-1.5 rounded-full ${getPriorityColor(task.priority)}`} title={task.priority} />
+          <h4 className="font-medium text-card-foreground text-xs flex-1 min-w-0 break-words overflow-wrap-anywhere">
+            {task.title}
+          </h4>
           {task.isCurrentUserAssigned && <div className="w-2 h-2 bg-green-500 rounded-full" title="Você está nesta tarefa" />}
         </div>
         
