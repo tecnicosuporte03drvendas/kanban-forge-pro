@@ -471,42 +471,30 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated 
             className="border-border bg-card hover:shadow-md transition-all duration-200 cursor-pointer"
             onClick={() => handleTaskAction(task.id, 'view')}
           >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <input 
-                      type="checkbox" 
-                      className="w-4 h-4 rounded border-border" 
-                      checked={selectedTasks.includes(task.id)}
-                      onChange={(e) => {
-                        e.stopPropagation()
-                        toggleTaskSelection(task.id)
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <h4 className="font-medium text-card-foreground">{task.titulo}</h4>
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <input 
+                    type="checkbox" 
+                    className="w-4 h-4 rounded border-border flex-shrink-0" 
+                    checked={selectedTasks.includes(task.id)}
+                    onChange={(e) => {
+                      e.stopPropagation()
+                      toggleTaskSelection(task.id)
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Badge className={getPriorityColor(task.prioridade)} />
+                    <h4 className="font-medium text-sm text-card-foreground truncate">{task.titulo}</h4>
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Badge className={getStatusColor(task.status)}>
-                      {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
-                    </Badge>
-                    <Badge className={getPriorityColor(task.prioridade)}>
-                      {task.prioridade.charAt(0).toUpperCase() + task.prioridade.slice(1)}
-                    </Badge>
-                  </div>
-                  
-                  {task.descricao && (
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {task.descricao}
-                    </p>
-                  )}
-                  
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <Badge variant="outline" className={`${getStatusColor(task.status)} text-xs flex-shrink-0`}>
+                    {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+                  </Badge>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground flex-shrink-0">
                     <div className="flex items-center gap-1">
                       <User className="w-3 h-3" />
-                      <span>{getResponsibleName(task)}</span>
+                      <span className="hidden sm:inline">{getResponsibleName(task)}</span>
                     </div>
                     <div className={`flex items-center gap-1 ${getDateStatus(task.data_conclusao).className}`}>
                       <Calendar className="w-3 h-3" />
