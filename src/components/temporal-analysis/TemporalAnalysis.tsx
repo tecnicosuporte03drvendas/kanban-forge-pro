@@ -147,22 +147,22 @@ export const TemporalAnalysis = () => {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgente': return 'bg-red-600';
-      case 'alta': return 'bg-red-500';
-      case 'media': return 'bg-yellow-500';
-      case 'baixa': return 'bg-green-500';
-      default: return 'bg-gray-500';
+      case 'urgente': return 'bg-destructive';
+      case 'alta': return 'bg-destructive/80';
+      case 'media': return 'bg-warning';
+      case 'baixa': return 'bg-success';
+      default: return 'bg-muted';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'concluida': 
-      case 'validada': return 'bg-green-500';
-      case 'executando': return 'bg-blue-500';
-      case 'assumida': return 'bg-orange-500';
-      case 'criada': return 'bg-gray-500';
-      default: return 'bg-gray-500';
+      case 'validada': return 'bg-success';
+      case 'executando': return 'bg-info';
+      case 'assumida': return 'bg-warning';
+      case 'criada': return 'bg-muted';
+      default: return 'bg-muted';
     }
   };
 
@@ -254,8 +254,8 @@ export const TemporalAnalysis = () => {
                   ></div>
                 </div>
               </div>
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-blue-500" />
+              <div className="p-2 bg-info/10 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-info" />
               </div>
             </div>
           </CardContent>
@@ -269,8 +269,8 @@ export const TemporalAnalysis = () => {
                 <p className="text-2xl font-bold text-foreground">{metrics.averageCompletionTime}h</p>
                 <p className="text-xs text-muted-foreground">por tarefa</p>
               </div>
-              <div className="p-2 bg-orange-500/10 rounded-lg">
-                <Clock className="w-5 h-5 text-orange-500" />
+              <div className="p-2 bg-warning/10 rounded-lg">
+                <Clock className="w-5 h-5 text-warning" />
               </div>
             </div>
           </CardContent>
@@ -284,8 +284,8 @@ export const TemporalAnalysis = () => {
                 <p className="text-2xl font-bold text-foreground">{metrics.averageProductivity}h</p>
                 <p className="text-xs text-muted-foreground">tempo por tarefa</p>
               </div>
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <Target className="w-5 h-5 text-green-500" />
+              <div className="p-2 bg-success/10 rounded-lg">
+                <Target className="w-5 h-5 text-success" />
               </div>
             </div>
           </CardContent>
@@ -312,7 +312,7 @@ export const TemporalAnalysis = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-foreground">{count}</span>
-                    <span className={`text-xs text-white px-2 py-1 rounded ${getPriorityColor(priority)}`}>
+                    <span className={`text-xs text-primary-foreground px-2 py-1 rounded ${getPriorityColor(priority)}`}>
                       {percentage}%
                     </span>
                   </div>

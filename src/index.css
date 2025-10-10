@@ -54,6 +54,14 @@ All colors MUST be HSL. Based on the blue theme from the reference images.
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
+    /* Status Colors */
+    --success: 145 63% 49%;
+    --success-foreground: 0 0% 100%;
+    --warning: 35 91% 65%;
+    --warning-foreground: 0 0% 100%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 217 91% 60%;
@@ -126,6 +134,14 @@ All colors MUST be HSL. Based on the blue theme from the reference images.
 
     --destructive: 0 84% 65%;
     --destructive-foreground: 0 0% 95%;
+
+    /* Status Colors - Dark Mode */
+    --success: 145 63% 59%;
+    --success-foreground: 0 0% 95%;
+    --warning: 35 91% 68%;
+    --warning-foreground: 0 0% 95%;
+    --info: 217 91% 65%;
+    --info-foreground: 0 0% 95%;
 
     --border: 225 25% 20%;
     --input: 225 25% 20%;
