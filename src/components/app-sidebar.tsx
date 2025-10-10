@@ -223,17 +223,26 @@ export function AppSidebar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setTheme("light")}>
+              <DropdownMenuItem onClick={() => setTheme("light")} className="relative">
                 <Sun className="w-4 h-4 mr-2" />
                 Claro
+                {theme === "light" && (
+                  <div className="ml-auto w-2 h-2 rounded-full bg-primary" />
+                )}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("dark")}>
+              <DropdownMenuItem onClick={() => setTheme("dark")} className="relative">
                 <Moon className="w-4 h-4 mr-2" />
                 Escuro
+                {theme === "dark" && (
+                  <div className="ml-auto w-2 h-2 rounded-full bg-primary" />
+                )}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("system")}>
+              <DropdownMenuItem onClick={() => setTheme("system")} className="relative">
                 <Monitor className="w-4 h-4 mr-2" />
                 Sistema
+                {theme === "system" && (
+                  <div className="ml-auto w-2 h-2 rounded-full bg-primary" />
+                )}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
