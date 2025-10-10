@@ -28,6 +28,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
 import {
@@ -154,16 +155,19 @@ export function AppSidebar() {
       collapsible="icon"
     >
       <SidebarHeader className={`border-b border-sidebar-border ${collapsed ? 'p-3' : 'p-4'}`}>
-        <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-sidebar-primary-foreground font-bold text-sm shadow-sm">
-            T
-          </div>
-          {!collapsed && (
-            <div>
-              <h2 className="text-lg font-bold text-sidebar-foreground">TzAgenda</h2>
-              <p className="text-xs text-sidebar-foreground/60">Gestão Empresarial</p>
+        <div className={`flex ${collapsed ? 'flex-col gap-2' : 'items-center justify-between'}`}>
+          <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
+            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-sidebar-primary-foreground font-bold text-sm shadow-sm">
+              T
             </div>
-          )}
+            {!collapsed && (
+              <div>
+                <h2 className="text-lg font-bold text-sidebar-foreground">TzAgenda</h2>
+                <p className="text-xs text-sidebar-foreground/60">Gestão Empresarial</p>
+              </div>
+            )}
+          </div>
+          <SidebarTrigger className={collapsed ? 'self-center' : ''} />
         </div>
       </SidebarHeader>
 
