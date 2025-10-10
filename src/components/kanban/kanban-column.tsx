@@ -38,7 +38,7 @@ export function KanbanColumn({
       <div className={`p-3 rounded-t-lg ${getColumnHeaderClass()}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-white">{title}</h3>
+            <h3 className="font-semibold text-white dark:text-slate-800">{title}</h3>
             <span className="bg-white/20 text-white text-xs px-2 py-1 rounded-full">
               {tasks.length}
             </span>
