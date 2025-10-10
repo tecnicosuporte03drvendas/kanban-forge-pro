@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart3, TrendingUp, Clock, Target } from "lucide-react";
@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffectiveUser } from '@/hooks/use-effective-user';
 import { ResponsiblePerformance } from "@/components/ResponsiblePerformance";
+import { toast } from "sonner";
 
 interface TemporalMetrics {
   totalTasks: number;
@@ -42,51 +43,29 @@ export const TemporalAnalysis = () => {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<TimePeriod>('esta-semana');
 
-  useEffect(() => {
-    if (usuario?.empresa_id) {
-      loadTemporalMetrics();
-    }
-  }, [usuario?.empresa_id, period]);
-
-  const getDateRange = (period: TimePeriod) => {
-    const now = new Date();
-    let startDate: Date;
-
-    switch (period) {
-      case 'esta-semana':
-        startDate = new Date(now);
-        startDate.setDate(now.getDate() - now.getDay()); // Início da semana
-        break;
-      case 'este-mes':
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1); // Início do mês
-        break;
-      case 'este-ano':
-        startDate = new Date(now.getFullYear(), 0, 1); // Início do ano
-        break;
-      default:
-        startDate = new Date(now);
-        startDate.setDate(now.getDate() - 7);
+  const loadTemporalMetrics = useCallback(async () => {
+    if (!usuario?.empresa_id) {
+      return;
     }
 
-    return {
-      start: startDate.toISOString(),
-      end: now.toISOString()
-    };
-  };
-
-  const loadTemporalMetrics = async () => {
     try {
       setLoading(true);
       const { start, end } = getDateRange(period);
 
       // Buscar todas as tarefas da empresa no período
-      const { data: tarefas } = await supabase
+      const { data: tarefas, error } = await supabase
         .from('tarefas')
         .select('*')
-        .eq('empresa_id', usuario?.empresa_id)
+        .eq('empresa_id', usuario.empresa_id)
         .gte('created_at', start)
         .lte('created_at', end)
         .eq('arquivada', false);
+
+      if (error) {
+        console.error('Erro ao buscar tarefas:', error);
+        toast.error('Erro ao carregar métricas temporais');
+        return;
+      }
 
       if (tarefas) {
         // Calcular métricas
@@ -140,10 +119,42 @@ export const TemporalAnalysis = () => {
       }
     } catch (error) {
       console.error('Erro ao carregar métricas temporais:', error);
+      toast.error('Erro ao carregar métricas temporais');
     } finally {
       setLoading(false);
     }
+  }, [usuario?.empresa_id, period]);
+
+  useEffect(() => {
+    loadTemporalMetrics();
+  }, [loadTemporalMetrics]);
+
+  const getDateRange = (period: TimePeriod) => {
+    const now = new Date();
+    let startDate: Date;
+
+    switch (period) {
+      case 'esta-semana':
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - now.getDay()); // Início da semana
+        break;
+      case 'este-mes':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1); // Início do mês
+        break;
+      case 'este-ano':
+        startDate = new Date(now.getFullYear(), 0, 1); // Início do ano
+        break;
+      default:
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 7);
+    }
+
+    return {
+      start: startDate.toISOString(),
+      end: now.toISOString()
+    };
   };
+
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
