@@ -477,7 +477,7 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated 
                   <div className={`w-1 h-8 rounded-full flex-shrink-0 ${getPriorityColor(task.prioridade)}`} />
                   <input 
                     type="checkbox" 
-                    className="w-4 h-4 rounded border-2 border-border flex-shrink-0 cursor-pointer transition-all duration-200 checked:bg-primary checked:border-primary hover:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none" 
+                    className="w-4 h-4 rounded-full border-2 border-muted-foreground/40 bg-muted flex-shrink-0 cursor-pointer transition-all duration-200 checked:bg-primary checked:border-primary hover:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none appearance-none" 
                     checked={selectedTasks.includes(task.id)}
                     onChange={(e) => {
                       e.stopPropagation()
