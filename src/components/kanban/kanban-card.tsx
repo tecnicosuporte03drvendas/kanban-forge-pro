@@ -71,11 +71,11 @@ export function KanbanCard({
   return <div ref={setNodeRef} style={style} className={cardClass} {...attributes} {...listeners}>
       <div className="space-y-3">
           <div className="space-y-2">
-            <div className="flex items-start justify-between">
-              <h4 className="font-medium text-card-foreground text-sm leading-tight flex-1 break-words whitespace-normal">
+            <div className="flex items-start justify-between gap-2">
+              <h4 className="font-medium text-card-foreground text-sm leading-tight flex-1 min-w-0 break-words overflow-wrap-anywhere">
                 {task.title}
               </h4>
-              {task.isCurrentUserAssigned && <div className="w-2 h-2 bg-green-500 rounded-full ml-2 mt-1 flex-shrink-0" title="Você está nesta tarefa" />}
+              {task.isCurrentUserAssigned && <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-1" title="Você está nesta tarefa" />}
             </div>
             <div className="flex items-center gap-1 flex-wrap">
               {task.team && <Badge variant="secondary" className={`text-xs ${task.teamColor} text-white border-0 px-2 py-1`}>
