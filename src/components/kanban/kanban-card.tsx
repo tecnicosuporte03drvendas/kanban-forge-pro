@@ -9,11 +9,13 @@ interface KanbanCardProps {
   task: Task;
   isDragging?: boolean;
   isSaving?: boolean;
+  isCompact?: boolean;
 }
 export function KanbanCard({
   task,
   isDragging = false,
-  isSaving = false
+  isSaving = false,
+  isCompact = false
 }: KanbanCardProps) {
   const {
     attributes,
@@ -68,6 +70,27 @@ export function KanbanCard({
     ${isDragging ? 'cursor-grabbing' : ''}
     ${isSaving ? 'opacity-70' : ''}
   `;
+  if (isCompact) {
+    return <div ref={setNodeRef} style={style} className={cardClass} {...attributes} {...listeners}>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <div className={`h-6 w-1.5 rounded-full ${getPriorityColor(task.priority)}`} title={task.priority} />
+          {task.isCurrentUserAssigned && <div className="w-2 h-2 bg-green-500 rounded-full" title="Você está nesta tarefa" />}
+        </div>
+        
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <User className="w-3 h-3" />
+          <span className="truncate">{task.assignee}</span>
+        </div>
+        
+        <div className={`flex items-center gap-1 text-xs ${dateStatus.className}`}>
+          <Calendar className="w-3 h-3" />
+          <span>{formatDate(task.dueDate)}</span>
+        </div>
+      </div>
+    </div>;
+  }
+
   return <div ref={setNodeRef} style={style} className={cardClass} {...attributes} {...listeners}>
       <div className="space-y-3">
           <div className="space-y-2">
