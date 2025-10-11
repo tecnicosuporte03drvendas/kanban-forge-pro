@@ -144,14 +144,16 @@ export const RecentActivities = ({ userId, dateRange }: RecentActivitiesProps) =
             {userId ? 'Suas últimas ações no sistema' : 'Últimas ações da empresa'}
           </p>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => navigate('/atividades')}
-        >
-          <Eye className="w-4 h-4 mr-2" />
-          Ver todas
-        </Button>
+        {usuario?.tipo_usuario !== 'colaborador' && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/atividades')}
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Ver todas
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         {activities.length === 0 ? (
