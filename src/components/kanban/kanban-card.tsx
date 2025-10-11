@@ -86,8 +86,8 @@ export function KanbanCard({
     ${isSaving ? 'opacity-70' : ''}
   `;
   if (isCompact) {
-    return <div ref={setNodeRef} style={style} className={cardClass} {...attributes} {...listeners}>
-      <div className="space-y-2">
+    return <div ref={setNodeRef} style={style} className={cardClass} {...attributes}>
+      <div className="space-y-2" {...listeners}>
         <div className="flex items-center gap-2">
           <div className={`h-6 w-1.5 rounded-full ${getPriorityColor(task.priority)}`} title={task.priority} />
           <h4 className="font-medium text-card-foreground text-xs flex-1 min-w-0 break-words overflow-wrap-anywhere">
@@ -106,22 +106,22 @@ export function KanbanCard({
             <Calendar className="w-3 h-3" />
             <span>{formatDate(task.dueDate)}</span>
           </div>
-          {showApproveButton && (
-            <button 
-              onClick={handleApprove}
-              className="w-6 h-6 rounded-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center transition-colors flex-shrink-0"
-              title="Aprovar tarefa"
-            >
-              <CheckCircle className="w-3.5 h-3.5" />
-            </button>
-          )}
         </div>
       </div>
+      {showApproveButton && (
+        <button 
+          onClick={handleApprove}
+          className="w-6 h-6 rounded-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center transition-colors flex-shrink-0 mt-2"
+          title="Aprovar tarefa"
+        >
+          <CheckCircle className="w-3.5 h-3.5" />
+        </button>
+      )}
     </div>;
   }
 
-  return <div ref={setNodeRef} style={style} className={cardClass} {...attributes} {...listeners}>
-      <div className="space-y-3">
+  return <div ref={setNodeRef} style={style} className={cardClass} {...attributes}>
+      <div className="space-y-3" {...listeners}>
           <div className="space-y-2">
             <div className="flex items-start justify-between gap-2">
               <h4 className="font-medium text-card-foreground text-sm leading-tight flex-1 min-w-0 break-words overflow-wrap-anywhere">
@@ -155,18 +155,18 @@ export function KanbanCard({
             <Calendar className="w-3 h-3" />
             <span>{formatDate(task.dueDate)}</span>
           </div>
-
-          {showApproveButton && (
-            <Button 
-              onClick={handleApprove}
-              size="sm"
-              className="w-full mt-1 bg-green-600 hover:bg-green-700 text-white"
-            >
-              <CheckCircle className="w-3 h-3 mr-1" />
-              Aprovar
-            </Button>
-          )}
         </div>
       </div>
+      
+      {showApproveButton && (
+        <Button 
+          onClick={handleApprove}
+          size="sm"
+          className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white"
+        >
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Aprovar
+        </Button>
+      )}
     </div>;
 }
