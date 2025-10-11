@@ -101,9 +101,20 @@ export function KanbanCard({
           <span className="truncate">{task.assignee}</span>
         </div>
         
-        <div className={`flex items-center gap-1 text-xs ${dateStatus.className}`}>
-          <Calendar className="w-3 h-3" />
-          <span>{formatDate(task.dueDate)}</span>
+        <div className={`flex items-center justify-between gap-2 text-xs ${dateStatus.className}`}>
+          <div className="flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            <span>{formatDate(task.dueDate)}</span>
+          </div>
+          {showApproveButton && (
+            <button 
+              onClick={handleApprove}
+              className="w-6 h-6 rounded-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center transition-colors flex-shrink-0"
+              title="Aprovar tarefa"
+            >
+              <CheckCircle className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
     </div>;
