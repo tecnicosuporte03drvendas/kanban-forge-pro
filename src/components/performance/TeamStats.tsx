@@ -16,7 +16,11 @@ interface TeamMember {
   productivity: number;
 }
 
-export const TeamStats = () => {
+interface TeamStatsProps {
+  dateRange?: { from: Date; to: Date }
+}
+
+export const TeamStats = ({ dateRange }: TeamStatsProps) => {
   const { usuario } = useEffectiveUser()
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +29,7 @@ export const TeamStats = () => {
     if (usuario?.empresa_id) {
       loadTeamStats();
     }
-  }, [usuario?.empresa_id]);
+  }, [usuario?.empresa_id, dateRange]);
 
   const loadTeamStats = async () => {
     try {

@@ -11,7 +11,11 @@ interface WeeklyData {
   value: number
 }
 
-export function WeeklyProductivity() {
+interface WeeklyProductivityProps {
+  dateRange?: { from: Date; to: Date }
+}
+
+export function WeeklyProductivity({ dateRange }: WeeklyProductivityProps) {
   const { usuario } = useEffectiveUser()
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([])
   const [loading, setLoading] = useState(false)
@@ -20,39 +24,35 @@ export function WeeklyProductivity() {
     if (usuario?.empresa_id) {
       loadWeeklyData()
     }
-  }, [usuario?.empresa_id])
+  }, [usuario?.empresa_id, dateRange])
 
   const loadWeeklyData = async () => {
     if (!usuario?.empresa_id) return
     
     setLoading(true)
     try {
-      const now = new Date()
-      const weekStart = startOfWeek(now, { locale: ptBR })
-      const weekEnd = endOfWeek(now, { locale: ptBR })
+      const from = dateRange?.from || startOfWeek(new Date(), { locale: ptBR })
+      const to = dateRange?.to || endOfWeek(new Date(), { locale: ptBR })
       
-      // Buscar tarefas criadas ou validadas nesta semana
       const { data: tarefas, error } = await supabase
         .from('tarefas')
         .select('created_at, status, updated_at')
         .eq('empresa_id', usuario.empresa_id)
         .eq('arquivada', false)
-        .or(`created_at.gte.${weekStart.toISOString()},and(status.eq.validada,updated_at.gte.${weekStart.toISOString()})`)
+        .gte('created_at', from.toISOString())
+        .lte('created_at', to.toISOString())
 
       if (error) throw error
 
-      // Criar array para os 7 dias da semana
-      const daysOfWeek = eachDayOfInterval({ start: weekStart, end: weekEnd })
+      const daysOfWeek = eachDayOfInterval({ start: from, end: to })
       
       const weeklyStats = daysOfWeek.map(day => {
         const dayStr = format(day, 'yyyy-MM-dd')
         
-        // Contar tarefas criadas neste dia
         const createdCount = tarefas?.filter(tarefa => 
           tarefa.created_at.startsWith(dayStr)
         ).length || 0
         
-        // Contar tarefas validadas neste dia
         const validatedCount = tarefas?.filter(tarefa => 
           tarefa.status === 'validada' && tarefa.updated_at.startsWith(dayStr)
         ).length || 0

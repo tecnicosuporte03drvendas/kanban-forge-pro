@@ -14,7 +14,11 @@ interface UserProductivity {
   completionRate: number
 }
 
-export function ProductivityRanking() {
+interface ProductivityRankingProps {
+  dateRange?: { from: Date; to: Date }
+}
+
+export function ProductivityRanking({ dateRange }: ProductivityRankingProps) {
   const { usuario } = useEffectiveUser()
   const [ranking, setRanking] = useState<UserProductivity[]>([])
   const [loading, setLoading] = useState(false)
@@ -23,16 +27,19 @@ export function ProductivityRanking() {
     if (usuario?.empresa_id) {
       loadProductivityRanking()
     }
-  }, [usuario?.empresa_id])
+  }, [usuario?.empresa_id, dateRange])
 
   const loadProductivityRanking = async () => {
     if (!usuario?.empresa_id) return
     
     setLoading(true)
     try {
-      // Buscar tarefas com responsáveis da última semana
-      const weekAgo = new Date()
-      weekAgo.setDate(weekAgo.getDate() - 7)
+      const from = dateRange?.from || (() => {
+        const weekAgo = new Date()
+        weekAgo.setDate(weekAgo.getDate() - 7)
+        return weekAgo
+      })()
+      const to = dateRange?.to || new Date()
 
       const { data: tarefas, error } = await supabase
         .from('tarefas')
@@ -46,7 +53,8 @@ export function ProductivityRanking() {
         `)
         .eq('empresa_id', usuario.empresa_id)
         .eq('arquivada', false)
-        .gte('updated_at', weekAgo.toISOString())
+        .gte('updated_at', from.toISOString())
+        .lte('updated_at', to.toISOString())
 
       if (error) throw error
 

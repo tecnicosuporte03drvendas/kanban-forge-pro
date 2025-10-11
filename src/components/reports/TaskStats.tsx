@@ -16,7 +16,11 @@ interface TaskStatsData {
   completionRate: number
 }
 
-export function TaskStats() {
+interface TaskStatsProps {
+  dateRange?: { from: Date; to: Date }
+}
+
+export function TaskStats({ dateRange }: TaskStatsProps) {
   const { usuario } = useEffectiveUser()
   const [stats, setStats] = useState<TaskStatsData>({
     created: 0,
@@ -33,18 +37,26 @@ export function TaskStats() {
     if (usuario?.empresa_id) {
       loadStats()
     }
-  }, [usuario?.empresa_id])
+  }, [usuario?.empresa_id, dateRange])
 
   const loadStats = async () => {
     if (!usuario?.empresa_id) return
     
     setLoading(true)
     try {
-      const { data: tarefas, error } = await supabase
+      let query = supabase
         .from('tarefas')
-        .select('status, data_conclusao')
+        .select('status, data_conclusao, created_at')
         .eq('empresa_id', usuario.empresa_id)
         .eq('arquivada', false)
+
+      if (dateRange) {
+        query = query
+          .gte('created_at', dateRange.from.toISOString())
+          .lte('created_at', dateRange.to.toISOString())
+      }
+
+      const { data: tarefas, error } = await query
 
       if (error) throw error
 

@@ -17,7 +17,11 @@ interface CompanyMetrics {
   averageProductivity: number;
 }
 
-export const CompanyStats = () => {
+interface CompanyStatsProps {
+  dateRange?: { from: Date; to: Date }
+}
+
+export const CompanyStats = ({ dateRange }: CompanyStatsProps) => {
   const { usuario } = useEffectiveUser()
   const [metrics, setMetrics] = useState<CompanyMetrics>({
     totalTasks: 0,
@@ -35,16 +39,23 @@ export const CompanyStats = () => {
     if (usuario?.empresa_id) {
       loadCompanyStats();
     }
-  }, [usuario?.empresa_id]);
+  }, [usuario?.empresa_id, dateRange]);
 
   const loadCompanyStats = async () => {
     try {
-      // Buscar todas as tarefas da empresa
-      const { data: tarefas } = await supabase
+      let query = supabase
         .from('tarefas')
         .select('*')
         .eq('empresa_id', usuario?.empresa_id)
         .eq('arquivada', false);
+
+      if (dateRange) {
+        query = query
+          .gte('created_at', dateRange.from.toISOString())
+          .lte('created_at', dateRange.to.toISOString())
+      }
+
+      const { data: tarefas } = await query;
 
       // Buscar todos os usuários da empresa
       const { data: usuarios } = await supabase

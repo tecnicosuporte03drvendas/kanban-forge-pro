@@ -20,10 +20,11 @@ interface Activity {
 }
 
 interface RecentActivitiesProps {
-  userId?: string; // Para mostrar apenas atividades do usuário específico
+  userId?: string;
+  dateRange?: { from: Date; to: Date }
 }
 
-export const RecentActivities = ({ userId }: RecentActivitiesProps) => {
+export const RecentActivities = ({ userId, dateRange }: RecentActivitiesProps) => {
   const { usuario } = useEffectiveUser()
   const navigate = useNavigate()
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -33,7 +34,7 @@ export const RecentActivities = ({ userId }: RecentActivitiesProps) => {
     if (usuario?.empresa_id) {
       loadRecentActivities();
     }
-  }, [usuario?.empresa_id, userId]);
+  }, [usuario?.empresa_id, userId, dateRange]);
 
   const loadRecentActivities = async () => {
     try {
@@ -51,9 +52,14 @@ export const RecentActivities = ({ userId }: RecentActivitiesProps) => {
         .order('created_at', { ascending: false })
         .limit(2);
 
-      // Se userId for especificado, filtrar apenas atividades desse usuário
       if (userId) {
         query = query.eq('usuario_id', userId);
+      }
+
+      if (dateRange) {
+        query = query
+          .gte('created_at', dateRange.from.toISOString())
+          .lte('created_at', dateRange.to.toISOString())
       }
 
       const { data } = await query;

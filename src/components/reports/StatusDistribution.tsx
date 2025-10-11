@@ -21,7 +21,11 @@ interface StatusData {
   color: string
 }
 
-export function StatusDistribution() {
+interface StatusDistributionProps {
+  dateRange?: { from: Date; to: Date }
+}
+
+export function StatusDistribution({ dateRange }: StatusDistributionProps) {
   const { usuario } = useEffectiveUser()
   const [statusData, setStatusData] = useState<StatusData[]>([])
   const [loading, setLoading] = useState(false)
@@ -30,18 +34,26 @@ export function StatusDistribution() {
     if (usuario?.empresa_id) {
       loadStatusData()
     }
-  }, [usuario?.empresa_id])
+  }, [usuario?.empresa_id, dateRange])
 
   const loadStatusData = async () => {
     if (!usuario?.empresa_id) return
     
     setLoading(true)
     try {
-      const { data: tarefas, error } = await supabase
+      let query = supabase
         .from('tarefas')
-        .select('status, data_conclusao')
+        .select('status, data_conclusao, created_at')
         .eq('empresa_id', usuario.empresa_id)
         .eq('arquivada', false)
+
+      if (dateRange) {
+        query = query
+          .gte('created_at', dateRange.from.toISOString())
+          .lte('created_at', dateRange.to.toISOString())
+      }
+
+      const { data: tarefas, error } = await query
 
       if (error) throw error
 

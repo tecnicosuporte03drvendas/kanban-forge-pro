@@ -12,9 +12,10 @@ interface WeeklyData {
 
 interface WeeklyChartProps {
   userId?: string;
+  dateRange?: { from: Date; to: Date }
 }
 
-export const WeeklyChart = ({ userId }: WeeklyChartProps) => {
+export const WeeklyChart = ({ userId, dateRange }: WeeklyChartProps) => {
   const { usuario } = useEffectiveUser()
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,22 +26,24 @@ export const WeeklyChart = ({ userId }: WeeklyChartProps) => {
     if (targetUserId && usuario?.empresa_id) {
       loadWeeklyData();
     }
-  }, [targetUserId, usuario?.empresa_id]);
+  }, [targetUserId, usuario?.empresa_id, dateRange]);
 
   const loadWeeklyData = async () => {
     try {
-      const today = new Date();
-      const weekStart = new Date(today);
-      weekStart.setDate(today.getDate() - today.getDay()); // Início da semana (domingo)
+      const from = dateRange?.from || (() => {
+        const weekStart = new Date();
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+        return weekStart;
+      })();
+      const to = dateRange?.to || new Date();
       
       const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
       const weeklyStats: WeeklyData[] = [];
 
       for (let i = 0; i < 7; i++) {
-        const currentDay = new Date(weekStart);
-        currentDay.setDate(weekStart.getDate() + i);
+        const currentDay = new Date(from);
+        currentDay.setDate(from.getDate() + i);
         
-        // Buscar tarefas atualizadas neste dia específico
         let query = supabase
           .from('tarefas_atividades')
           .select(`

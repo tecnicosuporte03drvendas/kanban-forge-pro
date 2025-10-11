@@ -7,7 +7,11 @@ import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { getDateStatus } from "@/utils/date-utils"
 import type { Tarefa } from "@/types/task"
 
-export function RecentTasks() {
+interface RecentTasksProps {
+  dateRange?: { from: Date; to: Date }
+}
+
+export function RecentTasks({ dateRange }: RecentTasksProps) {
   const { usuario } = useEffectiveUser()
   const [recentTasks, setRecentTasks] = useState<Tarefa[]>([])
   const [loading, setLoading] = useState(false)
@@ -16,14 +20,14 @@ export function RecentTasks() {
     if (usuario?.empresa_id) {
       loadRecentTasks()
     }
-  }, [usuario?.empresa_id])
+  }, [usuario?.empresa_id, dateRange])
 
   const loadRecentTasks = async () => {
     if (!usuario?.empresa_id) return
     
     setLoading(true)
     try {
-      const { data: tarefas, error } = await supabase
+      let query = supabase
         .from('tarefas')
         .select(`
           *,
@@ -36,6 +40,14 @@ export function RecentTasks() {
         .eq('arquivada', false)
         .order('updated_at', { ascending: false })
         .limit(5)
+
+      if (dateRange) {
+        query = query
+          .gte('created_at', dateRange.from.toISOString())
+          .lte('created_at', dateRange.to.toISOString())
+      }
+
+      const { data: tarefas, error } = await query
 
       if (error) throw error
 
