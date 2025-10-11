@@ -694,8 +694,8 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
       .sort((a, b) => (a.posicao_coluna || 0) - (b.posicao_coluna || 0))
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-4 flex-shrink-0">
+    <div className="flex flex-col">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">
             {usuario?.tipo_usuario === 'colaborador' ? 'Minhas Tarefas e da Equipe' : 'Tarefas da Empresa'}
@@ -728,11 +728,11 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="grid grid-cols-4 gap-2 flex-1 min-h-0 overflow-hidden w-full">
+          <div className="grid grid-cols-5 gap-4 pb-4">
             {columns.map((column) => {
               const columnTasks = getTasksByStatus(column.id as Task["status"])
               return (
-                <div key={column.id} className="h-full flex flex-col min-w-0">
+                <div key={column.id}>
                   <SortableContext
                     items={columnTasks.map(task => task.id)}
                     strategy={verticalListSortingStrategy}
