@@ -13,6 +13,7 @@ interface KanbanColumnProps {
   color: string;
   savingTasks: Set<string>;
   allCompact?: boolean;
+  onToggleCompact?: () => void;
 }
 export function KanbanColumn({
   id,
@@ -20,12 +21,11 @@ export function KanbanColumn({
   tasks,
   color,
   savingTasks,
-  allCompact
+  allCompact,
+  onToggleCompact
 }: KanbanColumnProps) {
-  const [isCompact, setIsCompact] = useState(false);
-  
-  // Use allCompact prop if provided, otherwise use local state
-  const effectiveCompact = allCompact !== undefined ? allCompact : isCompact;
+  // Use allCompact prop directly as the source of truth
+  const effectiveCompact = allCompact || false;
   const {
     setNodeRef,
     isOver
@@ -55,9 +55,8 @@ export function KanbanColumn({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-white dark:text-slate-800 hover:bg-white/20"
-            onClick={() => setIsCompact(!isCompact)}
-            title={effectiveCompact ? "Expandir cards" : "Retrair cards"}
-            disabled={allCompact !== undefined}
+            onClick={onToggleCompact}
+            title={effectiveCompact ? "Expandir todos" : "Retrair todos"}
           >
             {effectiveCompact ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
           </Button>

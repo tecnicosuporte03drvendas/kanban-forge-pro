@@ -51,6 +51,7 @@ interface KanbanBoardProps {
   onTaskClick?: (taskId: string) => void;
   onCreateTask?: () => void;
   allCardsCompact?: boolean;
+  onToggleAllCardsCompact?: () => void;
 }
 
 const columns = [
@@ -61,7 +62,7 @@ const columns = [
   { id: "validada", title: "Validada", tasks: 0, color: "kanban-validated" }
 ]
 
-export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact }: KanbanBoardProps) {
+export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onToggleAllCardsCompact }: KanbanBoardProps) {
   const { usuario } = useEffectiveUser()
   const { shouldSuppressLogs } = useStealth()
   const [tasks, setTasks] = useState<Task[]>([])
@@ -610,6 +611,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact }: Kanb
                       color={column.color}
                       savingTasks={savingTasks}
                       allCompact={allCardsCompact}
+                      onToggleCompact={onToggleAllCardsCompact}
                     />
                   </SortableContext>
                 </div>

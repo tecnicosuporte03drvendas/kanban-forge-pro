@@ -20,6 +20,11 @@ const Index = () => {
   const [viewTaskId, setViewTaskId] = useState<string | null>(null);
   const [refreshTasks, setRefreshTasks] = useState(0);
   const [allCardsCompact, setAllCardsCompact] = useState(false);
+
+  const toggleAllCardsCompact = () => {
+    setAllCardsCompact(prev => !prev);
+  };
+
   useEffect(() => {
     const fetchEmpresa = async () => {
       if (usuario?.empresa_id) {
@@ -64,31 +69,12 @@ const Index = () => {
 
       <div className="p-6 bg-gradient-kanban">
         <DashboardStats />
-        <div className="flex justify-end mb-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setAllCardsCompact(!allCardsCompact)}
-            className="gap-2"
-          >
-            {allCardsCompact ? (
-              <>
-                <Maximize2 className="h-4 w-4" />
-                Expandir Todos
-              </>
-            ) : (
-              <>
-                <Minimize2 className="h-4 w-4" />
-                Retrair Todos
-              </>
-            )}
-          </Button>
-        </div>
         <KanbanBoard 
           key={refreshTasks} 
           onTaskClick={handleTaskClick} 
           onCreateTask={() => setCreateTaskOpen(true)}
           allCardsCompact={allCardsCompact}
+          onToggleAllCardsCompact={toggleAllCardsCompact}
         />
       </div>
 
