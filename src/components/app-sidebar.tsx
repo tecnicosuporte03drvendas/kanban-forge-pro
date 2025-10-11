@@ -159,10 +159,12 @@ export function AppSidebar() {
                 return null;
               }
               return <SidebarMenuItem key={item.title}>
-                    <NavLink to={item.url} end className={getNavClasses(item.url)}>
-                      <item.icon className={`flex-shrink-0 ${collapsed ? 'w-5 h-5' : 'w-5 h-5'}`} />
-                      {!collapsed && <span className="font-medium truncate">{item.title}</span>}
-                    </NavLink>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={item.url} end className={getNavClasses(item.url)}>
+                        <item.icon className="flex-shrink-0 w-4 h-4" />
+                        <span>{item.title}</span>
+                      </NavLink>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>;
             })}
             </SidebarMenu>
