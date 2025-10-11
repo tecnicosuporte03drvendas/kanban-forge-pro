@@ -67,11 +67,16 @@ const Tarefas = () => {
 
       <ScrollArea className="flex-1">
         <div className="p-6 bg-gradient-kanban min-h-full">
-          <Tabs defaultValue="analise" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 bg-card">
+          <Tabs defaultValue="tarefas" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 bg-card">
+              <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
               <TabsTrigger value="analise">Análise Temporal</TabsTrigger>
               <TabsTrigger value="arquivadas">Tarefas Arquivadas</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="tarefas" className="space-y-6">
+              <TarefasList key={refreshTasks} onTaskUpdated={handleTaskUpdated} />
+            </TabsContent>
 
             <TabsContent value="analise" className="space-y-6">
               <TemporalAnalysis />
