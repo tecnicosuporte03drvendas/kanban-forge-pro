@@ -166,7 +166,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className={`border-t border-sidebar-border ${collapsed ? 'p-2' : 'p-3'}`}>
+      <SidebarFooter className={`border-t border-sidebar-border ${collapsed ? 'p-4' : 'p-3'}`}>
         <div className={`flex items-center ${collapsed ? 'flex-col gap-2' : 'gap-2'}`}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
