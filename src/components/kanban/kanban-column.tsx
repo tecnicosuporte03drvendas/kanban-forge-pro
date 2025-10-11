@@ -12,20 +12,15 @@ interface KanbanColumnProps {
   tasks: Task[];
   color: string;
   savingTasks: Set<string>;
-  allCompact?: boolean;
 }
 export function KanbanColumn({
   id,
   title,
   tasks,
   color,
-  savingTasks,
-  allCompact
+  savingTasks
 }: KanbanColumnProps) {
   const [isCompact, setIsCompact] = useState(false);
-  
-  // Use allCompact prop if provided, otherwise use local state
-  const effectiveCompact = allCompact !== undefined ? allCompact : isCompact;
   const {
     setNodeRef,
     isOver
@@ -56,10 +51,9 @@ export function KanbanColumn({
             size="icon"
             className="h-7 w-7 text-white dark:text-slate-800 hover:bg-white/20"
             onClick={() => setIsCompact(!isCompact)}
-            title={effectiveCompact ? "Expandir cards" : "Retrair cards"}
-            disabled={allCompact !== undefined}
+            title={isCompact ? "Expandir cards" : "Retrair cards"}
           >
-            {effectiveCompact ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+            {isCompact ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
           </Button>
         </div>
       </div>
@@ -72,7 +66,7 @@ export function KanbanColumn({
             <p className="text-sm text-muted-foreground">Nenhuma tarefa nesta coluna</p>
             
           </div> : <>
-            {tasks.map(task => <KanbanCard key={task.id} task={task} isSaving={savingTasks.has(task.id)} isCompact={effectiveCompact} />)}
+            {tasks.map(task => <KanbanCard key={task.id} task={task} isSaving={savingTasks.has(task.id)} isCompact={isCompact} />)}
           </>}
       </div>
     </div>;

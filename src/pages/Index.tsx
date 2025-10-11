@@ -1,7 +1,7 @@
 import { DashboardStats } from "@/components/dashboard-stats";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { Button } from "@/components/ui/button";
-import { LogOut, Minimize2, Maximize2 } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useEffectiveUser } from "@/hooks/use-effective-user";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -19,7 +19,6 @@ const Index = () => {
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const [viewTaskId, setViewTaskId] = useState<string | null>(null);
   const [refreshTasks, setRefreshTasks] = useState(0);
-  const [allCardsCompact, setAllCardsCompact] = useState(false);
   useEffect(() => {
     const fetchEmpresa = async () => {
       if (usuario?.empresa_id) {
@@ -64,32 +63,7 @@ const Index = () => {
 
       <div className="p-6 bg-gradient-kanban">
         <DashboardStats />
-        <div className="flex justify-end mb-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setAllCardsCompact(!allCardsCompact)}
-            className="gap-2"
-          >
-            {allCardsCompact ? (
-              <>
-                <Maximize2 className="h-4 w-4" />
-                Expandir Todos
-              </>
-            ) : (
-              <>
-                <Minimize2 className="h-4 w-4" />
-                Retrair Todos
-              </>
-            )}
-          </Button>
-        </div>
-        <KanbanBoard 
-          key={refreshTasks} 
-          onTaskClick={handleTaskClick} 
-          onCreateTask={() => setCreateTaskOpen(true)}
-          allCardsCompact={allCardsCompact}
-        />
+        <KanbanBoard key={refreshTasks} onTaskClick={handleTaskClick} onCreateTask={() => setCreateTaskOpen(true)} />
       </div>
 
       <CreateTaskModal open={createTaskOpen} onOpenChange={setCreateTaskOpen} onTaskCreated={handleTaskCreated} />
