@@ -4,7 +4,15 @@ import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import { useEffectiveUser } from '@/hooks/use-effective-user'
-import { isOverdue } from "@/utils/date-utils"
+import { isOverdue, parseLocalDate } from "@/utils/date-utils"
+
+const isDueToday = (dateString: string) => {
+  const dueDate = parseLocalDate(dateString)
+  const today = new Date()
+  dueDate.setHours(0, 0, 0, 0)
+  today.setHours(0, 0, 0, 0)
+  return dueDate.getTime() === today.getTime()
+}
 
 interface StatusData {
   status: string
@@ -44,26 +52,27 @@ export function StatusDistribution() {
         return
       }
 
-      // Contar por status
+      // Contar por status na ordem solicitada
       const statusCount = {
-        validada: tarefas?.filter(t => t.status === 'validada').length || 0,
-        concluida: tarefas?.filter(t => t.status === 'concluida').length || 0,
-        executando: tarefas?.filter(t => t.status === 'executando').length || 0,
-        assumida: tarefas?.filter(t => t.status === 'assumida').length || 0,
         criada: tarefas?.filter(t => t.status === 'criada').length || 0,
-        atrasada: tarefas?.filter(t => isOverdue(t.data_conclusao)).length || 0
+        assumida: tarefas?.filter(t => t.status === 'assumida').length || 0,
+        executando: tarefas?.filter(t => t.status === 'executando').length || 0,
+        concluida: tarefas?.filter(t => t.status === 'concluida').length || 0,
+        validada: tarefas?.filter(t => t.status === 'validada').length || 0,
+        atrasada: tarefas?.filter(t => t.status !== 'concluida' && t.status !== 'validada' && isOverdue(t.data_conclusao)).length || 0,
+        vencendo: tarefas?.filter(t => t.status !== 'concluida' && t.status !== 'validada' && isDueToday(t.data_conclusao)).length || 0
       }
 
       const statusConfig = [
         { 
-          status: 'Validada', 
-          count: statusCount.validada,
-          color: 'bg-kanban-validated'
+          status: 'Criada', 
+          count: statusCount.criada,
+          color: 'bg-kanban-created'
         },
         { 
-          status: 'Concluída', 
-          count: statusCount.concluida,
-          color: 'bg-kanban-completed'
+          status: 'Aceitas', 
+          count: statusCount.assumida,
+          color: 'bg-kanban-assigned'
         },
         { 
           status: 'Em Execução', 
@@ -71,19 +80,24 @@ export function StatusDistribution() {
           color: 'bg-kanban-executing'
         },
         { 
-          status: 'Assumida', 
-          count: statusCount.assumida,
-          color: 'bg-kanban-assigned'
+          status: 'Concluídas', 
+          count: statusCount.concluida,
+          color: 'bg-kanban-completed'
         },
         { 
-          status: 'Criada', 
-          count: statusCount.criada,
-          color: 'bg-kanban-created'
+          status: 'Aprovadas', 
+          count: statusCount.validada,
+          color: 'bg-kanban-validated'
         },
         { 
-          status: 'Atrasada', 
+          status: 'Atrasadas', 
           count: statusCount.atrasada,
           color: 'bg-destructive'
+        },
+        { 
+          status: 'Vencendo Hoje', 
+          count: statusCount.vencendo,
+          color: 'bg-yellow-600'
         }
       ]
 
