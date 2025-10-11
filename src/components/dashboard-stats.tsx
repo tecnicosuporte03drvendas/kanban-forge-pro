@@ -1,155 +1,116 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckSquare, Clock, Target, TrendingUp } from "lucide-react"
-import { useState, useEffect } from "react"
-import { supabase } from "@/integrations/supabase/client"
-import { useEffectiveUser } from "@/hooks/use-effective-user"
-
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckSquare, Clock, Target, TrendingUp } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffectiveUser } from "@/hooks/use-effective-user";
 export function DashboardStats() {
-  const { usuario } = useEffectiveUser()
+  const {
+    usuario
+  } = useEffectiveUser();
   const [stats, setStats] = useState({
     total: 0,
     concluidas: 0,
     executando: 0,
-    atrasadas: 0,
-  })
-  const [loading, setLoading] = useState(true)
-
+    atrasadas: 0
+  });
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     if (usuario?.empresa_id) {
-      loadStats()
+      loadStats();
     }
-  }, [usuario?.empresa_id])
-
+  }, [usuario?.empresa_id]);
   const loadStats = async () => {
-    if (!usuario?.empresa_id) return
-
+    if (!usuario?.empresa_id) return;
     try {
-      let query = supabase
-        .from('tarefas')
-        .select(`
+      let query = supabase.from('tarefas').select(`
           status, 
           data_conclusao,
           tarefas_responsaveis(
             usuarios:usuario_id(id),
             equipes:equipe_id(id)
           )
-        `)
-        .eq('empresa_id', usuario.empresa_id)
-
-      const { data: tarefas, error } = await query
-
-      if (error) throw error
-
-      let filteredTarefas = tarefas || []
+        `).eq('empresa_id', usuario.empresa_id);
+      const {
+        data: tarefas,
+        error
+      } = await query;
+      if (error) throw error;
+      let filteredTarefas = tarefas || [];
 
       // If user is colaborador, filter tasks to show only those they're responsible for
       if (usuario.tipo_usuario === 'colaborador') {
         // Get user's team memberships
-        const { data: userTeams } = await supabase
-          .from('usuarios_equipes')
-          .select('equipe_id')
-          .eq('usuario_id', usuario.id)
-
-        const userTeamIds = userTeams?.map(ut => ut.equipe_id) || []
+        const {
+          data: userTeams
+        } = await supabase.from('usuarios_equipes').select('equipe_id').eq('usuario_id', usuario.id);
+        const userTeamIds = userTeams?.map(ut => ut.equipe_id) || [];
 
         // Filter tasks to show only those where:
         // 1. User is directly responsible, OR
         // 2. User's team is responsible
         filteredTarefas = tarefas?.filter((tarefa: any) => {
-          const responsaveis = tarefa.tarefas_responsaveis || []
-          
+          const responsaveis = tarefa.tarefas_responsaveis || [];
+
           // Check if user is directly responsible
-          const isUserResponsible = responsaveis.some((r: any) => 
-            r.usuarios && r.usuarios.id === usuario.id
-          )
-          
+          const isUserResponsible = responsaveis.some((r: any) => r.usuarios && r.usuarios.id === usuario.id);
+
           // Check if any of user's teams is responsible
-          const isTeamResponsible = responsaveis.some((r: any) => 
-            r.equipes && userTeamIds.includes(r.equipes.id)
-          )
-          
-          return isUserResponsible || isTeamResponsible
-        }) || []
+          const isTeamResponsible = responsaveis.some((r: any) => r.equipes && userTeamIds.includes(r.equipes.id));
+          return isUserResponsible || isTeamResponsible;
+        }) || [];
       }
+      const total = filteredTarefas?.length || 0;
+      const concluidas = filteredTarefas?.filter(t => t.status === 'concluida' || t.status === 'validada').length || 0;
+      const executando = filteredTarefas?.filter(t => t.status === 'executando' || t.status === 'assumida').length || 0;
 
-      const total = filteredTarefas?.length || 0
-      const concluidas = filteredTarefas?.filter(t => t.status === 'concluida' || t.status === 'validada').length || 0
-      const executando = filteredTarefas?.filter(t => t.status === 'executando' || t.status === 'assumida').length || 0
-      
       // Check overdue tasks
-      const hoje = new Date()
-      hoje.setHours(0, 0, 0, 0)
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
       const atrasadas = filteredTarefas?.filter(t => {
-        const dataVencimento = new Date(t.data_conclusao)
-        dataVencimento.setHours(0, 0, 0, 0)
-        return dataVencimento < hoje && (t.status !== 'concluida' && t.status !== 'validada')
-      }).length || 0
-
-      setStats({ total, concluidas, executando, atrasadas })
+        const dataVencimento = new Date(t.data_conclusao);
+        dataVencimento.setHours(0, 0, 0, 0);
+        return dataVencimento < hoje && t.status !== 'concluida' && t.status !== 'validada';
+      }).length || 0;
+      setStats({
+        total,
+        concluidas,
+        executando,
+        atrasadas
+      });
     } catch (error) {
-      console.error('Error loading stats:', error)
+      console.error('Error loading stats:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
-  const statsData = [
-    {
-      title: usuario?.tipo_usuario === 'colaborador' ? "Minhas Tarefas" : "Total de Tarefas",
-      value: loading ? "..." : stats.total.toString(),
-      description: usuario?.tipo_usuario === 'colaborador' ? "tarefas atribuídas" : "tarefas no workspace",
-      icon: CheckSquare,
-      color: "text-primary",
-      bgColor: "bg-primary/10"
-    },
-    {
-      title: "Concluídas",
-      value: loading ? "..." : stats.concluidas.toString(),
-      description: "tarefas finalizadas",
-      icon: Target,
-      color: "text-kanban-completed",
-      bgColor: "bg-green-500/10"
-    },
-    {
-      title: "Em Execução",
-      value: loading ? "..." : stats.executando.toString(),
-      description: "tarefas ativas",
-      icon: Clock,
-      color: "text-kanban-executing",
-      bgColor: "bg-yellow-500/10"
-    },
-    {
-      title: "Atrasadas",
-      value: loading ? "..." : stats.atrasadas.toString(),
-      description: "passaram do prazo",
-      icon: TrendingUp,
-      color: "text-destructive",
-      bgColor: "bg-red-500/10"
-    }
-  ]
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      {statsData.map((stat, index) => {
-        const IconComponent = stat.icon
-        return (
-          <Card key={index} className="border-border bg-card hover:shadow-md transition-all duration-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <div className={`p-1.5 rounded-lg ${stat.bgColor}`}>
-                <IconComponent className={`h-3.5 w-3.5 ${stat.color}`} />
-              </div>
-            </CardHeader>
-            <CardContent className="pt-1 pb-3 px-4">
-              <div className="flex items-baseline gap-2">
-                <div className="text-xl font-bold text-card-foreground">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">{stat.description}</p>
-              </div>
-            </CardContent>
-          </Card>
-        )
-      })}
-    </div>
-  )
+  };
+  const statsData = [{
+    title: usuario?.tipo_usuario === 'colaborador' ? "Minhas Tarefas" : "Total de Tarefas",
+    value: loading ? "..." : stats.total.toString(),
+    description: usuario?.tipo_usuario === 'colaborador' ? "tarefas atribuídas" : "tarefas no workspace",
+    icon: CheckSquare,
+    color: "text-primary",
+    bgColor: "bg-primary/10"
+  }, {
+    title: "Concluídas",
+    value: loading ? "..." : stats.concluidas.toString(),
+    description: "tarefas finalizadas",
+    icon: Target,
+    color: "text-kanban-completed",
+    bgColor: "bg-green-500/10"
+  }, {
+    title: "Em Execução",
+    value: loading ? "..." : stats.executando.toString(),
+    description: "tarefas ativas",
+    icon: Clock,
+    color: "text-kanban-executing",
+    bgColor: "bg-yellow-500/10"
+  }, {
+    title: "Atrasadas",
+    value: loading ? "..." : stats.atrasadas.toString(),
+    description: "passaram do prazo",
+    icon: TrendingUp,
+    color: "text-destructive",
+    bgColor: "bg-red-500/10"
+  }];
+  return;
 }
