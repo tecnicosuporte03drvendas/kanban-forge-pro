@@ -1,24 +1,30 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart3, TrendingUp, Clock, Users } from "lucide-react"
+import { FileText, UserCheck, Clock, CheckCircle2, AlertCircle, ThumbsUp, TrendingUp } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { isOverdue } from "@/utils/date-utils"
 
 interface TaskStatsData {
-  validated: number
+  created: number
+  accepted: number
   executing: number
+  completed: number
   overdue: number
+  approved: number
   completionRate: number
 }
 
 export function TaskStats() {
   const { usuario } = useEffectiveUser()
   const [stats, setStats] = useState<TaskStatsData>({
-    validated: 0,
+    created: 0,
+    accepted: 0,
     executing: 0,
+    completed: 0,
     overdue: 0,
+    approved: 0,
     completionRate: 0
   })
   const [loading, setLoading] = useState(false)
@@ -43,17 +49,23 @@ export function TaskStats() {
       if (error) throw error
 
       const total = tarefas?.length || 0
-      const validated = tarefas?.filter(t => t.status === 'validada').length || 0
+      const created = tarefas?.filter(t => t.status === 'criada').length || 0
+      const accepted = tarefas?.filter(t => t.status === 'assumida').length || 0
       const executing = tarefas?.filter(t => t.status === 'executando').length || 0
-      const completed = tarefas?.filter(t => t.status === 'concluida' || t.status === 'validada').length || 0
-      const overdue = tarefas?.filter(t => isOverdue(t.data_conclusao)).length || 0
+      const completed = tarefas?.filter(t => t.status === 'concluida').length || 0
+      const approved = tarefas?.filter(t => t.status === 'validada').length || 0
+      const overdue = tarefas?.filter(t => isOverdue(t.data_conclusao) && t.status !== 'concluida' && t.status !== 'validada').length || 0
 
-      const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
+      const totalCompleted = completed + approved
+      const completionRate = total > 0 ? Math.round((totalCompleted / total) * 100) : 0
 
       setStats({
-        validated,
+        created,
+        accepted,
         executing,
+        completed,
         overdue,
+        approved,
         completionRate
       })
 
@@ -66,6 +78,22 @@ export function TaskStats() {
 
   const statsConfig = [
     {
+      title: "Criadas", 
+      value: loading ? "..." : stats.created.toString(),
+      subtitle: "tarefas criadas",
+      icon: FileText,
+      color: "text-kanban-created",
+      bgColor: "bg-blue-500/10"
+    },
+    {
+      title: "Aceitas",
+      value: loading ? "..." : stats.accepted.toString(),
+      subtitle: "tarefas assumidas",
+      icon: UserCheck,
+      color: "text-kanban-assigned",
+      bgColor: "bg-cyan-500/10"
+    },
+    {
       title: "Em Execução", 
       value: loading ? "..." : stats.executing.toString(),
       subtitle: "tarefas ativas",
@@ -74,18 +102,26 @@ export function TaskStats() {
       bgColor: "bg-yellow-500/10"
     },
     {
+      title: "Concluídas",
+      value: loading ? "..." : stats.completed.toString(),
+      subtitle: "tarefas concluídas",
+      icon: CheckCircle2,
+      color: "text-kanban-completed",
+      bgColor: "bg-green-500/10"
+    },
+    {
       title: "Atrasadas",
       value: loading ? "..." : stats.overdue.toString(),
       subtitle: "fora do prazo",
-      icon: TrendingUp,
+      icon: AlertCircle,
       color: "text-destructive",
       bgColor: "bg-red-500/10"
     },
     {
-      title: "Tarefas Validadas",
-      value: loading ? "..." : stats.validated.toString(),
+      title: "Aprovadas",
+      value: loading ? "..." : stats.approved.toString(),
       subtitle: "tarefas validadas",
-      icon: BarChart3,
+      icon: ThumbsUp,
       color: "text-kanban-validated",
       bgColor: "bg-purple-500/10"
     },
@@ -93,14 +129,14 @@ export function TaskStats() {
       title: "Taxa de Conclusão",
       value: loading ? "..." : `${stats.completionRate}%`,
       subtitle: "taxa de sucesso",
-      icon: Users,
-      color: "text-kanban-completed",
-      bgColor: "bg-green-500/10"
+      icon: TrendingUp,
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     }
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {statsConfig.map((stat, index) => {
         const IconComponent = stat.icon
         return (
