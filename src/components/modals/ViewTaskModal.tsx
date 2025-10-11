@@ -499,6 +499,12 @@ export function ViewTaskModal({
     usuario?.tipo_usuario && 
     ['gestor', 'proprietario'].includes(usuario.tipo_usuario);
   
+  console.log('Approve Button Debug:', {
+    tarefaStatus: tarefa?.status,
+    usuarioTipo: usuario?.tipo_usuario,
+    showApproveButton
+  });
+  
   if (!tarefa) {
     return <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-6xl max-h-[90vh]">
