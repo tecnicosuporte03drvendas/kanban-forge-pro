@@ -166,7 +166,7 @@ const Index = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden p-4 bg-gradient-kanban">
+      <div className="flex-1 overflow-hidden p-2 bg-gradient-kanban">
         <KanbanBoard
           onTaskClick={handleTaskClick} 
           onCreateTask={() => setCreateTaskOpen(true)}

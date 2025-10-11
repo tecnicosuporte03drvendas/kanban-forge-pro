@@ -728,11 +728,11 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="grid grid-cols-4 gap-3 flex-1 min-h-0 overflow-hidden">
+          <div className="grid grid-cols-4 gap-2 flex-1 min-h-0 overflow-hidden w-full">
             {columns.map((column) => {
               const columnTasks = getTasksByStatus(column.id as Task["status"])
               return (
-                <div key={column.id} className="h-full flex flex-col">
+                <div key={column.id} className="h-full flex flex-col min-w-0">
                   <SortableContext
                     items={columnTasks.map(task => task.id)}
                     strategy={verticalListSortingStrategy}
