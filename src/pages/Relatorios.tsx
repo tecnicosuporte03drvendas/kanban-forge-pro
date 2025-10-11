@@ -59,8 +59,6 @@ const Relatorios = () => {
             <StatusDistribution />
           </div>
 
-          <RecentTasks />
-
           <ProductivityRanking />
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -108,6 +106,8 @@ const Relatorios = () => {
               <RecentActivities userId={isCollaborator ? usuario?.id : undefined} />
             </div>
           </div>
+
+          <RecentTasks />
         </div>
       </div>
     </div>

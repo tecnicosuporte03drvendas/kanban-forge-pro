@@ -35,7 +35,7 @@ export function RecentTasks() {
         .eq('empresa_id', usuario.empresa_id)
         .eq('arquivada', false)
         .order('updated_at', { ascending: false })
-        .limit(10)
+        .limit(5)
 
       if (error) throw error
 
