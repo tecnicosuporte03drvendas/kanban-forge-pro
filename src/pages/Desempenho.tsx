@@ -14,26 +14,22 @@ import { TeamStats } from "@/components/performance/TeamStats";
 import { CompanyStats } from "@/components/performance/CompanyStats";
 import { RecentActivities } from "@/components/performance/RecentActivities";
 import { WeeklyChart } from "@/components/performance/WeeklyChart";
-
 const Desempenho = () => {
-  const { usuario } = useEffectiveUser();
+  const {
+    usuario
+  } = useEffectiveUser();
   const [companyName, setCompanyName] = useState<string>('');
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     if (usuario?.empresa_id) {
       loadCompanyInfo();
     }
   }, [usuario?.empresa_id]);
-
   const loadCompanyInfo = async () => {
     try {
-      const { data: empresa } = await supabase
-        .from('empresas')
-        .select('nome_fantasia')
-        .eq('id', usuario?.empresa_id)
-        .single();
-
+      const {
+        data: empresa
+      } = await supabase.from('empresas').select('nome_fantasia').eq('id', usuario?.empresa_id).single();
       if (empresa) {
         setCompanyName(empresa.nome_fantasia);
       }
@@ -43,17 +39,13 @@ const Desempenho = () => {
       setLoading(false);
     }
   };
-
   const pageTitle = 'Meu Desempenho';
-
   const refreshData = () => {
     loadCompanyInfo();
     // Forçar refresh dos componentes filhos
     window.location.reload();
   };
-
-  return (
-    <div className="flex flex-col h-screen">
+  return <div className="flex flex-col h-screen">
       <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between h-full px-6">
           <div className="flex items-center gap-4">
@@ -80,34 +72,7 @@ const Desempenho = () => {
 
       <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
         <div className="space-y-6">
-          <Card className="border-border bg-card">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    {loading ? (
-                      <div className="h-6 bg-muted animate-pulse rounded w-40"></div>
-                    ) : (
-                      <>
-                        {companyName} - Ambiente Corporativo
-                        <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-                          Ativo
-                        </Badge>
-                      </>
-                    )}
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Sua Performance Individual
-                  </p>
-                </div>
-                <Avatar className="w-12 h-12">
-                  <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground font-medium text-lg">
-                    {companyName ? companyName.substring(0, 2).toUpperCase() : 'TC'}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-            </CardHeader>
-          </Card>
+          
 
           {/* Estatísticas individuais */}
           <IndividualStats userId={usuario?.id} />
@@ -145,8 +110,6 @@ const Desempenho = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Desempenho;
