@@ -143,9 +143,8 @@ const Ajuda = () => {
             </CardContent>
           </Card>
 
-          <Tabs defaultValue="documentacao" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 bg-card">
-              <TabsTrigger value="documentacao">Documentação</TabsTrigger>
+          <Tabs defaultValue="faq" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 bg-card">
               <TabsTrigger value="faq" className="flex items-center gap-2">
                 <HelpCircle className="w-4 h-4" />
                 FAQ
@@ -155,23 +154,6 @@ const Ajuda = () => {
                 Tickets
               </TabsTrigger>
             </TabsList>
-
-            <TabsContent value="documentacao">
-              <Card className="border-border bg-card">
-                <CardHeader>
-                  <CardTitle>Documentação Completa</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Acesse nossa documentação técnica completa para desenvolvedores e usuários avançados.
-                  </p>
-                  <Button className="mt-4 bg-primary hover:bg-primary-hover text-primary-foreground">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Acessar Documentação
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="faq" className="space-y-6">
               <div className="space-y-4">
