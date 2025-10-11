@@ -17,7 +17,6 @@ const Index = () => {
   const [empresa, setEmpresa] = useState<any>(null);
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const [viewTaskId, setViewTaskId] = useState<string | null>(null);
-  const [refreshTasks, setRefreshTasks] = useState(0);
   const [allCardsCompact, setAllCardsCompact] = useState(false);
 
   const toggleAllCardsCompact = () => {
@@ -54,8 +53,12 @@ const Index = () => {
           filter: `empresa_id=eq.${usuario.empresa_id}`
         },
         (payload) => {
-          console.log('🔄 Realtime update detected:', payload);
-          setRefreshTasks(prev => prev + 1);
+          console.log('🔄 Realtime task update:', payload);
+          const taskId = (payload.new as any)?.id || (payload.old as any)?.id;
+          
+          if (taskId && (window as any).__kanbanUpdateTask) {
+            (window as any).__kanbanUpdateTask(taskId);
+          }
         }
       )
       .on(
@@ -67,7 +70,11 @@ const Index = () => {
         },
         (payload) => {
           console.log('🔄 Realtime responsibles update:', payload);
-          setRefreshTasks(prev => prev + 1);
+          const taskId = (payload.new as any)?.tarefa_id || (payload.old as any)?.tarefa_id;
+          
+          if (taskId && (window as any).__kanbanUpdateTask) {
+            (window as any).__kanbanUpdateTask(taskId);
+          }
         }
       )
       .on(
@@ -79,7 +86,11 @@ const Index = () => {
         },
         (payload) => {
           console.log('🔄 Realtime activities update:', payload);
-          setRefreshTasks(prev => prev + 1);
+          const taskId = (payload.new as any)?.tarefa_id || (payload.old as any)?.tarefa_id;
+          
+          if (taskId && (window as any).__kanbanUpdateTask) {
+            (window as any).__kanbanUpdateTask(taskId);
+          }
         }
       )
       .on(
@@ -91,7 +102,11 @@ const Index = () => {
         },
         (payload) => {
           console.log('🔄 Realtime comments update:', payload);
-          setRefreshTasks(prev => prev + 1);
+          const taskId = (payload.new as any)?.tarefa_id || (payload.old as any)?.tarefa_id;
+          
+          if (taskId && (window as any).__kanbanUpdateTask) {
+            (window as any).__kanbanUpdateTask(taskId);
+          }
         }
       )
       .subscribe();
@@ -105,13 +120,15 @@ const Index = () => {
     navigate('/login');
   };
   const handleTaskCreated = () => {
-    setRefreshTasks(prev => prev + 1);
+    // Realtime will automatically detect the new task and add it
+    // No need to manually refresh
   };
   const handleTaskClick = (taskId: string) => {
     setViewTaskId(taskId);
   };
   const handleTaskUpdated = () => {
-    setRefreshTasks(prev => prev + 1);
+    // Task updates are handled by realtime, no need to refresh
+    // The realtime listener will automatically update the specific task
   };
   return <div className="flex flex-col min-h-screen">
       <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
@@ -130,11 +147,15 @@ const Index = () => {
 
       <div className="p-6 bg-gradient-kanban">
         <KanbanBoard
-          key={refreshTasks} 
           onTaskClick={handleTaskClick} 
           onCreateTask={() => setCreateTaskOpen(true)}
           allCardsCompact={allCardsCompact}
           onToggleAllCardsCompact={toggleAllCardsCompact}
+          onRealtimeUpdate={(taskId) => {
+            if ((window as any).__kanbanUpdateTask) {
+              (window as any).__kanbanUpdateTask(taskId)
+            }
+          }}
         />
       </div>
 

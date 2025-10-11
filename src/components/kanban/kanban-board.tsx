@@ -52,6 +52,7 @@ interface KanbanBoardProps {
   onCreateTask?: () => void;
   allCardsCompact?: boolean;
   onToggleAllCardsCompact?: () => void;
+  onRealtimeUpdate?: (taskId: string) => void;
 }
 
 const columns = [
@@ -62,7 +63,7 @@ const columns = [
   { id: "validada", title: "Validada", tasks: 0, color: "kanban-validated" }
 ]
 
-export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onToggleAllCardsCompact }: KanbanBoardProps) {
+export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onToggleAllCardsCompact, onRealtimeUpdate }: KanbanBoardProps) {
   const { usuario } = useEffectiveUser()
   const { shouldSuppressLogs } = useStealth()
   const [tasks, setTasks] = useState<Task[]>([])
@@ -86,6 +87,138 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
       loadTasks()
     }
   }, [usuario?.empresa_id])
+
+  // Realtime update handler - updates specific task without full reload
+  const updateSingleTask = async (taskId: string) => {
+    if (!usuario?.empresa_id) return
+    
+    try {
+      const { data: tarefa, error } = await supabase
+        .from('tarefas')
+        .select(`
+          *,
+          tarefas_responsaveis(
+            usuarios:usuario_id(nome, id),
+            equipes:equipe_id(nome, id)
+          )
+        `)
+        .eq('id', taskId)
+        .eq('empresa_id', usuario.empresa_id)
+        .eq('arquivada', false)
+        .single()
+
+      if (error || !tarefa) {
+        // Task might have been deleted or archived - remove it
+        setTasks(prev => prev.filter(t => t.id !== taskId))
+        return
+      }
+
+      // Check if colaborador should see this task
+      if (usuario.tipo_usuario === 'colaborador') {
+        const { data: userTeams } = await supabase
+          .from('usuarios_equipes')
+          .select('equipe_id')
+          .eq('usuario_id', usuario.id)
+
+        const userTeamIds = userTeams?.map(ut => ut.equipe_id) || []
+        const responsaveis = tarefa.tarefas_responsaveis || []
+        
+        const isUserResponsible = responsaveis.some((r: any) => 
+          r.usuarios && r.usuarios.id === usuario.id
+        )
+        
+        const isTeamResponsible = responsaveis.some((r: any) => 
+          r.equipes && userTeamIds.includes(r.equipes.id)
+        )
+        
+        if (!isUserResponsible && !isTeamResponsible) {
+          // User should not see this task - remove it
+          setTasks(prev => prev.filter(t => t.id !== taskId))
+          return
+        }
+      }
+
+      // Transform to Task format
+      const responsaveis = tarefa.tarefas_responsaveis || []
+      const usuarios = responsaveis.filter((r: any) => r.usuarios).map((r: any) => r.usuarios)
+      const equipes = responsaveis.filter((r: any) => r.equipes).map((r: any) => r.equipes)
+      
+      const responsaveis_ids = usuarios.map((u: any) => u.id)
+      const equipes_ids = equipes.map((e: any) => e.id)
+      
+      let totalResponsaveis = usuarios.length + equipes.length
+      let assignee = 'Não atribuído'
+      let team = ''
+      let teamColor = 'bg-gray-500'
+      let isCurrentUserAssigned = false
+      let assigneeId: string | undefined
+      let teamId: string | undefined
+
+      if (usuario?.id) {
+        isCurrentUserAssigned = usuarios.some((u: any) => u.id === usuario.id)
+      }
+
+      if (totalResponsaveis > 1) {
+        assignee = `${totalResponsaveis} Responsáveis`
+        assigneeId = usuarios.length > 0 ? usuarios[0].id : undefined
+      } else if (usuarios.length > 0) {
+        assignee = usuarios[0].nome
+        assigneeId = usuarios[0].id
+      } else if (equipes.length > 0) {
+        assignee = equipes[0].nome
+        team = equipes[0].nome
+        teamId = equipes[0].id
+        teamColor = 'bg-blue-500'
+      }
+
+      const updatedTask: Task = {
+        id: tarefa.id,
+        title: tarefa.titulo,
+        description: tarefa.descricao || '',
+        priority: tarefa.prioridade,
+        dueDate: tarefa.data_conclusao,
+        assignee,
+        assigneeId,
+        team,
+        teamId,
+        teamColor,
+        status: tarefa.status,
+        isCurrentUserAssigned,
+        totalResponsaveis,
+        tempo_gasto_minutos: tarefa.tempo_gasto_minutos,
+        tempo_inicio: tarefa.tempo_inicio,
+        tempo_fim: tarefa.tempo_fim,
+        arquivada: tarefa.arquivada,
+        posicao_coluna: tarefa.posicao_coluna || 0,
+        responsaveis_ids,
+        equipes_ids,
+      }
+
+      // Update or add task
+      setTasks(prev => {
+        const existingIndex = prev.findIndex(t => t.id === taskId)
+        if (existingIndex >= 0) {
+          // Update existing task
+          const newTasks = [...prev]
+          newTasks[existingIndex] = updatedTask
+          return newTasks
+        } else {
+          // Add new task
+          return [...prev, updatedTask]
+        }
+      })
+    } catch (error) {
+      console.error('Error updating single task:', error)
+    }
+  }
+
+  // Expose update method to parent
+  useEffect(() => {
+    if (onRealtimeUpdate) {
+      // Store the update function reference
+      (window as any).__kanbanUpdateTask = updateSingleTask
+    }
+  }, [onRealtimeUpdate, usuario])
 
   const loadTasks = async () => {
     if (!usuario?.empresa_id) return
