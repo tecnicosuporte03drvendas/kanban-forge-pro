@@ -1,4 +1,3 @@
-import { DashboardStats } from "@/components/dashboard-stats";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { Button } from "@/components/ui/button";
 import { LogOut, Minimize2, Maximize2 } from "lucide-react";
@@ -68,8 +67,7 @@ const Index = () => {
       </header>
 
       <div className="p-6 bg-gradient-kanban">
-        <DashboardStats />
-        <KanbanBoard 
+        <KanbanBoard
           key={refreshTasks} 
           onTaskClick={handleTaskClick} 
           onCreateTask={() => setCreateTaskOpen(true)}
