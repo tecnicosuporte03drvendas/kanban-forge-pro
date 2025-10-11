@@ -32,8 +32,8 @@ export function TaskTimeBadge({ tempoGastoMinutos, status, className }: TaskTime
     );
   }
 
-  // Para tarefas assumidas/executando, mostrar badge piscando
-  if (status === 'assumida' || status === 'executando') {
+  // Para tarefas aceitas/executando, mostrar badge piscando
+  if (status === 'aceita' || status === 'executando') {
     return (
       <Badge 
         variant="default" 

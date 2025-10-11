@@ -45,7 +45,7 @@ interface TaskAttachment {
 }
 const statusColors = {
   criada: 'bg-kanban-created text-white',
-  assumida: 'bg-kanban-assigned text-white',
+  aceita: 'bg-kanban-assigned text-white',
   executando: 'bg-kanban-executing text-white',
   concluida: 'bg-kanban-completed text-white',
   validada: 'bg-kanban-validated text-white'

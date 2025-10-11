@@ -23,7 +23,7 @@ interface TemporalMetrics {
     concluida: number;
     validada: number;
     executando: number;
-    assumida: number;
+    aceita: number;
     criada: number;
   };
 }
@@ -38,7 +38,7 @@ export const TemporalAnalysis = () => {
     averageCompletionTime: 0,
     averageProductivity: 0,
     priorityDistribution: { alta: 0, media: 0, baixa: 0, urgente: 0 },
-    statusDistribution: { concluida: 0, validada: 0, executando: 0, assumida: 0, criada: 0 }
+    statusDistribution: { concluida: 0, validada: 0, executando: 0, aceita: 0, criada: 0 }
   });
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<TimePeriod>('esta-semana');
@@ -104,7 +104,7 @@ export const TemporalAnalysis = () => {
           concluida: tarefas.filter(t => t.status === 'concluida').length,
           validada: tarefas.filter(t => t.status === 'validada').length,
           executando: tarefas.filter(t => t.status === 'executando').length,
-          assumida: tarefas.filter(t => t.status === 'assumida').length,
+          aceita: tarefas.filter(t => t.status === 'aceita').length,
           criada: tarefas.filter(t => t.status === 'criada').length,
         };
 
@@ -171,7 +171,7 @@ export const TemporalAnalysis = () => {
       case 'concluida': 
       case 'validada': return 'bg-success';
       case 'executando': return 'bg-info';
-      case 'assumida': return 'bg-warning';
+      case 'aceita': return 'bg-warning';
       case 'criada': return 'bg-muted';
       default: return 'bg-muted';
     }
@@ -344,7 +344,7 @@ export const TemporalAnalysis = () => {
                 concluida: 'Concluídas',
                 validada: 'Validadas',
                 executando: 'Em Execução',
-                assumida: 'Assumidas',
+                aceita: 'Aceitas',
                 criada: 'Criadas'
               };
               

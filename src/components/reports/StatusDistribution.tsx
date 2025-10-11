@@ -62,7 +62,7 @@ export function StatusDistribution({ dateRange }: StatusDistributionProps) {
       // Contar por status na ordem solicitada
       const statusCount = {
         criada: tarefas?.filter(t => t.status === 'criada').length || 0,
-        assumida: tarefas?.filter(t => t.status === 'assumida').length || 0,
+        aceita: tarefas?.filter(t => t.status === 'aceita').length || 0,
         executando: tarefas?.filter(t => t.status === 'executando').length || 0,
         concluida: tarefas?.filter(t => t.status === 'concluida').length || 0,
         validada: tarefas?.filter(t => t.status === 'validada').length || 0,
@@ -78,7 +78,7 @@ export function StatusDistribution({ dateRange }: StatusDistributionProps) {
         },
         { 
           status: 'Aceitas', 
-          count: statusCount.assumida,
+          count: statusCount.aceita,
           color: 'bg-kanban-assigned'
         },
         { 

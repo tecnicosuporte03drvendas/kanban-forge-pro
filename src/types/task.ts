@@ -1,5 +1,5 @@
 export type PrioridadeTarefa = 'baixa' | 'media' | 'alta' | 'urgente';
-export type StatusTarefa = 'criada' | 'assumida' | 'executando' | 'concluida' | 'validada';
+export type StatusTarefa = 'criada' | 'aceita' | 'executando' | 'concluida' | 'validada';
 
 export interface Tarefa {
   id: string;

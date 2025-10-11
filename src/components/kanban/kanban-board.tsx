@@ -35,7 +35,7 @@ export interface Task {
   team: string
   teamId?: string
   teamColor: string
-  status: "criada" | "assumida" | "executando" | "concluida" | "validada"
+  status: "criada" | "aceita" | "executando" | "concluida" | "validada"
   isCurrentUserAssigned?: boolean
   totalResponsaveis?: number
   tempo_gasto_minutos?: number
@@ -58,7 +58,7 @@ interface KanbanBoardProps {
 
 const columns = [
   { id: "criada", title: "Criada", tasks: 0, color: "kanban-created" },
-  { id: "assumida", title: "Assumida", tasks: 0, color: "kanban-assigned" },
+  { id: "aceita", title: "Aceita", tasks: 0, color: "kanban-assigned" },
   { id: "executando", title: "Executando", tasks: 0, color: "kanban-executing" },
   { id: "concluida", title: "Concluída", tasks: 0, color: "kanban-completed" },
   { id: "validada", title: "Validada", tasks: 0, color: "kanban-validated" }
@@ -369,9 +369,9 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
 
       // Regras de movimento válidas para colaboradores:
       const validMovements: Record<StatusTarefa, StatusTarefa[]> = {
-        'criada': ['assumida', 'executando', 'concluida'],
-        'assumida': ['executando', 'concluida', 'criada'],
-        'executando': ['concluida', 'assumida'],
+        'criada': ['aceita', 'executando', 'concluida'],
+        'aceita': ['executando', 'concluida', 'criada'],
+        'executando': ['concluida', 'aceita'],
         'concluida': [], // Colaboradores não podem mover tarefas concluídas
         'validada': []  // Colaboradores não podem mover tarefas validadas
       }
@@ -533,7 +533,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
       console.log('🔄 Status change:', { oldStatus: originalStatus, newStatus, taskId })
       
       // Saindo de "criada" pela primeira vez - registrar tempo_inicio
-      if (originalStatus === 'criada' && (newStatus === 'assumida' || newStatus === 'executando')) {
+      if (originalStatus === 'criada' && (newStatus === 'aceita' || newStatus === 'executando')) {
         console.log('⏰ Setting tempo_inicio:', now)
         updateFields.tempo_inicio = now
       }

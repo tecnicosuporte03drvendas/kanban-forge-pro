@@ -746,7 +746,7 @@ export type Database = {
       prioridade_tarefa: "baixa" | "media" | "alta" | "urgente"
       status_tarefa:
         | "criada"
-        | "assumida"
+        | "aceita"
         | "executando"
         | "concluida"
         | "validada"
@@ -881,7 +881,7 @@ export const Constants = {
       prioridade_tarefa: ["baixa", "media", "alta", "urgente"],
       status_tarefa: [
         "criada",
-        "assumida",
+        "aceita",
         "executando",
         "concluida",
         "validada",

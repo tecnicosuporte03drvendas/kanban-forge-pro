@@ -98,7 +98,7 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated,
     switch (status) {
       case "criada":
         return "bg-kanban-created text-white";
-      case "assumida":
+      case "aceita":
         return "bg-kanban-assigned text-white";
       case "executando":
         return "bg-kanban-executing text-white";
@@ -361,7 +361,7 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated,
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="criada">Criada</SelectItem>
-                  <SelectItem value="assumida">Assumida</SelectItem>
+                  <SelectItem value="aceita">Aceita</SelectItem>
                   <SelectItem value="executando">Executando</SelectItem>
                   <SelectItem value="concluida">Concluída</SelectItem>
                   <SelectItem value="validada">Validada</SelectItem>

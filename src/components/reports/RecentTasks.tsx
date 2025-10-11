@@ -65,7 +65,7 @@ export function RecentTasks({ dateRange }: RecentTasksProps) {
       case "validada": return "bg-kanban-validated"
       case "concluida": return "bg-kanban-completed"
       case "executando": return "bg-kanban-executing"
-      case "assumida": return "bg-kanban-assigned"
+      case "aceita": return "bg-kanban-assigned"
       case "criada": return "bg-kanban-created"
       default: return "bg-muted"
     }

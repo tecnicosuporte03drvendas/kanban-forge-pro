@@ -61,7 +61,7 @@ export function DashboardStats() {
       }
       const total = filteredTarefas?.length || 0;
       const concluidas = filteredTarefas?.filter(t => t.status === 'concluida' || t.status === 'validada').length || 0;
-      const executando = filteredTarefas?.filter(t => t.status === 'executando' || t.status === 'assumida').length || 0;
+      const executando = filteredTarefas?.filter(t => t.status === 'executando' || t.status === 'aceita').length || 0;
 
       // Check overdue tasks
       const hoje = new Date();

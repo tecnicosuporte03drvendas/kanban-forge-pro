@@ -62,7 +62,7 @@ export function TaskStats({ dateRange }: TaskStatsProps) {
 
       const total = tarefas?.length || 0
       const created = tarefas?.filter(t => t.status === 'criada').length || 0
-      const accepted = tarefas?.filter(t => t.status === 'assumida').length || 0
+      const accepted = tarefas?.filter(t => t.status === 'aceita').length || 0
       const executing = tarefas?.filter(t => t.status === 'executando').length || 0
       const completed = tarefas?.filter(t => t.status === 'concluida').length || 0
       const approved = tarefas?.filter(t => t.status === 'validada').length || 0
@@ -100,7 +100,7 @@ export function TaskStats({ dateRange }: TaskStatsProps) {
     {
       title: "Aceitas",
       value: loading ? "..." : stats.accepted.toString(),
-      subtitle: "tarefas assumidas",
+      subtitle: "tarefas aceitas",
       icon: UserCheck,
       color: "text-kanban-assigned",
       bgColor: "bg-cyan-500/10"
