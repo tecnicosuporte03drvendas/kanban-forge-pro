@@ -58,11 +58,6 @@ export function StatusDistribution({ dateRange }: StatusDistributionProps) {
       if (error) throw error
 
       const total = tarefas?.length || 0
-      
-      if (total === 0) {
-        setStatusData([])
-        return
-      }
 
       // Contar por status na ordem solicitada
       const statusCount = {
@@ -113,12 +108,10 @@ export function StatusDistribution({ dateRange }: StatusDistributionProps) {
         }
       ]
 
-      const dataWithPercentages = statusConfig
-        .filter(item => item.count > 0)
-        .map(item => ({
-          ...item,
-          percentage: Math.round((item.count / total) * 100)
-        }))
+      const dataWithPercentages = statusConfig.map(item => ({
+        ...item,
+        percentage: total > 0 ? Math.round((item.count / total) * 100) : 0
+      }))
 
       setStatusData(dataWithPercentages)
 
@@ -151,22 +144,16 @@ export function StatusDistribution({ dateRange }: StatusDistributionProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {statusData.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">
-              Nenhuma tarefa encontrada.
-            </p>
-          ) : (
-            statusData.map((item, index) => (
-              <div key={index} className="flex items-center justify-between p-2 bg-background/50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className={`w-2.5 h-2.5 ${item.color} rounded-full`}></div>
-                  <span className="text-sm font-medium">{item.status}</span>
-                  <span className="text-xs text-muted-foreground">({item.count})</span>
-                </div>
-                <Badge variant="secondary" className="text-xs">{item.percentage}%</Badge>
+          {statusData.map((item, index) => (
+            <div key={index} className="flex items-center justify-between p-2 bg-background/50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className={`w-2.5 h-2.5 ${item.color} rounded-full`}></div>
+                <span className="text-sm font-medium">{item.status}</span>
+                <span className="text-xs text-muted-foreground">({item.count})</span>
               </div>
-            ))
-          )}
+              <Badge variant="secondary" className="text-xs">{item.percentage}%</Badge>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>
