@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RefreshCw, Download } from "lucide-react"
 import { TaskStats } from "@/components/reports/TaskStats"
-import { WeeklyProductivity } from "@/components/reports/WeeklyProductivity" 
 import { StatusDistribution } from "@/components/reports/StatusDistribution"
 import { RecentTasks } from "@/components/reports/RecentTasks"
 import { ProductivityRanking } from "@/components/reports/ProductivityRanking"
@@ -167,29 +166,16 @@ const Relatorios = () => {
                   <Skeleton key={i} className="h-24" />
                 ))}
               </div>
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <Skeleton className="h-64" />
-                <Skeleton className="h-64" />
-              </div>
+              <Skeleton className="h-64" />
               <Skeleton className="h-96" />
             </div>
           ) : (
             <>
               <TaskStats key={`stats-${refreshKey}`} dateRange={dateRange} />
 
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <WeeklyProductivity key={`weekly-${refreshKey}`} dateRange={dateRange} />
-                <StatusDistribution key={`status-${refreshKey}`} dateRange={dateRange} />
-              </div>
+              <StatusDistribution key={`status-${refreshKey}`} dateRange={dateRange} />
 
               <ProductivityRanking key={`ranking-${refreshKey}`} dateRange={dateRange} />
-
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <WeeklyProductivity />
-            <StatusDistribution />
-          </div>
-
-          <ProductivityRanking />
 
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <div className="xl:col-span-2 space-y-6">
