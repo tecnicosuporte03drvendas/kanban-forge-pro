@@ -33,7 +33,7 @@ const getMenuItems = (tipoUsuario: string, isStealthMode: boolean, empresaId?: s
     url: `${baseUrl}/empresa${stealthParams}`,
     icon: Users
   }, {
-    title: tipoUsuario === 'colaborador' ? "Meu Desempenho" : "Desempenho",
+    title: "Meu Desempenho",
     url: `${baseUrl}/desempenho${stealthParams}`,
     icon: User
   }, {
@@ -46,9 +46,9 @@ const getMenuItems = (tipoUsuario: string, isStealthMode: boolean, empresaId?: s
     icon: Shield
   }];
 
-  // Filter out Tarefas and Relatórios for colaborador users
+  // Filter out Empresa for colaborador users
   if (tipoUsuario === 'colaborador') {
-    return allItems.filter(item => item.title !== "Tarefas" && item.title !== "Relatórios");
+    return allItems.filter(item => item.title !== "Empresa");
   }
   return allItems;
 };

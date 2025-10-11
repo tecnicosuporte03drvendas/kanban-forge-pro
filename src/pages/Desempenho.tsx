@@ -44,16 +44,7 @@ const Desempenho = () => {
     }
   };
 
-  // Determinar título e tabs baseado no tipo de usuário
-  const isCollaborator = usuario?.tipo_usuario === 'colaborador';
-  const pageTitle = isCollaborator ? 'Meu Desempenho' : 'Desempenho';
-  
-  const getAvailableTabs = () => {
-    if (isCollaborator) {
-      return ['performance', 'metas'];
-    }
-    return ['performance', 'equipe', 'empresa', 'metas'];
-  };
+  const pageTitle = 'Meu Desempenho';
 
   const refreshData = () => {
     loadCompanyInfo();
@@ -70,10 +61,7 @@ const Desempenho = () => {
             <div>
               <h1 className="text-2xl font-bold text-foreground">{pageTitle}</h1>
               <p className="text-muted-foreground">
-                {isCollaborator 
-                  ? 'Acompanhe sua produtividade e performance pessoal'
-                  : 'Acompanhe a produtividade e performance da equipe'
-                }
+                Acompanhe sua produtividade e performance pessoal
               </p>
             </div>
           </div>
@@ -109,7 +97,7 @@ const Desempenho = () => {
                     )}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {isCollaborator ? 'Sua Performance Individual' : 'Visão Geral da Empresa'}
+                    Sua Performance Individual
                   </p>
                 </div>
                 <Avatar className="w-12 h-12">
@@ -121,36 +109,22 @@ const Desempenho = () => {
             </CardHeader>
           </Card>
 
-          {/* Estatísticas baseadas no tipo de usuário */}
-          <IndividualStats userId={isCollaborator ? usuario?.id : undefined} />
+          {/* Estatísticas individuais */}
+          <IndividualStats userId={usuario?.id} />
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2 space-y-6">
               <Tabs defaultValue="performance" className="space-y-4">
-                <TabsList className={`grid w-full ${isCollaborator ? 'grid-cols-2' : 'grid-cols-4'} bg-card`}>
+                <TabsList className="grid w-full grid-cols-2 bg-card">
                   <TabsTrigger value="performance">
-                    {isCollaborator ? 'Minha Performance' : 'Performance Individual'}
+                    Minha Performance
                   </TabsTrigger>
-                  {!isCollaborator && <TabsTrigger value="equipe">Equipe</TabsTrigger>}
-                  {!isCollaborator && <TabsTrigger value="empresa">Empresa</TabsTrigger>}
                   <TabsTrigger value="metas">Metas</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="performance">
-                  <WeeklyChart userId={isCollaborator ? usuario?.id : undefined} />
+                  <WeeklyChart userId={usuario?.id} />
                 </TabsContent>
-
-{!isCollaborator && (
-                  <TabsContent value="equipe">
-                    <TeamStats />
-                  </TabsContent>
-                )}
-
-{!isCollaborator && (
-                  <TabsContent value="empresa">
-                    <CompanyStats />
-                  </TabsContent>
-                )}
 
                 <TabsContent value="metas">
                   <Card className="border-border bg-card">
@@ -166,7 +140,7 @@ const Desempenho = () => {
             </div>
 
             <div className="space-y-6">
-              <RecentActivities userId={isCollaborator ? usuario?.id : undefined} />
+              <RecentActivities userId={usuario?.id} />
             </div>
           </div>
         </div>
