@@ -728,7 +728,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="grid grid-cols-5 gap-4 pb-4">
+          <div className="grid grid-cols-4 gap-2 pb-4 w-full">
             {columns.map((column) => {
               const columnTasks = getTasksByStatus(column.id as Task["status"])
               return (
