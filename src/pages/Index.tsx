@@ -38,6 +38,68 @@ const Index = () => {
     };
     fetchEmpresa();
   }, [usuario?.empresa_id]);
+
+  // Realtime subscriptions for tasks
+  useEffect(() => {
+    if (!usuario?.empresa_id) return;
+
+    const channel = supabase
+      .channel('dashboard-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tarefas',
+          filter: `empresa_id=eq.${usuario.empresa_id}`
+        },
+        (payload) => {
+          console.log('🔄 Realtime update detected:', payload);
+          setRefreshTasks(prev => prev + 1);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tarefas_responsaveis'
+        },
+        (payload) => {
+          console.log('🔄 Realtime responsibles update:', payload);
+          setRefreshTasks(prev => prev + 1);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tarefas_atividades'
+        },
+        (payload) => {
+          console.log('🔄 Realtime activities update:', payload);
+          setRefreshTasks(prev => prev + 1);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tarefas_comentarios'
+        },
+        (payload) => {
+          console.log('🔄 Realtime comments update:', payload);
+          setRefreshTasks(prev => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [usuario?.empresa_id]);
   const handleLogout = () => {
     logout();
     navigate('/login');
