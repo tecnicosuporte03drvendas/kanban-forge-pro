@@ -524,19 +524,61 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
               <FormField
                 control={form.control}
                 name="horario_conclusao"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Horário</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="time" 
-                        {...field} 
-                        className="[color-scheme:dark]"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const [hora, minuto] = (field.value || '18:00').split(':')
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel>Horário</FormLabel>
+                      <div className="flex gap-2">
+                        <Select
+                          value={hora}
+                          onValueChange={(h) => field.onChange(`${h}:${minuto}`)}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Hora" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <div className="text-xs text-muted-foreground px-2 py-1 font-medium">Hora</div>
+                            {Array.from({ length: 24 }, (_, i) => {
+                              const h = i.toString().padStart(2, '0')
+                              return (
+                                <SelectItem key={h} value={h}>
+                                  {h}h
+                                </SelectItem>
+                              )
+                            })}
+                          </SelectContent>
+                        </Select>
+                        
+                        <Select
+                          value={minuto}
+                          onValueChange={(m) => field.onChange(`${hora}:${m}`)}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Minuto" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <div className="text-xs text-muted-foreground px-2 py-1 font-medium">Minuto</div>
+                            {Array.from({ length: 12 }, (_, i) => {
+                              const m = (i * 5).toString().padStart(2, '0')
+                              return (
+                                <SelectItem key={m} value={m}>
+                                  {m}min
+                                </SelectItem>
+                              )
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
               />
             </div>
 
