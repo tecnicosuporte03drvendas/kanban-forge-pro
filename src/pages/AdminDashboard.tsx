@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Building2, Users, Plus, LogOut, Eye, Settings } from 'lucide-react';
+import { Building2, Users, Plus, LogOut, ArrowRight, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffectiveUser } from '@/hooks/use-effective-user';
 import { useNavigate } from 'react-router-dom';
@@ -217,8 +217,9 @@ export function AdminDashboard() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/empresa/${empresa.id}`)}>
-                              <Eye className="w-4 h-4" />
+                            <Button variant="outline" size="sm" onClick={() => navigate(`/admin/empresa/${empresa.id}`)}>
+                              <ArrowRight className="w-4 h-4" />
+                              Acessar Empresa
                             </Button>
                           </TableCell>
                         </TableRow>)}
