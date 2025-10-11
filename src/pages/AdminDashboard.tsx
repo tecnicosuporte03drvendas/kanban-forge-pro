@@ -217,7 +217,7 @@ export function AdminDashboard() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button variant="outline" size="sm" onClick={() => navigate(`/admin/empresa/${empresa.id}`)}>
+                            <Button variant="outline" size="sm" onClick={() => navigate(`/admin/empresa/${empresa.id}`)} className="text-slate-50 bg-slate-900 hover:bg-slate-800">
                               <ArrowRight className="w-4 h-4" />
                               Acessar Empresa
                             </Button>
