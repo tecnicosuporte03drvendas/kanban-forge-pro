@@ -24,6 +24,7 @@ import Integracoes from "./pages/Integracoes";
 import Ajuda from "./pages/Ajuda";
 import Perfil from "./pages/Perfil";
 import Login from "./pages/Login";
+import Atividades from "./pages/Atividades";
 import { AdminDashboard } from '@/pages/AdminDashboard';
 import { AdminConfiguracoes } from '@/pages/AdminConfiguracoes';
 import NotFound from "./pages/NotFound";
@@ -57,6 +58,7 @@ const HeaderWithBackButton = () => {
               <Route path="/integracoes" element={<Integracoes />} />
               <Route path="/ajuda" element={<Ajuda />} />
               <Route path="/perfil" element={<Perfil />} />
+              <Route path="/atividades" element={<Atividades />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

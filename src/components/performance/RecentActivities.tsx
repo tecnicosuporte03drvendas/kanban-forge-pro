@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, User, FileText } from "lucide-react";
+import { CheckCircle, Clock, User, FileText, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffectiveUser } from '@/hooks/use-effective-user';
+import { useNavigate } from "react-router-dom";
 import { getDateStatus } from "@/utils/date-utils";
 
 interface Activity {
@@ -23,6 +25,7 @@ interface RecentActivitiesProps {
 
 export const RecentActivities = ({ userId }: RecentActivitiesProps) => {
   const { usuario } = useEffectiveUser()
+  const navigate = useNavigate()
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,7 +49,7 @@ export const RecentActivities = ({ userId }: RecentActivitiesProps) => {
         `)
         .eq('tarefas.empresa_id', usuario?.empresa_id)
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(3);
 
       // Se userId for especificado, filtrar apenas atividades desse usuário
       if (userId) {
@@ -128,11 +131,21 @@ export const RecentActivities = ({ userId }: RecentActivitiesProps) => {
 
   return (
     <Card className="border-border bg-card">
-      <CardHeader>
-        <CardTitle>Atividades Recentes</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          {userId ? 'Suas últimas ações no sistema' : 'Últimas ações da empresa'}
-        </p>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Atividades Recentes</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {userId ? 'Suas últimas ações no sistema' : 'Últimas ações da empresa'}
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => navigate('/atividades')}
+        >
+          <Eye className="w-4 h-4 mr-2" />
+          Ver todas
+        </Button>
       </CardHeader>
       <CardContent>
         {activities.length === 0 ? (
