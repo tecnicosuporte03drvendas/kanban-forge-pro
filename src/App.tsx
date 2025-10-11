@@ -39,7 +39,7 @@ const HeaderWithBackButton = () => {
   return <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300">
           
           <main className="flex-1 overflow-auto">
             <Routes>
