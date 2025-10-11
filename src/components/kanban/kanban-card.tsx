@@ -1,22 +1,27 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Task } from "./kanban-board";
-import { Calendar, User, AlertCircle, Clock } from "lucide-react";
+import { Calendar, User, AlertCircle, Clock, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { getDateStatus, formatDate } from "@/utils/date-utils";
 import { TaskTimeBadge } from "@/components/task-time/TaskTimeBadge";
+import { useEffectiveUser } from "@/hooks/use-effective-user";
 interface KanbanCardProps {
   task: Task;
   isDragging?: boolean;
   isSaving?: boolean;
   isCompact?: boolean;
+  onApprove?: (taskId: string) => void;
 }
 export function KanbanCard({
   task,
   isDragging = false,
   isSaving = false,
-  isCompact = false
+  isCompact = false,
+  onApprove
 }: KanbanCardProps) {
+  const { usuario } = useEffectiveUser();
   const {
     attributes,
     listeners,
@@ -62,6 +67,16 @@ export function KanbanCard({
   // Click handling is now managed by the parent KanbanBoard component
 
   const dateStatus = getDateStatus(task.dueDate);
+  
+  const canApprove = usuario && (usuario.tipo_usuario === 'gestor' || usuario.tipo_usuario === 'proprietario');
+  const showApproveButton = task.status === 'concluida' && canApprove && onApprove;
+
+  const handleApprove = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onApprove) {
+      onApprove(task.id);
+    }
+  };
   
   const cardClass = `
     p-4 bg-card border border-card-border rounded-lg shadow-sm cursor-grab 
@@ -129,6 +144,17 @@ export function KanbanCard({
             <Calendar className="w-3 h-3" />
             <span>{formatDate(task.dueDate)}</span>
           </div>
+
+          {showApproveButton && (
+            <Button 
+              onClick={handleApprove}
+              size="sm"
+              className="w-full mt-1 bg-green-600 hover:bg-green-700 text-white"
+            >
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Aprovar
+            </Button>
+          )}
         </div>
       </div>
     </div>;

@@ -14,6 +14,7 @@ interface KanbanColumnProps {
   savingTasks: Set<string>;
   allCompact?: boolean;
   onToggleCompact?: () => void;
+  onTaskApprove?: (taskId: string) => Promise<void>;
 }
 export function KanbanColumn({
   id,
@@ -22,7 +23,8 @@ export function KanbanColumn({
   color,
   savingTasks,
   allCompact,
-  onToggleCompact
+  onToggleCompact,
+  onTaskApprove
 }: KanbanColumnProps) {
   // Use allCompact prop directly as the source of truth
   const effectiveCompact = allCompact || false;
@@ -71,7 +73,7 @@ export function KanbanColumn({
             <p className="text-sm text-muted-foreground">Nenhuma tarefa nesta coluna</p>
             
           </div> : <>
-            {tasks.map(task => <KanbanCard key={task.id} task={task} isSaving={savingTasks.has(task.id)} isCompact={effectiveCompact} />)}
+            {tasks.map(task => <KanbanCard key={task.id} task={task} isSaving={savingTasks.has(task.id)} isCompact={effectiveCompact} onApprove={onTaskApprove} />)}
           </>}
       </div>
     </div>;

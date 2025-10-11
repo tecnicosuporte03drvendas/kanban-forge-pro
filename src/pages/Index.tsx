@@ -126,9 +126,29 @@ const Index = () => {
   const handleTaskClick = (taskId: string) => {
     setViewTaskId(taskId);
   };
+
   const handleTaskUpdated = () => {
     // Task updates are handled by realtime, no need to refresh
     // The realtime listener will automatically update the specific task
+  };
+
+  const handleTaskApprove = async (taskId: string) => {
+    try {
+      const { error } = await supabase
+        .from('tarefas')
+        .update({ 
+          status: 'validada',
+          tempo_fim: new Date().toISOString()
+        })
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      // Task will be automatically updated via realtime
+      console.log('✅ Task approved successfully');
+    } catch (error) {
+      console.error('❌ Error approving task:', error);
+    }
   };
   return <div className="flex flex-col min-h-screen">
       <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
@@ -156,6 +176,7 @@ const Index = () => {
               (window as any).__kanbanUpdateTask(taskId)
             }
           }}
+          onTaskApprove={handleTaskApprove}
         />
       </div>
 
