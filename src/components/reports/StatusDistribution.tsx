@@ -138,20 +138,20 @@ export function StatusDistribution() {
         <p className="text-sm text-muted-foreground">Visão geral do status das tarefas</p>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-2">
           {statusData.length === 0 ? (
             <p className="text-muted-foreground text-center py-4">
               Nenhuma tarefa encontrada.
             </p>
           ) : (
             statusData.map((item, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 ${item.color} rounded-full`}></div>
+              <div key={index} className="flex items-center justify-between p-2 bg-background/50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2.5 h-2.5 ${item.color} rounded-full`}></div>
                   <span className="text-sm font-medium">{item.status}</span>
                   <span className="text-xs text-muted-foreground">({item.count})</span>
                 </div>
-                <Badge variant="secondary">{item.percentage}%</Badge>
+                <Badge variant="secondary" className="text-xs">{item.percentage}%</Badge>
               </div>
             ))
           )}
