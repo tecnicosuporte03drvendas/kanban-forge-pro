@@ -528,7 +528,11 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
                   <FormItem>
                     <FormLabel>Horário</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <Input 
+                        type="time" 
+                        {...field} 
+                        className="[color-scheme:dark]"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
