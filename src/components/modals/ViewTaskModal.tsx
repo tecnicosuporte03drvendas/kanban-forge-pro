@@ -662,19 +662,19 @@ export function ViewTaskModal({
               <Badge className={cn("border-0", statusColors[tarefa.status])}>
                 {tarefa.status.charAt(0).toUpperCase() + tarefa.status.slice(1)}
               </Badge>
-              
-              {showApproveButton && (
-                <Button 
-                  onClick={handleApprove}
-                  disabled={approving}
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  {approving ? 'Aprovando...' : 'Aprovar Tarefa'}
-                </Button>
-              )}
             </div>
+            
+            {showApproveButton && (
+              <Button 
+                onClick={handleApprove}
+                disabled={approving}
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                {approving ? 'Aprovando...' : 'Aprovar Tarefa'}
+              </Button>
+            )}
 
             {/* Description */}
             <div className="space-y-2">
