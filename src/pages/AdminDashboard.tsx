@@ -12,7 +12,6 @@ import { CreateCompanyModal } from '@/components/modals/CreateCompanyModal';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/theme-toggle';
-
 interface Empresa {
   id: string;
   cnpj: string | null;
@@ -21,84 +20,78 @@ interface Empresa {
   ativa: boolean;
   created_at: string;
 }
-
 export function AdminDashboard() {
-  const { usuario, logout } = useEffectiveUser();
+  const {
+    usuario,
+    logout
+  } = useEffectiveUser();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [totalUsuarios, setTotalUsuarios] = useState(0);
   const [loading, setLoading] = useState(true);
-  
   const handleLogout = () => {
     logout();
     navigate('/login');
     setShowLogoutDialog(false);
   };
-
   const fetchEmpresas = async () => {
     try {
-      const { data, error } = await supabase
-        .from('empresas')
-        .select('*')
-        .order('created_at', { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from('empresas').select('*').order('created_at', {
+        ascending: false
+      });
       if (error) {
         console.error('Erro ao buscar empresas:', error);
         toast({
           title: "Erro ao carregar empresas",
           description: "Não foi possível carregar a lista de empresas.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-
       setEmpresas(data || []);
     } catch (error) {
       console.error('Erro ao buscar empresas:', error);
     }
   };
-
   const fetchUsuarios = async () => {
     try {
-      const { count, error } = await supabase
-        .from('usuarios')
-        .select('*', { count: 'exact', head: true })
-        .eq('ativo', true);
-
+      const {
+        count,
+        error
+      } = await supabase.from('usuarios').select('*', {
+        count: 'exact',
+        head: true
+      }).eq('ativo', true);
       if (error) {
         console.error('Erro ao contar usuários:', error);
         return;
       }
-
       setTotalUsuarios(count || 0);
     } catch (error) {
       console.error('Erro ao contar usuários:', error);
     }
   };
-
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       await Promise.all([fetchEmpresas(), fetchUsuarios()]);
       setLoading(false);
     };
-
     loadData();
   }, []);
-
   const handleCompanyCreated = () => {
     fetchEmpresas();
     fetchUsuarios();
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -113,12 +106,7 @@ export function AdminDashboard() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={() => navigate('/admin/configuracoes')}
-              title="Configurações"
-            >
+            <Button variant="outline" size="icon" onClick={() => navigate('/admin/configuracoes')} title="Configurações">
               <Settings className="w-4 h-4" />
             </Button>
             <Button variant="outline" onClick={() => setShowLogoutDialog(true)}>
@@ -186,13 +174,7 @@ export function AdminDashboard() {
 
         {/* Seção de Empresas */}
         <div className="mt-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">Empresas Cadastradas</h2>
-            <Button onClick={() => setIsModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Empresa
-            </Button>
-          </div>
+          
           
           <Card>
             <CardHeader>
@@ -202,19 +184,14 @@ export function AdminDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <div className="text-center py-8">
+              {loading ? <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                   <p className="text-muted-foreground mt-2">Carregando empresas...</p>
-                </div>
-              ) : empresas.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                </div> : empresas.length === 0 ? <div className="text-center py-8 text-muted-foreground">
                   <Building2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>Nenhuma empresa cadastrada ainda.</p>
                   <p className="text-sm">Clique em "Nova Empresa" para começar.</p>
-                </div>
-              ) : (
-                <div className="rounded-md border">
+                </div> : <div className="rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -227,8 +204,7 @@ export function AdminDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {empresas.map((empresa) => (
-                        <TableRow key={empresa.id}>
+                      {empresas.map(empresa => <TableRow key={empresa.id}>
                           <TableCell className="font-medium">
                             {empresa.nome_fantasia}
                           </TableCell>
@@ -241,31 +217,21 @@ export function AdminDashboard() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => navigate(`/admin/empresa/${empresa.id}`)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/empresa/${empresa.id}`)}>
                               <Eye className="w-4 h-4" />
                             </Button>
                           </TableCell>
-                        </TableRow>
-                      ))}
+                        </TableRow>)}
                     </TableBody>
                   </Table>
-                </div>
-              )}
+                </div>}
             </CardContent>
           </Card>
         </div>
       </main>
 
       {/* Modal de Criar Empresa */}
-      <CreateCompanyModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        onCompanyCreated={handleCompanyCreated}
-      />
+      <CreateCompanyModal open={isModalOpen} onOpenChange={setIsModalOpen} onCompanyCreated={handleCompanyCreated} />
 
       {/* Modal de Confirmação de Saída */}
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
@@ -284,6 +250,5 @@ export function AdminDashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
+    </div>;
 }
