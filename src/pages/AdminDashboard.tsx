@@ -200,7 +200,7 @@ export function AdminDashboard() {
                         <TableHead>CNPJ</TableHead>
                         <TableHead>Data de Criação</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead className="w-[100px]">Ações</TableHead>
+                        <TableHead className="w-[100px] text-center">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
