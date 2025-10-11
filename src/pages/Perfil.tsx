@@ -91,8 +91,8 @@ export default function Perfil() {
           error: statsError
         } = await supabase.from('tarefas').select('status, arquivada').eq('criado_por', usuario.id);
         if (!statsError && taskStats) {
-          const completedTasks = taskStats.filter(t => t.status === 'concluida' || t.status === 'validada').length;
-          const activeTasks = taskStats.filter(t => t.status !== 'concluida' && t.status !== 'validada' && !t.arquivada).length;
+          const completedTasks = taskStats.filter(t => t.status === 'concluida' || t.status === 'aprovada').length;
+          const activeTasks = taskStats.filter(t => t.status !== 'concluida' && t.status !== 'aprovada' && !t.arquivada).length;
           const totalTasks = taskStats.filter(t => !t.arquivada).length;
           const completionRate = totalTasks > 0 ? Math.round(completedTasks / totalTasks * 100) : 0;
           setStats([{

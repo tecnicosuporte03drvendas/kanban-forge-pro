@@ -18,8 +18,8 @@ export function TaskTimeBadge({ tempoGastoMinutos, status, className }: TaskTime
   // Mostrar apenas para status específicos
   if (status === 'criada') return null;
 
-  // Para tarefas concluídas/validadas, mostrar tempo total se houver
-  if (status === 'concluida' || status === 'validada') {
+  // Para tarefas concluídas/aprovadas, mostrar tempo total se houver
+  if (status === 'concluida' || status === 'aprovada') {
     if (!tempoGastoMinutos || tempoGastoMinutos === 0) return null;
     return (
       <Badge 

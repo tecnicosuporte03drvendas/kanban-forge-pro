@@ -62,7 +62,7 @@ export function RecentTasks({ dateRange }: RecentTasksProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "validada": return "bg-kanban-validated"
+      case "aprovada": return "bg-kanban-validated"
       case "concluida": return "bg-kanban-completed"
       case "executando": return "bg-kanban-executing"
       case "aceita": return "bg-kanban-assigned"

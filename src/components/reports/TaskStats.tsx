@@ -65,8 +65,8 @@ export function TaskStats({ dateRange }: TaskStatsProps) {
       const accepted = tarefas?.filter(t => t.status === 'aceita').length || 0
       const executing = tarefas?.filter(t => t.status === 'executando').length || 0
       const completed = tarefas?.filter(t => t.status === 'concluida').length || 0
-      const approved = tarefas?.filter(t => t.status === 'validada').length || 0
-      const overdue = tarefas?.filter(t => isOverdue(t.data_conclusao) && t.status !== 'concluida' && t.status !== 'validada').length || 0
+      const approved = tarefas?.filter(t => t.status === 'aprovada').length || 0
+      const overdue = tarefas?.filter(t => isOverdue(t.data_conclusao) && t.status !== 'concluida' && t.status !== 'aprovada').length || 0
 
       const totalCompleted = completed + approved
       const completionRate = total > 0 ? Math.round((totalCompleted / total) * 100) : 0

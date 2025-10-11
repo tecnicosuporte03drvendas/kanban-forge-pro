@@ -60,7 +60,7 @@ export function DashboardStats() {
         }) || [];
       }
       const total = filteredTarefas?.length || 0;
-      const concluidas = filteredTarefas?.filter(t => t.status === 'concluida' || t.status === 'validada').length || 0;
+      const concluidas = filteredTarefas?.filter(t => t.status === 'concluida' || t.status === 'aprovada').length || 0;
       const executando = filteredTarefas?.filter(t => t.status === 'executando' || t.status === 'aceita').length || 0;
 
       // Check overdue tasks
@@ -69,7 +69,7 @@ export function DashboardStats() {
       const atrasadas = filteredTarefas?.filter(t => {
         const dataVencimento = new Date(t.data_conclusao);
         dataVencimento.setHours(0, 0, 0, 0);
-        return dataVencimento < hoje && t.status !== 'concluida' && t.status !== 'validada';
+        return dataVencimento < hoje && t.status !== 'concluida' && t.status !== 'aprovada';
       }).length || 0;
       setStats({
         total,

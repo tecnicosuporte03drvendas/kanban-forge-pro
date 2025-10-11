@@ -749,7 +749,7 @@ export type Database = {
         | "aceita"
         | "executando"
         | "concluida"
-        | "validada"
+        | "aprovada"
       tipo_usuario: "master" | "proprietario" | "gestor" | "colaborador"
     }
     CompositeTypes: {
@@ -884,7 +884,7 @@ export const Constants = {
         "aceita",
         "executando",
         "concluida",
-        "validada",
+        "aprovada",
       ],
       tipo_usuario: ["master", "proprietario", "gestor", "colaborador"],
     },

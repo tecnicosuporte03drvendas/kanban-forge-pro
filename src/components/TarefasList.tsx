@@ -104,7 +104,7 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated,
         return "bg-kanban-executing text-white";
       case "concluida":
         return "bg-kanban-completed text-white";
-      case "validada":
+      case "aprovada":
         return "bg-kanban-validated text-white";
       default:
         return "bg-muted text-muted-foreground";
@@ -291,7 +291,7 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated,
 
   const filteredTasks = tasks.filter((task) => {
     // Filtro de tarefas aprovadas
-    if (showOnlyApproved && task.status !== "validada") {
+    if (showOnlyApproved && task.status !== "aprovada") {
       return false;
     }
 
@@ -364,7 +364,7 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated,
                   <SelectItem value="aceita">Aceita</SelectItem>
                   <SelectItem value="executando">Executando</SelectItem>
                   <SelectItem value="concluida">Concluída</SelectItem>
-                  <SelectItem value="validada">Validada</SelectItem>
+                  <SelectItem value="aprovada">Aprovada</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>

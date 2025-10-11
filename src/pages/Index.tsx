@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreateTaskModal } from "@/components/modals/CreateTaskModal";
 import { ViewTaskModal } from "@/components/modals/ViewTaskModal";
+import type { StatusTarefa } from "@/types/task";
 const Index = () => {
   const {
     usuario,
@@ -137,7 +138,7 @@ const Index = () => {
       const { error } = await supabase
         .from('tarefas')
         .update({ 
-          status: 'validada',
+          status: 'aprovada' as StatusTarefa,
           tempo_fim: new Date().toISOString()
         })
         .eq('id', taskId);

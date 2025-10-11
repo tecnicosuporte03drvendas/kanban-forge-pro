@@ -78,7 +78,7 @@ export function ProductivityRanking({ dateRange }: ProductivityRankingProps) {
 
             userStats[userId].totalTasks++
             
-            if (tarefa.status === 'concluida' || tarefa.status === 'validada') {
+            if (tarefa.status === 'concluida' || tarefa.status === 'aprovada') {
               userStats[userId].completedTasks++
             }
           }
@@ -173,7 +173,7 @@ export function ProductivityRanking({ dateRange }: ProductivityRankingProps) {
                 <div className="flex-1">
                   <h4 className="font-medium text-card-foreground">{user.nome}</h4>
                   <p className="text-sm text-muted-foreground">
-                    {user.completedTasks} de {user.totalTasks} tarefas validadas
+                    {user.completedTasks} de {user.totalTasks} tarefas aprovadas
                   </p>
                 </div>
                 <Badge className={getRankingBadgeColor(index)}>

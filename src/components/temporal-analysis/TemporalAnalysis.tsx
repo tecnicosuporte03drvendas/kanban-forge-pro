@@ -21,7 +21,7 @@ interface TemporalMetrics {
   };
   statusDistribution: {
     concluida: number;
-    validada: number;
+    aprovada: number;
     executando: number;
     aceita: number;
     criada: number;
@@ -38,7 +38,7 @@ export const TemporalAnalysis = () => {
     averageCompletionTime: 0,
     averageProductivity: 0,
     priorityDistribution: { alta: 0, media: 0, baixa: 0, urgente: 0 },
-    statusDistribution: { concluida: 0, validada: 0, executando: 0, aceita: 0, criada: 0 }
+    statusDistribution: { concluida: 0, aprovada: 0, executando: 0, aceita: 0, criada: 0 }
   });
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<TimePeriod>('esta-semana');
@@ -71,14 +71,14 @@ export const TemporalAnalysis = () => {
         // Calcular métricas
         const totalTasks = tarefas.length;
         const completedTasks = tarefas.filter(t => 
-          t.status === 'concluida' || t.status === 'validada'
+          t.status === 'concluida' || t.status === 'aprovada'
         ).length;
         
         const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
         // Calcular tempo médio de conclusão (em horas)
         const completedTasksWithTime = tarefas.filter(t => 
-          (t.status === 'concluida' || t.status === 'validada') && 
+          (t.status === 'concluida' || t.status === 'aprovada') && 
           t.tempo_gasto_minutos !== null
         );
         
@@ -102,7 +102,7 @@ export const TemporalAnalysis = () => {
         // Distribuição de status
         const statusDistribution = {
           concluida: tarefas.filter(t => t.status === 'concluida').length,
-          validada: tarefas.filter(t => t.status === 'validada').length,
+          aprovada: tarefas.filter(t => t.status === 'aprovada').length,
           executando: tarefas.filter(t => t.status === 'executando').length,
           aceita: tarefas.filter(t => t.status === 'aceita').length,
           criada: tarefas.filter(t => t.status === 'criada').length,
@@ -169,7 +169,7 @@ export const TemporalAnalysis = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'concluida': 
-      case 'validada': return 'bg-success';
+      case 'aprovada': return 'bg-success';
       case 'executando': return 'bg-info';
       case 'aceita': return 'bg-warning';
       case 'criada': return 'bg-muted';

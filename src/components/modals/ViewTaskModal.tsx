@@ -47,8 +47,8 @@ const statusColors = {
   criada: 'bg-kanban-created text-white',
   aceita: 'bg-kanban-assigned text-white',
   executando: 'bg-kanban-executing text-white',
-  concluida: 'bg-kanban-completed text-white',
-  validada: 'bg-kanban-validated text-white'
+    concluida: 'bg-kanban-completed text-white',
+    aprovada: 'bg-kanban-validated text-white'
 };
 export function ViewTaskModal({
   taskId,
@@ -461,7 +461,7 @@ export function ViewTaskModal({
       const { error } = await supabase
         .from('tarefas')
         .update({
-          status: 'validada',
+          status: 'aprovada',
           tempo_fim: new Date().toISOString()
         })
         .eq('id', tarefa.id);

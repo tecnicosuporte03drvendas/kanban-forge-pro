@@ -65,9 +65,9 @@ export function StatusDistribution({ dateRange }: StatusDistributionProps) {
         aceita: tarefas?.filter(t => t.status === 'aceita').length || 0,
         executando: tarefas?.filter(t => t.status === 'executando').length || 0,
         concluida: tarefas?.filter(t => t.status === 'concluida').length || 0,
-        validada: tarefas?.filter(t => t.status === 'validada').length || 0,
-        atrasada: tarefas?.filter(t => t.status !== 'concluida' && t.status !== 'validada' && isOverdue(t.data_conclusao)).length || 0,
-        vencendo: tarefas?.filter(t => t.status !== 'concluida' && t.status !== 'validada' && isDueToday(t.data_conclusao)).length || 0
+        aprovada: tarefas?.filter(t => t.status === 'aprovada').length || 0,
+        atrasada: tarefas?.filter(t => t.status !== 'concluida' && t.status !== 'aprovada' && isOverdue(t.data_conclusao)).length || 0,
+        vencendo: tarefas?.filter(t => t.status !== 'concluida' && t.status !== 'aprovada' && isDueToday(t.data_conclusao)).length || 0
       }
 
       const statusConfig = [
@@ -93,7 +93,7 @@ export function StatusDistribution({ dateRange }: StatusDistributionProps) {
         },
         { 
           status: 'Aprovadas', 
-          count: statusCount.validada,
+          count: statusCount.aprovada,
           color: 'bg-kanban-validated'
         },
         { 

@@ -53,10 +53,10 @@ export const IndividualStats = ({ userId }: IndividualStatsProps) => {
       if (tarefasResponsaveis) {
         const tarefas = tarefasResponsaveis.map(tr => tr.tarefas);
         
-        const completed = tarefas.filter(t => t.status === 'concluida' || t.status === 'validada').length;
-        const pending = tarefas.filter(t => t.status !== 'concluida' && t.status !== 'validada').length;
+        const completed = tarefas.filter(t => t.status === 'concluida' || t.status === 'aprovada').length;
+        const pending = tarefas.filter(t => t.status !== 'concluida' && t.status !== 'aprovada').length;
         const overdue = tarefas.filter(t => 
-          (t.status !== 'concluida' && t.status !== 'validada') && 
+          (t.status !== 'concluida' && t.status !== 'aprovada') && 
           isOverdue(t.data_conclusao)
         ).length;
         

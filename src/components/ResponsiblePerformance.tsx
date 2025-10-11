@@ -68,7 +68,7 @@ export function ResponsiblePerformance() {
 
             userStats[userId].totalTasks++
             
-            if (tarefa.status === 'concluida' || tarefa.status === 'validada') {
+            if (tarefa.status === 'concluida' || tarefa.status === 'aprovada') {
               userStats[userId].completedTasks++
             }
 

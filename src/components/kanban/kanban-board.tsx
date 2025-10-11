@@ -35,7 +35,7 @@ export interface Task {
   team: string
   teamId?: string
   teamColor: string
-  status: "criada" | "aceita" | "executando" | "concluida" | "validada"
+  status: "criada" | "aceita" | "executando" | "concluida" | "aprovada"
   isCurrentUserAssigned?: boolean
   totalResponsaveis?: number
   tempo_gasto_minutos?: number
@@ -60,8 +60,7 @@ const columns = [
   { id: "criada", title: "Criada", tasks: 0, color: "kanban-created" },
   { id: "aceita", title: "Aceita", tasks: 0, color: "kanban-assigned" },
   { id: "executando", title: "Executando", tasks: 0, color: "kanban-executing" },
-  { id: "concluida", title: "Concluída", tasks: 0, color: "kanban-completed" },
-  { id: "validada", title: "Validada", tasks: 0, color: "kanban-validated" }
+  { id: "concluida", title: "Concluída", tasks: 0, color: "kanban-completed" }
 ]
 
 export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onToggleAllCardsCompact, onRealtimeUpdate, onTaskApprove }: KanbanBoardProps) {
@@ -357,8 +356,8 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
 
     // Colaboradores têm restrições
     if (usuario?.tipo_usuario === 'colaborador') {
-      // Não podem mover tarefas concluídas ou validadas
-      if (fromStatus === 'concluida' || fromStatus === 'validada') {
+      // Não podem mover tarefas concluídas ou aprovadas
+      if (fromStatus === 'concluida' || fromStatus === 'aprovada') {
         return false
       }
 
@@ -373,7 +372,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
         'aceita': ['executando', 'concluida', 'criada'],
         'executando': ['concluida', 'aceita'],
         'concluida': [], // Colaboradores não podem mover tarefas concluídas
-        'validada': []  // Colaboradores não podem mover tarefas validadas
+        'aprovada': []  // Colaboradores não podem mover tarefas aprovadas
       }
 
       return validMovements[fromStatus]?.includes(toStatus) || false

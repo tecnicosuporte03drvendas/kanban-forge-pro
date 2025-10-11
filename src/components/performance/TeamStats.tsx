@@ -60,7 +60,7 @@ export const TeamStats = ({ dateRange }: TeamStatsProps) => {
             .eq('tarefas.arquivada', false);
 
           const tarefas = tarefasResponsaveis?.map(tr => tr.tarefas) || [];
-          const completed = tarefas.filter(t => t.status === 'concluida' || t.status === 'validada').length;
+          const completed = tarefas.filter(t => t.status === 'concluida' || t.status === 'aprovada').length;
           const totalHours = tarefas.reduce((acc, t) => acc + (t.tempo_gasto_minutos || 0), 0) / 60;
           const productivity = tarefas.length > 0 ? (completed / tarefas.length) * 100 : 0;
 
