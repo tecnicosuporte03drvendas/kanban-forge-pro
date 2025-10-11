@@ -126,7 +126,7 @@ export function AppSidebar() {
     }
     return `${baseClasses} text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground`;
   };
-  return <Sidebar className={`${collapsed ? "w-16" : "w-64"} transition-all duration-300 border-r border-sidebar-border bg-sidebar`} collapsible="icon">
+  return <Sidebar className={`${collapsed ? "w-20" : "w-64"} transition-all duration-300 border-r border-sidebar-border bg-sidebar`} collapsible="icon">
       <SidebarHeader className={`border-b border-sidebar-border ${collapsed ? 'p-3' : 'p-4'}`}>
         <div className={`flex ${collapsed ? 'flex-col gap-2' : 'items-center justify-between'}`}>
           <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
