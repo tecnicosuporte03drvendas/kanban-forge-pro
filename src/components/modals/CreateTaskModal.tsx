@@ -63,6 +63,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
   const [selectedResponsibles, setSelectedResponsibles] = useState<string[]>([])
   const [teamMembers, setTeamMembers] = useState<Record<string, string[]>>({})
   const [loading, setLoading] = useState(false)
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
   const { usuario } = useEffectiveUser()
   const { shouldSuppressLogs } = useStealth()
 
@@ -482,7 +483,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Data de Conclusão</FormLabel>
-                    <Popover>
+                    <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -505,7 +506,10 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
                         <Calendar
                           mode="single"
                           selected={field.value}
-                          onSelect={field.onChange}
+                          onSelect={(date) => {
+                            field.onChange(date)
+                            setDatePickerOpen(false)
+                          }}
                           disabled={false}
                           initialFocus
                           className={cn("p-3 pointer-events-auto")}
