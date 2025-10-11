@@ -40,7 +40,6 @@ export function TaskTimeBadge({ tempoGastoMinutos, status, className }: TaskTime
         className={`flex items-center gap-1 animate-pulse ${className}`}
       >
         <Clock className="h-3 w-3" />
-        {tempoGastoMinutos && tempoGastoMinutos > 0 ? formatTime(tempoGastoMinutos) : ''}
       </Badge>
     );
   }
