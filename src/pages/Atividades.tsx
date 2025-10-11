@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Clock, CheckSquare, Users, FileText, Edit, Trash2, Archive, Calendar as CalendarIcon, Filter, X } from "lucide-react"
+import { Clock, CheckSquare, Users, FileText, Edit, Trash2, Archive, Calendar as CalendarIcon, Filter, X, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useEffectiveUser } from "@/hooks/use-effective-user"
+import { useNavigate } from "react-router-dom"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 
@@ -25,6 +26,7 @@ interface Activity {
 
 const Atividades = () => {
   const { usuario } = useEffectiveUser()
+  const navigate = useNavigate()
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -35,13 +37,16 @@ const Atividades = () => {
     to: undefined
   })
   const [users, setUsers] = useState<Array<{ id: string; nome: string }>>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const itemsPerPage = 10
 
   useEffect(() => {
     if (usuario?.empresa_id) {
       loadActivities()
       loadUsers()
     }
-  }, [usuario?.empresa_id, actionFilter, userFilter, dateRange])
+  }, [usuario?.empresa_id, actionFilter, userFilter, dateRange, currentPage])
 
   const loadUsers = async () => {
     if (!usuario?.empresa_id) return
@@ -74,7 +79,7 @@ const Atividades = () => {
           descricao,
           created_at,
           usuarios:usuario_id(nome)
-        `)
+        `, { count: 'exact' })
         .order('created_at', { ascending: false })
 
       // Filtro por ação
@@ -97,11 +102,17 @@ const Atividades = () => {
         query = query.lte('created_at', toDate.toISOString())
       }
 
-      const { data, error } = await query
+      // Paginação
+      const from = (currentPage - 1) * itemsPerPage
+      const to = from + itemsPerPage - 1
+      query = query.range(from, to)
+
+      const { data, error, count } = await query
 
       if (error) throw error
 
       setActivities(data || [])
+      setTotalCount(count || 0)
     } catch (error) {
       console.error('Error loading activities:', error)
     } finally {
@@ -138,6 +149,7 @@ const Atividades = () => {
     setUserFilter("all")
     setDateRange({ from: undefined, to: undefined })
     setSearchTerm("")
+    setCurrentPage(1)
   }
 
   const filteredActivities = activities.filter(activity => {
@@ -149,11 +161,22 @@ const Atividades = () => {
 
   const hasActiveFilters = actionFilter !== "all" || userFilter !== "all" || dateRange.from || dateRange.to || searchTerm
 
+  const totalPages = Math.ceil(totalCount / itemsPerPage)
+
   return (
     <div className="flex flex-col h-screen">
       <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between h-full px-6">
           <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar
+            </Button>
             <SidebarTrigger className="lg:hidden" />
             <div>
               <h1 className="text-2xl font-bold text-foreground">Histórico de Atividades</h1>
@@ -249,7 +272,7 @@ const Atividades = () => {
           <Card className="border-border bg-card">
             <CardHeader>
               <CardTitle>
-                {filteredActivities.length} {filteredActivities.length === 1 ? 'atividade encontrada' : 'atividades encontradas'}
+                {totalCount} {totalCount === 1 ? 'atividade encontrada' : 'atividades encontradas'}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -258,37 +281,63 @@ const Atividades = () => {
               ) : filteredActivities.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Nenhuma atividade encontrada.</p>
               ) : (
-                <div className="space-y-3">
-                  {filteredActivities.map((activity) => (
-                    <div 
-                      key={activity.id} 
-                      className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-lg ${getActivityColor(activity.acao)}`}>
-                          {getActivityIcon(activity.acao)}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-card-foreground">{activity.descricao || activity.acao}</p>
-                            <Badge variant="outline" className="text-xs">
-                              {activity.acao}
-                            </Badge>
+                <>
+                  <div className="space-y-3">
+                    {filteredActivities.map((activity) => (
+                      <div 
+                        key={activity.id} 
+                        className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`p-2 rounded-lg ${getActivityColor(activity.acao)}`}>
+                            {getActivityIcon(activity.acao)}
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Users className="w-3 h-3" />
-                            <span>{activity.usuarios.nome}</span>
-                            <span>•</span>
-                            <Clock className="w-3 h-3" />
-                            <span>
-                              {format(new Date(activity.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                            </span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-card-foreground">{activity.descricao || activity.acao}</p>
+                              <Badge variant="outline" className="text-xs">
+                                {activity.acao}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Users className="w-3 h-3" />
+                              <span>{activity.usuarios.nome}</span>
+                              <span>•</span>
+                              <Clock className="w-3 h-3" />
+                              <span>
+                                {format(new Date(activity.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-6">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      <span className="text-sm text-muted-foreground">
+                        Página {currentPage} de {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
