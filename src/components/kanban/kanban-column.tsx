@@ -44,8 +44,8 @@ export function KanbanColumn({
     }
     return `${baseClass} border-border bg-card shadow-sm`;
   };
-  return <div className={getColumnClass()}>
-      <div className={`p-3 rounded-t-lg ${getColumnHeaderClass()}`}>
+  return <div className={`${getColumnClass()} h-full`}>
+      <div className={`p-3 rounded-t-lg ${getColumnHeaderClass()} flex-shrink-0`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-white dark:text-slate-800">{title}</h3>
@@ -65,7 +65,7 @@ export function KanbanColumn({
         </div>
       </div>
 
-      <div ref={setNodeRef} className="flex-1 p-4 space-y-3">
+      <div ref={setNodeRef} className="flex-1 p-3 space-y-2 overflow-y-auto min-h-0">
         {tasks.length === 0 ? <div className="flex flex-col items-center justify-center h-40 text-center">
             <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
               <Plus className="w-6 h-6 text-muted-foreground" />
