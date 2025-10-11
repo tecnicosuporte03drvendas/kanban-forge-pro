@@ -38,9 +38,10 @@ interface TarefasListProps {
   onCreateTask?: () => void;
   showArchived?: boolean;
   onTaskUpdated?: () => void;
+  showOnlyApproved?: boolean;
 }
 
-export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated }: TarefasListProps) {
+export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated, showOnlyApproved = false }: TarefasListProps) {
   const { usuario } = useEffectiveUser();
   const [tasks, setTasks] = useState<Tarefa[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,6 +55,8 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated 
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const tasksPerPage = 5;
 
   useEffect(() => {
     if (usuario?.empresa_id) {
@@ -287,6 +290,11 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated 
   };
 
   const filteredTasks = tasks.filter((task) => {
+    // Filtro de tarefas aprovadas
+    if (showOnlyApproved && task.status !== "validada") {
+      return false;
+    }
+
     // Search filter
     if (
       searchTerm &&
@@ -308,6 +316,12 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated 
 
     return true;
   });
+
+  // Paginação
+  const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
+  const startIndex = (currentPage - 1) * tasksPerPage;
+  const endIndex = startIndex + tasksPerPage;
+  const paginatedTasks = filteredTasks.slice(startIndex, endIndex);
 
   if (loading) {
     return (
@@ -442,7 +456,7 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated 
           </Button>
         </div>
 
-        {filteredTasks.map((task) => (
+        {paginatedTasks.map((task) => (
           <Card
             key={task.id}
             className="border-border bg-card hover:shadow-md transition-all duration-200 cursor-pointer"
@@ -543,6 +557,30 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated 
               )}
             </CardContent>
           </Card>
+        )}
+
+        {filteredTasks.length > 0 && totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              Anterior
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Próxima
+            </Button>
+          </div>
         )}
       </div>
 

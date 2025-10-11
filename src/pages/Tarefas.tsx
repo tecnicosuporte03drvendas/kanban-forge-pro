@@ -6,6 +6,7 @@ import { TarefasList } from "@/components/TarefasList";
 import { TemporalAnalysis } from "@/components/temporal-analysis/TemporalAnalysis";
 import { CreateTaskModal } from "@/components/modals/CreateTaskModal";
 import { ViewTaskModal } from "@/components/modals/ViewTaskModal";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 
 const Tarefas = () => {
@@ -45,7 +46,21 @@ const Tarefas = () => {
       <ScrollArea className="flex-1">
         <div className="p-6 bg-gradient-kanban min-h-full space-y-6">
           <TemporalAnalysis />
-          <TarefasList key={refreshTasks} onTaskUpdated={handleTaskUpdated} />
+          
+          <Tabs defaultValue="gerais" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
+              <TabsTrigger value="gerais">Tarefas Gerais</TabsTrigger>
+              <TabsTrigger value="aprovadas">Tarefas Aprovadas</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="gerais" className="mt-6">
+              <TarefasList key={refreshTasks} onTaskUpdated={handleTaskUpdated} />
+            </TabsContent>
+            
+            <TabsContent value="aprovadas" className="mt-6">
+              <TarefasList key={`${refreshTasks}-approved`} onTaskUpdated={handleTaskUpdated} showOnlyApproved={true} />
+            </TabsContent>
+          </Tabs>
         </div>
         <ScrollBar orientation="vertical" />
       </ScrollArea>
