@@ -136,23 +136,23 @@ export function TaskStats() {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
       {statsConfig.map((stat, index) => {
         const IconComponent = stat.icon
         return (
           <Card key={index} className="border-border bg-card hover:shadow-md transition-all duration-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                <IconComponent className={`h-4 w-4 ${stat.color}`} />
+              <div className={`p-1.5 rounded-lg ${stat.bgColor}`}>
+                <IconComponent className={`h-3 w-3 ${stat.color}`} />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline gap-2">
-                <div className="text-2xl font-bold text-card-foreground">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
+            <CardContent className="px-3 pb-3">
+              <div className="flex flex-col gap-0.5">
+                <div className="text-xl font-bold text-card-foreground">{stat.value}</div>
+                <p className="text-[10px] text-muted-foreground leading-tight">{stat.subtitle}</p>
               </div>
             </CardContent>
           </Card>
