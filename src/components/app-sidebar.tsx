@@ -115,7 +115,13 @@ export function AppSidebar() {
     }
   }, [usuario]);
   const handleLogout = async () => {
-    await logout();
+    if (isStealthMode) {
+      // Em modo stealth, voltar para a conta master
+      window.location.href = '/admin';
+    } else {
+      // Logout normal
+      await logout();
+    }
     setShowLogoutDialog(false);
   };
   const isActive = (path: string) => currentPath === path;
@@ -226,7 +232,7 @@ export function AppSidebar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setShowLogoutDialog(true)} className="text-destructive focus:text-destructive cursor-pointer">
                   <LogOut className="w-4 h-4 mr-2" />
-                  Sair da Conta
+                  {isStealthMode ? 'Voltar para Master' : 'Sair da Conta'}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>}
@@ -251,7 +257,7 @@ export function AppSidebar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setShowLogoutDialog(true)} className="text-destructive focus:text-destructive cursor-pointer">
                   <LogOut className="w-4 h-4 mr-2" />
-                  Sair da Conta
+                  {isStealthMode ? 'Voltar para Master' : 'Sair da Conta'}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>}
@@ -259,11 +265,14 @@ export function AppSidebar() {
       </SidebarFooter>
 
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <AlertDialogContent>
+      <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Saída</AlertDialogTitle>
+            <AlertDialogTitle>{isStealthMode ? 'Sair do Modo Visualização' : 'Confirmar Saída'}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja sair da sua conta? Você precisará fazer login novamente para acessar o sistema.
+              {isStealthMode 
+                ? 'Deseja voltar para a sua conta Master?' 
+                : 'Tem certeza que deseja sair da sua conta? Você precisará fazer login novamente para acessar o sistema.'
+              }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
