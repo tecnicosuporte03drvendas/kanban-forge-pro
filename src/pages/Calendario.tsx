@@ -32,7 +32,7 @@ interface CalendarEvent {
 
 const Calendario = () => {
   const { usuario } = useEffectiveUser()
-  const [viewMode, setViewMode] = useState<'dia' | 'semana' | 'mes'>('semana')
+  const [viewMode, setViewMode] = useState<'dia' | 'semana' | 'mes'>('mes')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date())
   const [isModalOpen, setIsModalOpen] = useState(false)
