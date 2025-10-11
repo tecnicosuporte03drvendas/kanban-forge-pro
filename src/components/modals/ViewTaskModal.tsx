@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar as CalendarIcon, Clock, User, Users, MessageSquare, Activity, CheckSquare, AlertCircle, Zap, MoreHorizontal, Archive } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, User, Users, MessageSquare, Activity, CheckSquare, AlertCircle, Zap, MoreHorizontal, Archive, CheckCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -69,6 +69,7 @@ export function ViewTaskModal({
   const [archiving, setArchiving] = useState(false);
   const [visibleActivities, setVisibleActivities] = useState(5);
   const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
+  const [approving, setApproving] = useState(false);
 
   // Edit states for inline editing
   const [editingDescription, setEditingDescription] = useState(false);
@@ -451,6 +452,53 @@ export function ViewTaskModal({
       setArchiving(false);
     }
   };
+  
+  const handleApprove = async () => {
+    if (!tarefa || !usuario) return;
+    
+    setApproving(true);
+    try {
+      const { error } = await supabase
+        .from('tarefas')
+        .update({
+          status: 'validada',
+          tempo_fim: new Date().toISOString()
+        })
+        .eq('id', tarefa.id);
+
+      if (error) throw error;
+
+      // Create activity record
+      await supabase.from('tarefas_atividades').insert({
+        tarefa_id: tarefa.id,
+        usuario_id: usuario.id,
+        acao: 'aprovou',
+        descricao: 'Tarefa aprovada e validada'
+      });
+
+      toast({
+        title: 'Sucesso',
+        description: 'Tarefa aprovada com sucesso!'
+      });
+
+      loadTask();
+      onTaskUpdated?.();
+    } catch (error) {
+      console.error('Error approving task:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao aprovar tarefa',
+        variant: 'destructive'
+      });
+    } finally {
+      setApproving(false);
+    }
+  };
+  
+  const showApproveButton = tarefa.status === 'concluida' && 
+    usuario?.tipo_usuario && 
+    ['gestor', 'proprietario'].includes(usuario.tipo_usuario);
+  
   if (!tarefa) {
     return <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-6xl max-h-[90vh]">
@@ -608,6 +656,18 @@ export function ViewTaskModal({
               <Badge className={cn("border-0", statusColors[tarefa.status])}>
                 {tarefa.status.charAt(0).toUpperCase() + tarefa.status.slice(1)}
               </Badge>
+              
+              {showApproveButton && (
+                <Button 
+                  onClick={handleApprove}
+                  disabled={approving}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  {approving ? 'Aprovando...' : 'Aprovar Tarefa'}
+                </Button>
+              )}
             </div>
 
             {/* Description */}
