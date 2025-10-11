@@ -143,12 +143,8 @@ const Ajuda = () => {
             </CardContent>
           </Card>
 
-          <Tabs defaultValue="guias" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 bg-card">
-              <TabsTrigger value="guias" className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                Guias
-              </TabsTrigger>
+          <Tabs defaultValue="documentacao" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 bg-card">
               <TabsTrigger value="documentacao">Documentação</TabsTrigger>
               <TabsTrigger value="faq" className="flex items-center gap-2">
                 <HelpCircle className="w-4 h-4" />
@@ -159,45 +155,6 @@ const Ajuda = () => {
                 Tickets
               </TabsTrigger>
             </TabsList>
-
-            <TabsContent value="guias" className="space-y-6">
-              <div className="grid gap-4">
-                <h3 className="text-lg font-semibold text-foreground">Guias Rápidos</h3>
-                <p className="text-muted-foreground">Tutoriais passo a passo para começar</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {quickGuides.map((guide) => (
-                    <Card key={guide.id} className="border-border bg-card hover:shadow-md transition-all duration-200 cursor-pointer">
-                      <CardContent className="p-4">
-                        <div className="space-y-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <h4 className="font-medium text-card-foreground text-sm">{guide.title}</h4>
-                            <Badge className={getCategoryColor(guide.category)}>
-                              {guide.category}
-                            </Badge>
-                          </div>
-                          
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            {guide.description}
-                          </p>
-                          
-                          <div className="flex items-center justify-between pt-2">
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Clock className="w-3 h-3" />
-                              <span>{guide.duration}</span>
-                            </div>
-                            <Button variant="ghost" size="sm" className="h-6 text-xs">
-                              <ExternalLink className="w-3 h-3 mr-1" />
-                              Ver Guia
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
 
             <TabsContent value="documentacao">
               <Card className="border-border bg-card">
