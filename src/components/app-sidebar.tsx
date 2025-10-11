@@ -120,11 +120,10 @@ export function AppSidebar() {
   };
   const isActive = (path: string) => currentPath === path;
   const getNavClasses = (path: string) => {
-    const baseClasses = `flex items-center rounded-lg transition-all duration-200 ${collapsed ? 'justify-center w-12 h-12 p-0' : 'justify-start gap-3 px-3 w-full h-12'}`;
     if (isActive(path)) {
-      return `${baseClasses} bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-sm`;
+      return "bg-sidebar-accent text-sidebar-accent-foreground";
     }
-    return `${baseClasses} text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground`;
+    return "";
   };
   return <Sidebar 
       style={{ '--sidebar-width-icon': '160px' } as React.CSSProperties}
@@ -161,8 +160,8 @@ export function AppSidebar() {
               return <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
                       <NavLink to={item.url} end className={getNavClasses(item.url)}>
-                        <item.icon className="flex-shrink-0 w-4 h-4" />
-                        <span>{item.title}</span>
+                        <item.icon className="w-4 h-4" />
+                        {!collapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>;
