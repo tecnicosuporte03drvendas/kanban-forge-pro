@@ -120,7 +120,7 @@ export function AppSidebar() {
   };
   const isActive = (path: string) => currentPath === path;
   const getNavClasses = (path: string) => {
-    const baseClasses = `flex items-center rounded-lg transition-all duration-200 ${collapsed ? 'justify-center w-12 h-12 p-0' : 'justify-start gap-3 px-3 w-full h-12'}`;
+    const baseClasses = `flex items-center rounded-lg transition-all duration-200 ${collapsed ? 'justify-center w-10 h-10 p-0' : 'justify-start gap-3 px-3 w-full h-12'}`;
     if (isActive(path)) {
       return `${baseClasses} bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-sm`;
     }
@@ -142,21 +142,21 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className={collapsed ? 'px-2 py-4' : 'px-3 py-4'}>
+      <SidebarContent className={collapsed ? 'px-2 py-2' : 'px-3 py-4'}>
         <SidebarGroup>
           {!collapsed && <SidebarGroupLabel className="text-sidebar-foreground/60 text-xs font-medium mb-2 px-3">
               MENU PRINCIPAL
             </SidebarGroupLabel>}
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className={collapsed ? 'space-y-0.5' : 'space-y-1'}>
               {getMenuItems(usuario?.tipo_usuario || '', isStealthMode, empresaId).map(item => {
               // Ocultar "Administração" para usuários que não sejam master ou em modo stealth
               if (item.title === "Administração" && (usuario?.tipo_usuario !== 'master' || isStealthMode)) {
                 return null;
               }
               return <SidebarMenuItem key={item.title}>
-                    <NavLink to={item.url} end className={getNavClasses(item.url)}>
-                      <item.icon className={`flex-shrink-0 ${collapsed ? 'w-5 h-5' : 'w-5 h-5'}`} />
+                  <NavLink to={item.url} end className={getNavClasses(item.url)}>
+                      <item.icon className={`flex-shrink-0 ${collapsed ? 'w-4 h-4' : 'w-5 h-5'}`} />
                       {!collapsed && <span className="font-medium truncate">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuItem>;
