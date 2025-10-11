@@ -495,7 +495,7 @@ export function ViewTaskModal({
     }
   };
   
-  const showApproveButton = tarefa.status === 'concluida' && 
+  const showApproveButton = tarefa?.status === 'concluida' && 
     usuario?.tipo_usuario && 
     ['gestor', 'proprietario'].includes(usuario.tipo_usuario);
   
