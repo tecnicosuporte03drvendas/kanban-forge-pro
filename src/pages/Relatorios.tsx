@@ -451,6 +451,8 @@ const Relatorios = () => {
                         userId={usuario?.id}
                       />
 
+                      <TeamStats key={`team-performance-${refreshKey}`} dateRange={dateRange} />
+
                       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                         <div className="xl:col-span-2">
                           <CompanyStats key={`company-stats-${refreshKey}`} dateRange={dateRange} />
@@ -462,8 +464,6 @@ const Relatorios = () => {
                           />
                         </div>
                       </div>
-
-                      <ProductivityRanking key={`ranking-company-users-${refreshKey}`} dateRange={dateRange} />
 
                       <RecentActivities 
                         key={`activities-company-${refreshKey}`} 
