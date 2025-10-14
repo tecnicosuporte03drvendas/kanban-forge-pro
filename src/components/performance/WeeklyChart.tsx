@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffectiveUser } from '@/hooks/use-effective-user';
 
+import { DateFilterType } from "@/components/reports/DateRangeFilter"
+
 interface WeeklyData {
   day: string;
   tasks: number;
@@ -14,20 +16,54 @@ interface WeeklyChartProps {
   userId?: string;
   dateRange?: { from: Date; to: Date }
   viewMode?: 'geral' | 'individual' | 'equipe'
+  filterType?: DateFilterType
 }
 
-export const WeeklyChart = ({ userId, dateRange, viewMode = 'geral' }: WeeklyChartProps) => {
+export const WeeklyChart = ({ userId, dateRange, viewMode = 'geral', filterType = 'semana' }: WeeklyChartProps) => {
   const { usuario } = useEffectiveUser()
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [loading, setLoading] = useState(true);
 
   const targetUserId = userId || usuario?.id;
 
+  // Define título baseado no período
+  const getChartTitle = () => {
+    switch (filterType) {
+      case 'dia':
+        return 'Histórico de Performance do Dia'
+      case 'semana':
+        return 'Histórico de Performance Semanal'
+      case 'mes':
+        return 'Histórico de Performance Mensal'
+      case 'customizado':
+        return 'Histórico de Performance no Período'
+      default:
+        return 'Histórico de Performance'
+    }
+  }
+
+  const getChartSubtitle = () => {
+    const target = userId ? 'Sua evolução' : 'Evolução da equipe'
+    switch (filterType) {
+      case 'dia':
+        return `${target} ao longo do dia`
+      case 'semana':
+        return `${target} ao longo da semana`
+      case 'mes':
+        return `${target} ao longo do mês`
+      case 'customizado':
+        return `${target} no período selecionado`
+      default:
+        return target
+    }
+  }
+
   useEffect(() => {
     if (usuario?.empresa_id) {
-      loadWeeklyData();
+      setLoading(true)
+      loadWeeklyData()
     }
-  }, [targetUserId, usuario?.empresa_id, dateRange, viewMode]);
+  }, [targetUserId, usuario?.empresa_id, dateRange, viewMode, filterType]);
 
   const loadWeeklyData = async () => {
     try {
@@ -114,15 +150,16 @@ export const WeeklyChart = ({ userId, dateRange, viewMode = 'geral' }: WeeklyCha
     return (
       <Card className="border-border bg-card">
         <CardHeader>
-          <CardTitle>Histórico de Performance</CardTitle>
+          <CardTitle>{getChartTitle()}</CardTitle>
+          <p className="text-sm text-muted-foreground">{getChartSubtitle()}</p>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4 animate-pulse">
+          <div className="space-y-4">
             {[...Array(7)].map((_, i) => (
-              <div key={i} className="flex items-center gap-4">
-                <div className="w-20 h-4 bg-muted rounded"></div>
-                <div className="flex-1 h-2 bg-muted rounded"></div>
-                <div className="w-16 h-4 bg-muted rounded"></div>
+              <div key={i} className="flex items-center gap-4 animate-pulse">
+                <div className="w-20 h-4 bg-muted rounded animate-shimmer"></div>
+                <div className="flex-1 h-2 bg-muted rounded animate-shimmer"></div>
+                <div className="w-16 h-4 bg-muted rounded animate-shimmer"></div>
               </div>
             ))}
           </div>
@@ -136,15 +173,15 @@ export const WeeklyChart = ({ userId, dateRange, viewMode = 'geral' }: WeeklyCha
   return (
     <Card className="border-border bg-card">
       <CardHeader>
-        <CardTitle>Histórico de Performance Semanal</CardTitle>
+        <CardTitle>{getChartTitle()}</CardTitle>
         <p className="text-sm text-muted-foreground">
-          {userId ? 'Sua evolução' : 'Evolução da equipe'} ao longo da semana
+          {getChartSubtitle()}
         </p>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {weeklyData.map((day, index) => (
-            <div key={index} className="flex items-center gap-4">
+            <div key={index} className="flex items-center gap-4 animate-fade-in">
               <div className="w-20 text-sm font-medium text-muted-foreground">
                 {day.day}
               </div>
@@ -163,7 +200,7 @@ export const WeeklyChart = ({ userId, dateRange, viewMode = 'geral' }: WeeklyCha
         
         {weeklyData.every(d => d.tasks === 0) && (
           <p className="text-center text-muted-foreground py-4">
-            Nenhuma atividade registrada nesta semana.
+            Nenhuma atividade registrada neste período.
           </p>
         )}
       </CardContent>

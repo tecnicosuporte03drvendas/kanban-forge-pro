@@ -236,12 +236,13 @@ const Relatorios = () => {
 
                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                       <div className="xl:col-span-2">
-                        <WeeklyChart 
-                          key={`chart-personal-${refreshKey}`} 
-                          userId={usuario?.id} 
-                          dateRange={dateRange}
-                          viewMode="individual"
-                        />
+                    <WeeklyChart 
+                      key={`chart-personal-${refreshKey}`} 
+                      userId={usuario?.id} 
+                      dateRange={dateRange}
+                      viewMode="individual"
+                      filterType={filterType}
+                    />
                       </div>
                       <div>
                         <RecentTasks 
@@ -278,12 +279,13 @@ const Relatorios = () => {
 
                       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                         <div className="xl:col-span-2">
-                          <WeeklyChart 
-                            key={`chart-team-${refreshKey}`} 
-                            userId={usuario?.id} 
-                            dateRange={dateRange}
-                            viewMode="equipe"
-                          />
+                        <WeeklyChart 
+                          key={`chart-team-${refreshKey}`} 
+                          userId={usuario?.id} 
+                          dateRange={dateRange}
+                          viewMode="equipe"
+                          filterType={filterType}
+                        />
                         </div>
                         <div>
                           <RecentTasks 
@@ -331,13 +333,14 @@ const Relatorios = () => {
 
                       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                         <div className="xl:col-span-2 space-y-6">
-                          {viewMode === 'individual' ? (
-                            <WeeklyChart 
-                              key={`chart-${refreshKey}`} 
-                              userId={usuario?.id} 
-                              dateRange={dateRange}
-                              viewMode={viewMode}
-                            />
+                      {viewMode === 'individual' ? (
+                        <WeeklyChart 
+                          key={`chart-${refreshKey}`} 
+                          userId={usuario?.id} 
+                          dateRange={dateRange}
+                          viewMode={viewMode}
+                          filterType={filterType}
+                        />
                           ) : (
                             <Tabs defaultValue="performance" className="space-y-4">
                               <TabsList className="grid w-full grid-cols-4 bg-card">
@@ -350,7 +353,8 @@ const Relatorios = () => {
                               <TabsContent value="performance">
                                 <WeeklyChart 
                                   key={`chart-${refreshKey}`} 
-                                  dateRange={dateRange} 
+                                  dateRange={dateRange}
+                                  filterType={filterType}
                                 />
                               </TabsContent>
 
