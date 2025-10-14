@@ -167,8 +167,12 @@ export function RecentTasks({ dateRange }: RecentTasksProps) {
                         {teamInfo.name}
                       </Badge>
                     </div>
-                    <p className={`text-xs ${getDateStatus(task.data_conclusao).className}`}>
-                      Vencimento: {new Date(task.data_conclusao).toLocaleDateString("pt-BR")}
+                    <p className={`text-xs ${
+                      task.status === 'concluida' || task.status === 'aprovada'
+                        ? 'text-green-600 dark:text-green-500'
+                        : getDateStatus(task.data_conclusao).className
+                    }`}>
+                      Vencimento: {new Date(task.data_conclusao + 'T00:00:00').toLocaleDateString("pt-BR")}
                     </p>
                   </div>
                 </div>
