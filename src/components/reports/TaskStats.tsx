@@ -14,6 +14,8 @@ interface TaskStatsData {
   overdue: number
   approved: number
   completionRate: number
+  total: number
+  averageCompletionHours: number
 }
 
 interface TaskStatsProps {
@@ -29,7 +31,9 @@ export function TaskStats({ dateRange }: TaskStatsProps) {
     completed: 0,
     overdue: 0,
     approved: 0,
-    completionRate: 0
+    completionRate: 0,
+    total: 0,
+    averageCompletionHours: 0
   })
   const [loading, setLoading] = useState(false)
 
@@ -114,6 +118,11 @@ export function TaskStats({ dateRange }: TaskStatsProps) {
       const totalCompleted = completed + approved
       const completionRate = total > 0 ? Math.round((totalCompleted / total) * 100) : 0
 
+      // Calcular média horária de conclusão (apenas tarefas concluídas/aprovadas)
+      const completedTasks = tarefas?.filter(t => (t.status === 'concluida' || t.status === 'aprovada') && t.tempo_gasto_minutos) || []
+      const totalMinutes = completedTasks.reduce((sum, t) => sum + (t.tempo_gasto_minutos || 0), 0)
+      const averageCompletionHours = completedTasks.length > 0 ? Number((totalMinutes / completedTasks.length / 60).toFixed(1)) : 0
+
       setStats({
         created,
         accepted,
@@ -121,7 +130,9 @@ export function TaskStats({ dateRange }: TaskStatsProps) {
         completed,
         overdue,
         approved,
-        completionRate
+        completionRate,
+        total,
+        averageCompletionHours
       })
 
     } catch (error) {
@@ -131,7 +142,54 @@ export function TaskStats({ dateRange }: TaskStatsProps) {
     }
   }
 
-  const statsConfig = [
+  const isCollaborator = usuario?.tipo_usuario === 'colaborador'
+
+  // Configuração para colaboradores (5 cards principais)
+  const collaboratorStatsConfig = [
+    {
+      title: "Minhas Tarefas", 
+      value: loading ? "..." : stats.total.toString(),
+      subtitle: "atribuídas a mim/equipe",
+      icon: FileText,
+      color: "text-primary",
+      bgColor: "bg-primary/10"
+    },
+    {
+      title: "Atrasadas",
+      value: loading ? "..." : stats.overdue.toString(),
+      subtitle: "fora do prazo",
+      icon: AlertCircle,
+      color: "text-destructive",
+      bgColor: "bg-red-500/10"
+    },
+    {
+      title: "Concluídas",
+      value: loading ? "..." : stats.completed.toString(),
+      subtitle: "tarefas finalizadas",
+      icon: CheckCircle2,
+      color: "text-kanban-completed",
+      bgColor: "bg-green-500/10"
+    },
+    {
+      title: "Taxa de Conclusão",
+      value: loading ? "..." : `${stats.completionRate}%`,
+      subtitle: "taxa de sucesso",
+      icon: TrendingUp,
+      color: "text-primary",
+      bgColor: "bg-primary/10"
+    },
+    {
+      title: "Média de Conclusão",
+      value: loading ? "..." : `${stats.averageCompletionHours}h`,
+      subtitle: "tempo médio/tarefa",
+      icon: Clock,
+      color: "text-kanban-executing",
+      bgColor: "bg-yellow-500/10"
+    }
+  ]
+
+  // Configuração para administradores (7 cards detalhados)
+  const adminStatsConfig = [
     {
       title: "Criadas", 
       value: loading ? "..." : stats.created.toString(),
@@ -190,8 +248,11 @@ export function TaskStats({ dateRange }: TaskStatsProps) {
     }
   ]
 
+  const statsConfig = isCollaborator ? collaboratorStatsConfig : adminStatsConfig
+  const gridCols = isCollaborator ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-5" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7"
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2">
+    <div className={`grid ${gridCols} gap-2`}>
       {statsConfig.map((stat, index) => {
         const IconComponent = stat.icon
         return (
