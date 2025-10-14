@@ -169,47 +169,22 @@ const Relatorios = () => {
       <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
         <div className="space-y-6">
 
-          <div className="flex gap-4 flex-wrap items-start">
-            <DateRangeFilter
-              selectedType={filterType}
-              dateRange={customRange}
-              onFilterChange={handleFilterChange}
-            />
-            
-            {isCollaborator ? (
-              <div className="flex flex-col gap-2">
-                <Button
-                  variant={viewMode === 'individual' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode(viewMode === 'individual' ? 'geral' : 'individual')}
-                  className="justify-start"
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Pessoal
-                </Button>
-                {hasTeam && (
-                  <Button
-                    variant={viewMode === 'equipe' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewMode(viewMode === 'equipe' ? 'geral' : 'equipe')}
-                    className="justify-start"
-                  >
-                    <Users className="w-4 h-4 mr-2" />
-                    Equipe
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <Button
-                variant={viewMode === 'individual' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode(viewMode === 'individual' ? 'geral' : 'individual')}
-              >
-                <User className="w-4 h-4 mr-2" />
-                Meu Desempenho
-              </Button>
-            )}
-          </div>
+          <DateRangeFilter
+            selectedType={filterType}
+            dateRange={customRange}
+            onFilterChange={handleFilterChange}
+          />
+
+          {!isCollaborator && (
+            <Button
+              variant={viewMode === 'individual' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode(viewMode === 'individual' ? 'geral' : 'individual')}
+            >
+              <User className="w-4 h-4 mr-2" />
+              Meu Desempenho
+            </Button>
+          )}
 
           {isLoading ? (
             <div className="space-y-6">
@@ -223,112 +198,195 @@ const Relatorios = () => {
             </div>
           ) : (
             <>
-              <TaskStats 
-                key={`stats-${refreshKey}`} 
-                dateRange={dateRange} 
-                viewMode={viewMode}
-                userId={usuario?.id}
-              />
-
-              {viewMode === 'geral' && !isCollaborator && (
+              {isCollaborator ? (
                 <>
-                  <StatusDistribution 
-                    key={`status-${refreshKey}`} 
-                    dateRange={dateRange}
+                  {/* Seção Pessoal */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <User className="w-5 h-5 text-primary" />
+                      <h2 className="text-xl font-semibold text-foreground">Pessoal</h2>
+                    </div>
+                    
+                    <TaskStats 
+                      key={`stats-personal-${refreshKey}`} 
+                      dateRange={dateRange} 
+                      viewMode="individual"
+                      userId={usuario?.id}
+                    />
+
+                    <StatusDistribution 
+                      key={`status-personal-${refreshKey}`} 
+                      dateRange={dateRange}
+                      viewMode="individual"
+                      userId={usuario?.id}
+                    />
+
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                      <div className="xl:col-span-2">
+                        <WeeklyChart 
+                          key={`chart-personal-${refreshKey}`} 
+                          userId={usuario?.id} 
+                          dateRange={dateRange}
+                          viewMode="individual"
+                        />
+                      </div>
+                      <div>
+                        <RecentTasks 
+                          key={`tasks-personal-${refreshKey}`} 
+                          dateRange={dateRange}
+                          viewMode="individual"
+                          userId={usuario?.id}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Seção Equipe */}
+                  {hasTeam && (
+                    <div className="space-y-4 pt-8 border-t border-border">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-primary" />
+                        <h2 className="text-xl font-semibold text-foreground">Equipe</h2>
+                      </div>
+                      
+                      <TaskStats 
+                        key={`stats-team-${refreshKey}`} 
+                        dateRange={dateRange} 
+                        viewMode="equipe"
+                        userId={usuario?.id}
+                      />
+
+                      <StatusDistribution 
+                        key={`status-team-${refreshKey}`} 
+                        dateRange={dateRange}
+                        viewMode="equipe"
+                        userId={usuario?.id}
+                      />
+
+                      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                        <div className="xl:col-span-2">
+                          <WeeklyChart 
+                            key={`chart-team-${refreshKey}`} 
+                            userId={usuario?.id} 
+                            dateRange={dateRange}
+                            viewMode="equipe"
+                          />
+                        </div>
+                        <div>
+                          <RecentTasks 
+                            key={`tasks-team-${refreshKey}`} 
+                            dateRange={dateRange}
+                            viewMode="equipe"
+                            userId={usuario?.id}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <TaskStats 
+                    key={`stats-${refreshKey}`} 
+                    dateRange={dateRange} 
                     viewMode={viewMode}
                     userId={usuario?.id}
                   />
-                  <ProductivityRanking key={`ranking-${refreshKey}`} dateRange={dateRange} />
-                </>
-              )}
 
-              {(viewMode === 'individual' || viewMode === 'equipe') && (
-                <StatusDistribution 
-                  key={`status-${refreshKey}`} 
-                  dateRange={dateRange}
-                  viewMode={viewMode}
-                  userId={usuario?.id}
-                />
-              )}
+                  {viewMode === 'geral' && (
+                    <>
+                      <StatusDistribution 
+                        key={`status-${refreshKey}`} 
+                        dateRange={dateRange}
+                        viewMode={viewMode}
+                        userId={usuario?.id}
+                      />
+                      <ProductivityRanking key={`ranking-${refreshKey}`} dateRange={dateRange} />
+                    </>
+                  )}
 
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-2 space-y-6">
-                  {viewMode === 'individual' ? (
-                    <WeeklyChart 
-                      key={`chart-${refreshKey}`} 
-                      userId={usuario?.id} 
+                  {viewMode === 'individual' && (
+                    <StatusDistribution 
+                      key={`status-${refreshKey}`} 
                       dateRange={dateRange}
                       viewMode={viewMode}
-                    />
-                  ) : viewMode === 'geral' && !isCollaborator ? (
-                    <Tabs defaultValue="performance" className="space-y-4">
-                      <TabsList className="grid w-full grid-cols-4 bg-card">
-                        <TabsTrigger value="performance">Performance Individual</TabsTrigger>
-                        <TabsTrigger value="equipe">Equipe</TabsTrigger>
-                        <TabsTrigger value="empresa">Empresa</TabsTrigger>
-                        <TabsTrigger value="metas">Metas</TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="performance">
-                        <WeeklyChart 
-                          key={`chart-${refreshKey}`} 
-                          dateRange={dateRange} 
-                        />
-                      </TabsContent>
-
-                      <TabsContent value="equipe">
-                        <TeamStats key={`team-${refreshKey}`} dateRange={dateRange} />
-                      </TabsContent>
-
-                      <TabsContent value="empresa">
-                        <CompanyStats key={`company-${refreshKey}`} dateRange={dateRange} />
-                      </TabsContent>
-
-                      <TabsContent value="metas">
-                        <Card className="border-border bg-card">
-                          <CardHeader>
-                            <CardTitle>Metas e Objetivos</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-muted-foreground">Defina e acompanhe suas metas pessoais.</p>
-                          </CardContent>
-                        </Card>
-                      </TabsContent>
-                    </Tabs>
-                  ) : (
-                    <WeeklyChart 
-                      key={`chart-${refreshKey}`} 
-                      userId={usuario?.id} 
-                      dateRange={dateRange}
-                      viewMode={viewMode}
+                      userId={usuario?.id}
                     />
                   )}
-                </div>
 
-                <div className="space-y-6">
-                  {(viewMode === 'individual' || viewMode === 'equipe') ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <div className="xl:col-span-2 space-y-6">
+                      {viewMode === 'individual' ? (
+                        <WeeklyChart 
+                          key={`chart-${refreshKey}`} 
+                          userId={usuario?.id} 
+                          dateRange={dateRange}
+                          viewMode={viewMode}
+                        />
+                      ) : (
+                        <Tabs defaultValue="performance" className="space-y-4">
+                          <TabsList className="grid w-full grid-cols-4 bg-card">
+                            <TabsTrigger value="performance">Performance Individual</TabsTrigger>
+                            <TabsTrigger value="equipe">Equipe</TabsTrigger>
+                            <TabsTrigger value="empresa">Empresa</TabsTrigger>
+                            <TabsTrigger value="metas">Metas</TabsTrigger>
+                          </TabsList>
+
+                          <TabsContent value="performance">
+                            <WeeklyChart 
+                              key={`chart-${refreshKey}`} 
+                              dateRange={dateRange} 
+                            />
+                          </TabsContent>
+
+                          <TabsContent value="equipe">
+                            <TeamStats key={`team-${refreshKey}`} dateRange={dateRange} />
+                          </TabsContent>
+
+                          <TabsContent value="empresa">
+                            <CompanyStats key={`company-${refreshKey}`} dateRange={dateRange} />
+                          </TabsContent>
+
+                          <TabsContent value="metas">
+                            <Card className="border-border bg-card">
+                              <CardHeader>
+                                <CardTitle>Metas e Objetivos</CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <p className="text-muted-foreground">Defina e acompanhe suas metas pessoais.</p>
+                              </CardContent>
+                            </Card>
+                          </TabsContent>
+                        </Tabs>
+                      )}
+                    </div>
+
+                    <div className="space-y-6">
+                      {viewMode === 'individual' ? (
+                        <RecentTasks 
+                          key={`tasks-${refreshKey}`} 
+                          dateRange={dateRange}
+                          viewMode={viewMode}
+                          userId={usuario?.id}
+                        />
+                      ) : (
+                        <RecentActivities 
+                          key={`activities-${refreshKey}`} 
+                          dateRange={dateRange}
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {viewMode === 'geral' && (
                     <RecentTasks 
                       key={`tasks-${refreshKey}`} 
                       dateRange={dateRange}
                       viewMode={viewMode}
                       userId={usuario?.id}
                     />
-                  ) : (
-                    <RecentActivities 
-                      key={`activities-${refreshKey}`} 
-                      dateRange={dateRange}
-                    />
                   )}
-                </div>
-              </div>
-
-              {viewMode === 'geral' && (
-                <RecentTasks 
-                  key={`tasks-${refreshKey}`} 
-                  dateRange={dateRange}
-                  viewMode={viewMode}
-                  userId={usuario?.id}
-                />
+                </>
               )}
             </>
           )}
