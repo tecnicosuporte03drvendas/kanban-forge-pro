@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreateTaskModal } from "@/components/modals/CreateTaskModal";
 import { ViewTaskModal } from "@/components/modals/ViewTaskModal";
+import { toast } from "@/hooks/use-toast";
 import type { StatusTarefa } from "@/types/task";
 const Index = () => {
   const {
@@ -147,8 +148,18 @@ const Index = () => {
 
       // Task will be automatically updated via realtime
       console.log('✅ Task approved successfully');
+      
+      toast({
+        title: 'Sucesso',
+        description: 'Tarefa aprovada com sucesso!'
+      });
     } catch (error) {
       console.error('❌ Error approving task:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao aprovar tarefa',
+        variant: 'destructive'
+      });
     }
   };
   return <div className="flex flex-col min-h-screen">
