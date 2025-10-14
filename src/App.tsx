@@ -49,9 +49,7 @@ const HeaderWithBackButton = () => {
                     <Tarefas />
                   </ProtectedRoute>} />
               <Route path="/calendario" element={<Calendario />} />
-              <Route path="/relatorios" element={<ProtectedRoute allowedRoles={['proprietario', 'gestor']}>
-                    <Relatorios />
-                  </ProtectedRoute>} />
+              <Route path="/relatorios" element={<Relatorios />} />
               <Route path="/empresa" element={<Empresa />} />
               <Route path="/integracoes" element={<Integracoes />} />
               <Route path="/ajuda" element={<Ajuda />} />

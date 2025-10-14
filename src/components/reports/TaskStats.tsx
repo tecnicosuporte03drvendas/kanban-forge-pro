@@ -44,11 +44,54 @@ export function TaskStats({ dateRange }: TaskStatsProps) {
     
     setLoading(true)
     try {
+      const isCollaborator = usuario.tipo_usuario === 'colaborador'
+      let tarefasIds: string[] = []
+
+      // Se for colaborador, buscar apenas tarefas dele ou de suas equipes
+      if (isCollaborator && usuario.id) {
+        // Buscar equipes do usuário
+        const { data: userTeams } = await supabase
+          .from('usuarios_equipes')
+          .select('equipe_id')
+          .eq('usuario_id', usuario.id)
+
+        const teamIds = userTeams?.map(ut => ut.equipe_id) || []
+
+        // Buscar tarefas onde o usuário é responsável direto
+        const { data: userTasks } = await supabase
+          .from('tarefas_responsaveis')
+          .select('tarefa_id')
+          .eq('usuario_id', usuario.id)
+
+        // Buscar tarefas onde a equipe do usuário é responsável
+        let teamTasks: any[] = []
+        if (teamIds.length > 0) {
+          const { data } = await supabase
+            .from('tarefas_responsaveis')
+            .select('tarefa_id')
+            .in('equipe_id', teamIds)
+          teamTasks = data || []
+        }
+
+        // Combinar IDs únicos
+        tarefasIds = [
+          ...new Set([
+            ...(userTasks?.map(t => t.tarefa_id) || []),
+            ...(teamTasks?.map(t => t.tarefa_id) || [])
+          ])
+        ]
+      }
+
       let query = supabase
         .from('tarefas')
-        .select('status, data_conclusao, created_at')
+        .select('status, data_conclusao, created_at, tempo_gasto_minutos, tempo_inicio, tempo_fim')
         .eq('empresa_id', usuario.empresa_id)
         .eq('arquivada', false)
+
+      // Filtrar por tarefas específicas se for colaborador
+      if (isCollaborator && tarefasIds.length > 0) {
+        query = query.in('id', tarefasIds)
+      }
 
       if (dateRange) {
         query = query
