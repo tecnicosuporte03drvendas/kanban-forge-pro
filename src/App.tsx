@@ -19,7 +19,6 @@ import Tarefas from "./pages/Tarefas";
 import Calendario from "./pages/Calendario";
 import Relatorios from "./pages/Relatorios";
 import Empresa from "./pages/Empresa";
-import Desempenho from "./pages/Desempenho";
 import Integracoes from "./pages/Integracoes";
 import Ajuda from "./pages/Ajuda";
 import Perfil from "./pages/Perfil";
@@ -54,7 +53,6 @@ const HeaderWithBackButton = () => {
                     <Relatorios />
                   </ProtectedRoute>} />
               <Route path="/empresa" element={<Empresa />} />
-              <Route path="/desempenho" element={<Desempenho />} />
               <Route path="/integracoes" element={<Integracoes />} />
               <Route path="/ajuda" element={<Ajuda />} />
               <Route path="/perfil" element={<Perfil />} />

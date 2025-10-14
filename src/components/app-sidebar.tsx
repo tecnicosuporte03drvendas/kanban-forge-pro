@@ -33,10 +33,6 @@ const getMenuItems = (tipoUsuario: string, isStealthMode: boolean, empresaId?: s
     url: `${baseUrl}/empresa${stealthParams}`,
     icon: Users
   }, {
-    title: "Meu Desempenho",
-    url: `${baseUrl}/desempenho${stealthParams}`,
-    icon: User
-  }, {
     title: "Central de Ajuda",
     url: `${baseUrl}/ajuda${stealthParams}`,
     icon: HelpCircle
