@@ -557,13 +557,6 @@ const Calendario = () => {
 
     return (
       <div className="space-y-6">
-        {/* Cabeçalho do mês */}
-        <div className="text-center">
-          <h3 className="text-2xl font-bold text-card-foreground capitalize mb-2">
-            {viewDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
-          </h3>
-        </div>
-
         {/* Grid do calendário */}
         <div className="bg-background rounded-lg border border-border overflow-hidden">
           {/* Cabeçalho dos dias da semana */}
