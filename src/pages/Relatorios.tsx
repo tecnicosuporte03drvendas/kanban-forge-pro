@@ -223,15 +223,23 @@ const Relatorios = () => {
                 </div>
 
                 <div className="space-y-6">
-                  <RecentActivities 
-                    key={`activities-${refreshKey}`} 
-                    userId={isCollaborator ? usuario?.id : undefined} 
-                    dateRange={dateRange}
-                  />
+                  {isCollaborator ? (
+                    <RecentTasks 
+                      key={`tasks-${refreshKey}`} 
+                      dateRange={dateRange} 
+                    />
+                  ) : (
+                    <RecentActivities 
+                      key={`activities-${refreshKey}`} 
+                      dateRange={dateRange}
+                    />
+                  )}
                 </div>
               </div>
 
-              <RecentTasks key={`tasks-${refreshKey}`} dateRange={dateRange} />
+              {!isCollaborator && (
+                <RecentTasks key={`tasks-${refreshKey}`} dateRange={dateRange} />
+              )}
             </>
           )}
         </div>
