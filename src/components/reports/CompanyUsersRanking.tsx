@@ -34,14 +34,7 @@ export function CompanyUsersRanking({ dateRange, userId }: CompanyUsersRankingPr
     
     setLoading(true)
     try {
-      const from = dateRange?.from || (() => {
-        const weekStart = new Date()
-        weekStart.setDate(weekStart.getDate() - weekStart.getDay())
-        return weekStart
-      })()
-      const to = dateRange?.to || new Date()
-
-      const { data: tarefas, error } = await supabase
+      let query = supabase
         .from('tarefas')
         .select(`
           id,
@@ -53,8 +46,15 @@ export function CompanyUsersRanking({ dateRange, userId }: CompanyUsersRankingPr
         `)
         .eq('empresa_id', usuario.empresa_id)
         .eq('arquivada', false)
-        .gte('created_at', from.toISOString())
-        .lte('created_at', to.toISOString())
+
+      // Aplicar filtro de data apenas se dateRange estiver definido
+      if (dateRange?.from && dateRange?.to) {
+        query = query
+          .gte('created_at', dateRange.from.toISOString())
+          .lte('created_at', dateRange.to.toISOString())
+      }
+
+      const { data: tarefas, error } = await query
 
       if (error) throw error
 

@@ -249,6 +249,7 @@ const Relatorios = () => {
                           dateRange={showAllHistory ? undefined : dateRange}
                           viewMode="individual"
                           filterType={filterType}
+                          showAllHistory={showAllHistory}
                         />
                       </div>
                       <div>
@@ -298,6 +299,7 @@ const Relatorios = () => {
                             dateRange={showAllHistory ? undefined : dateRange}
                             viewMode="equipe"
                             filterType={filterType}
+                            showAllHistory={showAllHistory}
                           />
                         </div>
                         <div>
@@ -350,6 +352,7 @@ const Relatorios = () => {
                               dateRange={showAllHistory ? undefined : dateRange}
                               viewMode="individual"
                               filterType={filterType}
+                              showAllHistory={showAllHistory}
                             />
                           </div>
                           <div>
@@ -399,6 +402,7 @@ const Relatorios = () => {
                               dateRange={showAllHistory ? undefined : dateRange}
                               viewMode="equipe"
                               filterType={filterType}
+                              showAllHistory={showAllHistory}
                             />
                             </div>
                             <div>

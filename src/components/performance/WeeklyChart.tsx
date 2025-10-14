@@ -17,9 +17,10 @@ interface WeeklyChartProps {
   dateRange?: { from: Date; to: Date }
   viewMode?: 'geral' | 'individual' | 'equipe'
   filterType?: DateFilterType
+  showAllHistory?: boolean
 }
 
-export const WeeklyChart = ({ userId, dateRange, viewMode = 'geral', filterType = 'semana' }: WeeklyChartProps) => {
+export const WeeklyChart = ({ userId, dateRange, viewMode = 'geral', filterType = 'semana', showAllHistory = false }: WeeklyChartProps) => {
   const { usuario } = useEffectiveUser()
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,6 +68,13 @@ export const WeeklyChart = ({ userId, dateRange, viewMode = 'geral', filterType 
 
   const loadWeeklyData = async () => {
     try {
+      // Se showAllHistory for true e não houver dateRange, não exibir gráfico semanal
+      if (showAllHistory && !dateRange) {
+        setWeeklyData([])
+        setLoading(false)
+        return
+      }
+
       const from = dateRange?.from || (() => {
         const weekStart = new Date();
         weekStart.setDate(weekStart.getDate() - weekStart.getDay());
@@ -198,7 +206,11 @@ export const WeeklyChart = ({ userId, dateRange, viewMode = 'geral', filterType 
           ))}
         </div>
         
-        {weeklyData.every(d => d.tasks === 0) && (
+        {showAllHistory && weeklyData.length === 0 ? (
+          <p className="text-center text-muted-foreground py-4">
+            Para visualizar o histórico semanal, selecione um período específico.
+          </p>
+        ) : weeklyData.every(d => d.tasks === 0) && (
           <p className="text-center text-muted-foreground py-4">
             Nenhuma atividade registrada neste período.
           </p>

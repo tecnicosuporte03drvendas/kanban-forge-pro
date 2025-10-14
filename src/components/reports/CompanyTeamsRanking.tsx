@@ -34,13 +34,6 @@ export function CompanyTeamsRanking({ dateRange }: CompanyTeamsRankingProps) {
     
     setLoading(true)
     try {
-      const from = dateRange?.from || (() => {
-        const weekStart = new Date()
-        weekStart.setDate(weekStart.getDate() - weekStart.getDay())
-        return weekStart
-      })()
-      const to = dateRange?.to || new Date()
-
       const { data: allTeams } = await supabase
         .from('equipes')
         .select('id, nome')
@@ -62,7 +55,7 @@ export function CompanyTeamsRanking({ dateRange }: CompanyTeamsRankingProps) {
 
         const memberCount = members?.length || 0
 
-        const { data: teamTasksData } = await supabase
+        let teamQuery = supabase
           .from('tarefas_responsaveis')
           .select(`
             tarefa_id,
@@ -75,8 +68,15 @@ export function CompanyTeamsRanking({ dateRange }: CompanyTeamsRankingProps) {
           `)
           .eq('equipe_id', team.id)
           .eq('tarefas.empresa_id', usuario.empresa_id)
-          .gte('tarefas.created_at', from.toISOString())
-          .lte('tarefas.created_at', to.toISOString())
+
+        // Aplicar filtro de data apenas se dateRange estiver definido
+        if (dateRange?.from && dateRange?.to) {
+          teamQuery = teamQuery
+            .gte('tarefas.created_at', dateRange.from.toISOString())
+            .lte('tarefas.created_at', dateRange.to.toISOString())
+        }
+
+        const { data: teamTasksData } = await teamQuery
 
         const totalTasks = teamTasksData?.length || 0
         const completedTasks = teamTasksData?.filter(
