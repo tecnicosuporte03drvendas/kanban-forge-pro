@@ -293,6 +293,7 @@ export type Database = {
           posicao_coluna: number | null
           prioridade: Database["public"]["Enums"]["prioridade_tarefa"]
           status: Database["public"]["Enums"]["status_tarefa"]
+          tarefa_recorrente_id: string | null
           tempo_fim: string | null
           tempo_gasto_minutos: number | null
           tempo_inicio: string | null
@@ -311,6 +312,7 @@ export type Database = {
           posicao_coluna?: number | null
           prioridade?: Database["public"]["Enums"]["prioridade_tarefa"]
           status?: Database["public"]["Enums"]["status_tarefa"]
+          tarefa_recorrente_id?: string | null
           tempo_fim?: string | null
           tempo_gasto_minutos?: number | null
           tempo_inicio?: string | null
@@ -329,6 +331,7 @@ export type Database = {
           posicao_coluna?: number | null
           prioridade?: Database["public"]["Enums"]["prioridade_tarefa"]
           status?: Database["public"]["Enums"]["status_tarefa"]
+          tarefa_recorrente_id?: string | null
           tempo_fim?: string | null
           tempo_gasto_minutos?: number | null
           tempo_inicio?: string | null
@@ -341,6 +344,13 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_tarefa_recorrente_id_fkey"
+            columns: ["tarefa_recorrente_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas_recorrentes"
             referencedColumns: ["id"]
           },
         ]
@@ -522,6 +532,68 @@ export type Database = {
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tarefas_recorrentes: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          criado_por: string
+          data_fim: string | null
+          data_inicio: string
+          dia_mes: number | null
+          dias_semana: number[] | null
+          empresa_id: string
+          frequencia: string
+          hora_geracao: string | null
+          id: string
+          intervalo: number | null
+          proxima_execucao: string | null
+          tarefa_template_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          criado_por: string
+          data_fim?: string | null
+          data_inicio: string
+          dia_mes?: number | null
+          dias_semana?: number[] | null
+          empresa_id: string
+          frequencia: string
+          hora_geracao?: string | null
+          id?: string
+          intervalo?: number | null
+          proxima_execucao?: string | null
+          tarefa_template_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          criado_por?: string
+          data_fim?: string | null
+          data_inicio?: string
+          dia_mes?: number | null
+          dias_semana?: number[] | null
+          empresa_id?: string
+          frequencia?: string
+          hora_geracao?: string | null
+          id?: string
+          intervalo?: number | null
+          proxima_execucao?: string | null
+          tarefa_template_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_recorrentes_tarefa_template_id_fkey"
+            columns: ["tarefa_template_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
             referencedColumns: ["id"]
           },
         ]
@@ -740,7 +812,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calcular_proxima_execucao: {
+        Args: {
+          p_data_fim: string
+          p_data_inicio: string
+          p_dia_mes: number
+          p_dias_semana: number[]
+          p_frequencia: string
+          p_intervalo: number
+          p_ultima_execucao: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       prioridade_tarefa: "baixa" | "media" | "alta" | "urgente"

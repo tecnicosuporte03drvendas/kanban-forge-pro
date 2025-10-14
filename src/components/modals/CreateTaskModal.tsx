@@ -21,7 +21,8 @@ import { supabase } from '@/integrations/supabase/client'
 import { toast } from '@/hooks/use-toast'
 import { useEffectiveUser } from '@/hooks/use-effective-user'
 import { useStealth } from '@/hooks/use-stealth'
-import type { PrioridadeTarefa } from '@/types/task'
+import type { PrioridadeTarefa, FrequenciaRecorrencia } from '@/types/task'
+import { RecurringTaskConfig } from './RecurringTaskConfig'
 
 interface Usuario {
   id: string;
@@ -66,6 +67,17 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const { usuario } = useEffectiveUser()
   const { shouldSuppressLogs } = useStealth()
+  
+  const [recurringConfig, setRecurringConfig] = useState({
+    isRecurring: false,
+    frequencia: 'diaria' as FrequenciaRecorrencia,
+    intervalo: 1,
+    diasSemana: [] as number[],
+    diaMes: 1,
+    dataInicio: new Date(),
+    dataFim: null as Date | null,
+    semDataFim: true,
+  })
 
   const form = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
@@ -185,7 +197,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
         return
       }
 
-      // Create task
+      // Create task (template if recurring)
       const { data: tarefa, error: tarefaError } = await supabase
         .from('tarefas')
         .insert({
@@ -221,18 +233,59 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
         }
       }
 
+      // Create recurring task if configured
+      if (recurringConfig.isRecurring) {
+        const { data: proximaExecucao } = await supabase.rpc('calcular_proxima_execucao', {
+          p_frequencia: recurringConfig.frequencia,
+          p_intervalo: recurringConfig.intervalo,
+          p_dias_semana: recurringConfig.diasSemana.length > 0 ? recurringConfig.diasSemana : null,
+          p_dia_mes: recurringConfig.diaMes,
+          p_data_inicio: format(recurringConfig.dataInicio, 'yyyy-MM-dd'),
+          p_data_fim: recurringConfig.dataFim ? format(recurringConfig.dataFim, 'yyyy-MM-dd') : null,
+          p_ultima_execucao: null,
+        })
+
+        await supabase.from('tarefas_recorrentes').insert({
+          tarefa_template_id: tarefa.id,
+          empresa_id: usuario.empresa_id,
+          criado_por: usuario.id,
+          frequencia: recurringConfig.frequencia,
+          intervalo: recurringConfig.intervalo,
+          dias_semana: recurringConfig.diasSemana.length > 0 ? recurringConfig.diasSemana : null,
+          dia_mes: recurringConfig.diaMes,
+          data_inicio: format(recurringConfig.dataInicio, 'yyyy-MM-dd'),
+          data_fim: recurringConfig.dataFim ? format(recurringConfig.dataFim, 'yyyy-MM-dd') : null,
+          proxima_execucao: proximaExecucao,
+        })
+      }
+
       // Create activity record only if not in stealth mode
       if (!shouldSuppressLogs) {
         await supabase.from('tarefas_atividades').insert({
           tarefa_id: tarefa.id,
           usuario_id: usuario.id,
           acao: 'criou',
-          descricao: 'Tarefa criada',
+          descricao: recurringConfig.isRecurring ? 'Tarefa recorrente criada' : 'Tarefa criada',
         })
       }
 
-      toast({ title: 'Sucesso', description: 'Tarefa criada com sucesso!' })
+      toast({ 
+        title: 'Sucesso', 
+        description: recurringConfig.isRecurring 
+          ? 'Tarefa recorrente criada! As instâncias serão geradas automaticamente.' 
+          : 'Tarefa criada com sucesso!' 
+      })
       form.reset()
+      setRecurringConfig({
+        isRecurring: false,
+        frequencia: 'diaria',
+        intervalo: 1,
+        diasSemana: [],
+        diaMes: 1,
+        dataInicio: new Date(),
+        dataFim: null,
+        semDataFim: true,
+      })
       onTaskCreated?.()
       onOpenChange(false)
     } catch (error) {
@@ -581,6 +634,11 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
                 }}
               />
             </div>
+
+            <RecurringTaskConfig 
+              config={recurringConfig}
+              onChange={setRecurringConfig}
+            />
 
             <div className="flex justify-end gap-3 pt-4">
               <Button

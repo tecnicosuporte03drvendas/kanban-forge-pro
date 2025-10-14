@@ -32,6 +32,7 @@ import { useEffectiveUser } from "@/hooks/use-effective-user";
 import { DeleteTaskConfirmationModal } from "@/components/modals/DeleteTaskConfirmationModal";
 import { CreateTaskModal } from "@/components/modals/CreateTaskModal";
 import { ViewTaskModal } from "@/components/modals/ViewTaskModal";
+import { RecurringTaskBadge } from "@/components/RecurringTaskBadge";
 import type { Tarefa } from "@/types/task";
 
 interface TarefasListProps {
@@ -77,6 +78,10 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated,
           tarefas_responsaveis(
             usuarios:usuario_id(nome),
             equipes:equipe_id(nome)
+          ),
+          tarefas_recorrentes!tarefa_recorrente_id(
+            frequencia,
+            intervalo
           )
         `,
         )
@@ -485,6 +490,13 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated,
                   >
                     {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
                   </Badge>
+                  {(task as any).tarefas_recorrentes && (
+                    <RecurringTaskBadge 
+                      frequencia={(task as any).tarefas_recorrentes.frequencia}
+                      intervalo={(task as any).tarefas_recorrentes.intervalo}
+                      showLabel={false}
+                    />
+                  )}
                   <div className="flex items-center gap-3 text-xs text-muted-foreground flex-shrink-0">
                     <div className="flex items-center gap-1">
                       <User className="w-3 h-3" />

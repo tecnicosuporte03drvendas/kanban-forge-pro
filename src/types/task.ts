@@ -1,6 +1,26 @@
 export type PrioridadeTarefa = 'baixa' | 'media' | 'alta' | 'urgente';
 export type StatusTarefa = 'criada' | 'aceita' | 'executando' | 'concluida' | 'aprovada';
 
+export type FrequenciaRecorrencia = 'diaria' | 'semanal' | 'mensal' | 'anual';
+
+export interface TarefaRecorrente {
+  id: string;
+  tarefa_template_id: string;
+  empresa_id: string;
+  criado_por: string;
+  frequencia: FrequenciaRecorrencia;
+  intervalo: number;
+  dias_semana: number[] | null;
+  dia_mes: number | null;
+  hora_geracao: string;
+  data_inicio: string;
+  data_fim: string | null;
+  ativo: boolean;
+  proxima_execucao: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Tarefa {
   id: string;
   titulo: string;
@@ -18,6 +38,7 @@ export interface Tarefa {
   tempo_gasto_minutos?: number;
   arquivada: boolean;
   posicao_coluna?: number;
+  tarefa_recorrente_id?: string | null;
 }
 
 export interface TarefaResponsavel {
