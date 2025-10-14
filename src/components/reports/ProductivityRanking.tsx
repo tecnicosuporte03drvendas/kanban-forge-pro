@@ -160,8 +160,17 @@ export function ProductivityRanking({ dateRange }: ProductivityRankingProps) {
               Nenhum dado de produtividade encontrado para esta semana.
             </p>
           ) : (
-            ranking.map((user, index) => (
-              <div key={user.id} className="flex items-center gap-4 p-4 bg-background/50 rounded-lg">
+            ranking.map((user, index) => {
+              const isCurrentUser = user.id === usuario?.id
+              return (
+              <div 
+                key={user.id} 
+                className={`flex items-center gap-4 p-4 rounded-lg transition-all ${
+                  isCurrentUser 
+                    ? 'bg-primary/20 ring-2 ring-primary/50' 
+                    : 'bg-background/50'
+                }`}
+              >
                 <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
                   <span className="text-sm font-bold text-primary">{index + 1}</span>
                 </div>
@@ -180,7 +189,7 @@ export function ProductivityRanking({ dateRange }: ProductivityRankingProps) {
                   {user.completionRate}%
                 </Badge>
               </div>
-            ))
+            )})
           )}
         </div>
       </CardContent>
