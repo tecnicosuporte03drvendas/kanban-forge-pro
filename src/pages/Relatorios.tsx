@@ -169,7 +169,7 @@ const Relatorios = () => {
       <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
         <div className="space-y-6">
 
-          <div className="flex gap-2 flex-wrap items-center">
+          <div className="flex gap-4 flex-wrap items-start">
             <DateRangeFilter
               selectedType={filterType}
               dateRange={customRange}
@@ -177,26 +177,28 @@ const Relatorios = () => {
             />
             
             {isCollaborator ? (
-              <>
+              <div className="flex flex-col gap-2">
                 <Button
                   variant={viewMode === 'individual' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode(viewMode === 'individual' ? 'geral' : 'individual')}
+                  className="justify-start"
                 >
                   <User className="w-4 h-4 mr-2" />
-                  Minhas Tarefas
+                  Pessoal
                 </Button>
                 {hasTeam && (
                   <Button
                     variant={viewMode === 'equipe' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setViewMode(viewMode === 'equipe' ? 'geral' : 'equipe')}
+                    className="justify-start"
                   >
                     <Users className="w-4 h-4 mr-2" />
                     Equipe
                   </Button>
                 )}
-              </>
+              </div>
             ) : (
               <Button
                 variant={viewMode === 'individual' ? 'default' : 'outline'}
