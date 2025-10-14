@@ -76,7 +76,7 @@ export function KanbanCard({
 
   // Click handling is now managed by the parent KanbanBoard component
 
-  const dateStatus = getDateStatus(task.dueDate);
+  const dateStatus = getDateStatus(task.dueDate, task.status, task.tempo_fim);
   
   const canApprove = usuario && (usuario.tipo_usuario === 'gestor' || usuario.tipo_usuario === 'proprietario');
   const showApproveButton = task.status === 'concluida' && canApprove && onApprove;

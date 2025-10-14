@@ -3,8 +3,22 @@ export const parseLocalDate = (dateString: string): Date => {
   return new Date(year, month - 1, day) // month - 1 porque Date usa 0-11 para meses
 }
 
-export const getDateStatus = (dateString: string) => {
+export const getDateStatus = (dateString: string, taskStatus?: string, completionDate?: string) => {
   const dueDate = parseLocalDate(dateString)
+  
+  // Para tarefas concluídas ou aprovadas, verificar se foi entregue no prazo
+  if ((taskStatus === 'concluida' || taskStatus === 'aprovada') && completionDate) {
+    const completedDate = new Date(completionDate)
+    completedDate.setHours(0, 0, 0, 0)
+    dueDate.setHours(0, 0, 0, 0)
+    
+    if (completedDate <= dueDate) {
+      return { status: 'on-time', className: 'text-green-600', label: 'No prazo' }
+    } else {
+      return { status: 'late', className: 'text-red-600', label: 'Atrasada' }
+    }
+  }
+  
   const today = new Date()
   const tomorrow = new Date(today)
   tomorrow.setDate(today.getDate() + 1)
