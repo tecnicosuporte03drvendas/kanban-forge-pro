@@ -20,9 +20,11 @@ interface TaskStatsData {
 
 interface TaskStatsProps {
   dateRange?: { from: Date; to: Date }
+  viewMode?: 'geral' | 'individual' | 'equipe'
+  userId?: string
 }
 
-export function TaskStats({ dateRange }: TaskStatsProps) {
+export function TaskStats({ dateRange, viewMode = 'geral', userId }: TaskStatsProps) {
   const { usuario } = useEffectiveUser()
   const [stats, setStats] = useState<TaskStatsData>({
     created: 0,
@@ -41,49 +43,41 @@ export function TaskStats({ dateRange }: TaskStatsProps) {
     if (usuario?.empresa_id) {
       loadStats()
     }
-  }, [usuario?.empresa_id, dateRange])
+  }, [usuario?.empresa_id, dateRange, viewMode, userId])
 
   const loadStats = async () => {
     if (!usuario?.empresa_id) return
     
     setLoading(true)
     try {
-      const isCollaborator = usuario.tipo_usuario === 'colaborador'
       let tarefasIds: string[] = []
 
-      // Se for colaborador, buscar apenas tarefas dele ou de suas equipes
-      if (isCollaborator && usuario.id) {
-        // Buscar equipes do usuário
-        const { data: userTeams } = await supabase
-          .from('usuarios_equipes')
-          .select('equipe_id')
-          .eq('usuario_id', usuario.id)
-
-        const teamIds = userTeams?.map(ut => ut.equipe_id) || []
-
-        // Buscar tarefas onde o usuário é responsável direto
+      // Filtrar com base no viewMode
+      if (viewMode === 'individual' && userId) {
+        // Apenas tarefas do usuário
         const { data: userTasks } = await supabase
           .from('tarefas_responsaveis')
           .select('tarefa_id')
-          .eq('usuario_id', usuario.id)
+          .eq('usuario_id', userId)
 
-        // Buscar tarefas onde a equipe do usuário é responsável
-        let teamTasks: any[] = []
+        tarefasIds = userTasks?.map(t => t.tarefa_id) || []
+      } else if (viewMode === 'equipe' && userId) {
+        // Apenas tarefas das equipes do usuário
+        const { data: userTeams } = await supabase
+          .from('usuarios_equipes')
+          .select('equipe_id')
+          .eq('usuario_id', userId)
+
+        const teamIds = userTeams?.map(ut => ut.equipe_id) || []
+
         if (teamIds.length > 0) {
-          const { data } = await supabase
+          const { data: teamTasks } = await supabase
             .from('tarefas_responsaveis')
             .select('tarefa_id')
             .in('equipe_id', teamIds)
-          teamTasks = data || []
+          
+          tarefasIds = teamTasks?.map(t => t.tarefa_id) || []
         }
-
-        // Combinar IDs únicos
-        tarefasIds = [
-          ...new Set([
-            ...(userTasks?.map(t => t.tarefa_id) || []),
-            ...(teamTasks?.map(t => t.tarefa_id) || [])
-          ])
-        ]
       }
 
       let query = supabase
@@ -92,9 +86,24 @@ export function TaskStats({ dateRange }: TaskStatsProps) {
         .eq('empresa_id', usuario.empresa_id)
         .eq('arquivada', false)
 
-      // Filtrar por tarefas específicas se for colaborador
-      if (isCollaborator && tarefasIds.length > 0) {
+      // Filtrar por tarefas específicas se viewMode não for 'geral'
+      if (viewMode !== 'geral' && tarefasIds.length > 0) {
         query = query.in('id', tarefasIds)
+      } else if (viewMode !== 'geral' && tarefasIds.length === 0) {
+        // Se não encontrou tarefas, retornar stats vazios
+        setStats({
+          created: 0,
+          accepted: 0,
+          executing: 0,
+          completed: 0,
+          overdue: 0,
+          approved: 0,
+          completionRate: 0,
+          total: 0,
+          averageCompletionHours: 0
+        })
+        setLoading(false)
+        return
       }
 
       if (dateRange) {

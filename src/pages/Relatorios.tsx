@@ -221,17 +221,32 @@ const Relatorios = () => {
             </div>
           ) : (
             <>
-              <TaskStats key={`stats-${refreshKey}`} dateRange={dateRange} />
+              <TaskStats 
+                key={`stats-${refreshKey}`} 
+                dateRange={dateRange} 
+                viewMode={viewMode}
+                userId={usuario?.id}
+              />
 
               {viewMode === 'geral' && !isCollaborator && (
                 <>
-                  <StatusDistribution key={`status-${refreshKey}`} dateRange={dateRange} />
+                  <StatusDistribution 
+                    key={`status-${refreshKey}`} 
+                    dateRange={dateRange}
+                    viewMode={viewMode}
+                    userId={usuario?.id}
+                  />
                   <ProductivityRanking key={`ranking-${refreshKey}`} dateRange={dateRange} />
                 </>
               )}
 
-              {(viewMode === 'individual' || isCollaborator) && (
-                <StatusDistribution key={`status-${refreshKey}`} dateRange={dateRange} />
+              {(viewMode === 'individual' || viewMode === 'equipe') && (
+                <StatusDistribution 
+                  key={`status-${refreshKey}`} 
+                  dateRange={dateRange}
+                  viewMode={viewMode}
+                  userId={usuario?.id}
+                />
               )}
 
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -240,7 +255,8 @@ const Relatorios = () => {
                     <WeeklyChart 
                       key={`chart-${refreshKey}`} 
                       userId={usuario?.id} 
-                      dateRange={dateRange} 
+                      dateRange={dateRange}
+                      viewMode={viewMode}
                     />
                   ) : viewMode === 'geral' && !isCollaborator ? (
                     <Tabs defaultValue="performance" className="space-y-4">
@@ -281,16 +297,19 @@ const Relatorios = () => {
                     <WeeklyChart 
                       key={`chart-${refreshKey}`} 
                       userId={usuario?.id} 
-                      dateRange={dateRange} 
+                      dateRange={dateRange}
+                      viewMode={viewMode}
                     />
                   )}
                 </div>
 
                 <div className="space-y-6">
-                  {(isCollaborator || viewMode === 'individual') ? (
+                  {(viewMode === 'individual' || viewMode === 'equipe') ? (
                     <RecentTasks 
                       key={`tasks-${refreshKey}`} 
-                      dateRange={dateRange} 
+                      dateRange={dateRange}
+                      viewMode={viewMode}
+                      userId={usuario?.id}
                     />
                   ) : (
                     <RecentActivities 
@@ -301,8 +320,13 @@ const Relatorios = () => {
                 </div>
               </div>
 
-              {!isCollaborator && viewMode === 'geral' && (
-                <RecentTasks key={`tasks-${refreshKey}`} dateRange={dateRange} />
+              {viewMode === 'geral' && (
+                <RecentTasks 
+                  key={`tasks-${refreshKey}`} 
+                  dateRange={dateRange}
+                  viewMode={viewMode}
+                  userId={usuario?.id}
+                />
               )}
             </>
           )}

@@ -13,9 +13,10 @@ interface WeeklyData {
 interface WeeklyChartProps {
   userId?: string;
   dateRange?: { from: Date; to: Date }
+  viewMode?: 'geral' | 'individual' | 'equipe'
 }
 
-export const WeeklyChart = ({ userId, dateRange }: WeeklyChartProps) => {
+export const WeeklyChart = ({ userId, dateRange, viewMode = 'geral' }: WeeklyChartProps) => {
   const { usuario } = useEffectiveUser()
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,10 +24,10 @@ export const WeeklyChart = ({ userId, dateRange }: WeeklyChartProps) => {
   const targetUserId = userId || usuario?.id;
 
   useEffect(() => {
-    if (targetUserId && usuario?.empresa_id) {
+    if (usuario?.empresa_id) {
       loadWeeklyData();
     }
-  }, [targetUserId, usuario?.empresa_id, dateRange]);
+  }, [targetUserId, usuario?.empresa_id, dateRange, viewMode]);
 
   const loadWeeklyData = async () => {
     try {
@@ -40,6 +41,17 @@ export const WeeklyChart = ({ userId, dateRange }: WeeklyChartProps) => {
       const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
       const weeklyStats: WeeklyData[] = [];
 
+      // Buscar equipes se viewMode for 'equipe'
+      let teamIds: string[] = []
+      if (viewMode === 'equipe' && targetUserId) {
+        const { data: userTeams } = await supabase
+          .from('usuarios_equipes')
+          .select('equipe_id')
+          .eq('usuario_id', targetUserId)
+        
+        teamIds = userTeams?.map(ut => ut.equipe_id) || []
+      }
+
       for (let i = 0; i < 7; i++) {
         const currentDay = new Date(from);
         currentDay.setDate(from.getDate() + i);
@@ -49,6 +61,7 @@ export const WeeklyChart = ({ userId, dateRange }: WeeklyChartProps) => {
           .select(`
             id,
             acao,
+            usuario_id,
             tarefas!inner(
               id,
               status,
@@ -59,8 +72,19 @@ export const WeeklyChart = ({ userId, dateRange }: WeeklyChartProps) => {
           .gte('created_at', currentDay.toISOString().split('T')[0] + 'T00:00:00.000Z')
           .lt('created_at', new Date(currentDay.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T00:00:00.000Z');
 
-        if (userId) {
-          query = query.eq('usuario_id', userId);
+        if (viewMode === 'individual' && targetUserId) {
+          query = query.eq('usuario_id', targetUserId);
+        } else if (viewMode === 'equipe' && teamIds.length > 0) {
+          // Buscar usuários das equipes
+          const { data: teamMembers } = await supabase
+            .from('usuarios_equipes')
+            .select('usuario_id')
+            .in('equipe_id', teamIds)
+          
+          const memberIds = teamMembers?.map(m => m.usuario_id) || []
+          if (memberIds.length > 0) {
+            query = query.in('usuario_id', memberIds)
+          }
         }
 
         const { data: activities } = await query;

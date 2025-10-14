@@ -9,9 +9,11 @@ import type { Tarefa } from "@/types/task"
 
 interface RecentTasksProps {
   dateRange?: { from: Date; to: Date }
+  viewMode?: 'geral' | 'individual' | 'equipe'
+  userId?: string
 }
 
-export function RecentTasks({ dateRange }: RecentTasksProps) {
+export function RecentTasks({ dateRange, viewMode = 'geral', userId }: RecentTasksProps) {
   const { usuario } = useEffectiveUser()
   const [recentTasks, setRecentTasks] = useState<Tarefa[]>([])
   const [loading, setLoading] = useState(false)
@@ -20,49 +22,41 @@ export function RecentTasks({ dateRange }: RecentTasksProps) {
     if (usuario?.empresa_id) {
       loadRecentTasks()
     }
-  }, [usuario?.empresa_id, dateRange])
+  }, [usuario?.empresa_id, dateRange, viewMode, userId])
 
   const loadRecentTasks = async () => {
     if (!usuario?.empresa_id) return
     
     setLoading(true)
     try {
-      const isCollaborator = usuario.tipo_usuario === 'colaborador'
       let tarefasIds: string[] = []
 
-      // Se for colaborador, buscar apenas tarefas dele ou de suas equipes
-      if (isCollaborator && usuario.id) {
-        // Buscar equipes do usuário
-        const { data: userTeams } = await supabase
-          .from('usuarios_equipes')
-          .select('equipe_id')
-          .eq('usuario_id', usuario.id)
-
-        const teamIds = userTeams?.map(ut => ut.equipe_id) || []
-
-        // Buscar tarefas onde o usuário é responsável direto
+      // Filtrar com base no viewMode
+      if (viewMode === 'individual' && userId) {
+        // Apenas tarefas do usuário
         const { data: userTasks } = await supabase
           .from('tarefas_responsaveis')
           .select('tarefa_id')
-          .eq('usuario_id', usuario.id)
+          .eq('usuario_id', userId)
 
-        // Buscar tarefas onde a equipe do usuário é responsável
-        let teamTasks: any[] = []
+        tarefasIds = userTasks?.map(t => t.tarefa_id) || []
+      } else if (viewMode === 'equipe' && userId) {
+        // Apenas tarefas das equipes do usuário
+        const { data: userTeams } = await supabase
+          .from('usuarios_equipes')
+          .select('equipe_id')
+          .eq('usuario_id', userId)
+
+        const teamIds = userTeams?.map(ut => ut.equipe_id) || []
+
         if (teamIds.length > 0) {
-          const { data } = await supabase
+          const { data: teamTasks } = await supabase
             .from('tarefas_responsaveis')
             .select('tarefa_id')
             .in('equipe_id', teamIds)
-          teamTasks = data || []
+          
+          tarefasIds = teamTasks?.map(t => t.tarefa_id) || []
         }
-
-        // Combinar IDs únicos
-        tarefasIds = [
-          ...new Set([
-            ...(userTasks?.map(t => t.tarefa_id) || []),
-            ...(teamTasks?.map(t => t.tarefa_id) || [])
-          ])
-        ]
       }
 
       let query = supabase
@@ -79,9 +73,14 @@ export function RecentTasks({ dateRange }: RecentTasksProps) {
         .order('updated_at', { ascending: false })
         .limit(5)
 
-      // Filtrar por tarefas específicas se for colaborador
-      if (isCollaborator && tarefasIds.length > 0) {
+      // Filtrar por tarefas específicas se viewMode não for 'geral'
+      if (viewMode !== 'geral' && tarefasIds.length > 0) {
         query = query.in('id', tarefasIds)
+      } else if (viewMode !== 'geral' && tarefasIds.length === 0) {
+        // Se não encontrou tarefas, retornar array vazio
+        setRecentTasks([])
+        setLoading(false)
+        return
       }
 
       if (dateRange) {
