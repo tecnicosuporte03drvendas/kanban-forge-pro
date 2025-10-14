@@ -90,7 +90,9 @@ const Calendario = () => {
       
       return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${endYear}`
     } else {
-      return currentViewDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
+      const month = currentViewDate.toLocaleDateString("pt-BR", { month: "long" })
+      const year = currentViewDate.getFullYear()
+      return `${month} ${year}`
     }
   }
 
