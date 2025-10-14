@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { getDateStatus, formatDate } from "@/utils/date-utils";
 import { TaskTimeBadge } from "@/components/task-time/TaskTimeBadge";
 import { useEffectiveUser } from "@/hooks/use-effective-user";
+import { useState, useEffect } from "react";
 interface KanbanCardProps {
   task: Task;
   isDragging?: boolean;
@@ -22,6 +23,7 @@ export function KanbanCard({
   onApprove
 }: KanbanCardProps) {
   const { usuario } = useEffectiveUser();
+  const [isApproving, setIsApproving] = useState(false);
   const {
     attributes,
     listeners,
@@ -32,6 +34,14 @@ export function KanbanCard({
   } = useSortable({
     id: task.id
   });
+
+  // Detectar quando a tarefa foi aprovada
+  useEffect(() => {
+    if (task.status === 'aprovada' && !isApproving) {
+      setIsApproving(true);
+    }
+  }, [task.status]);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -84,6 +94,7 @@ export function KanbanCard({
     ${isDragging || isSortableDragging ? 'opacity-50 rotate-2 scale-105 shadow-lg' : ''}
     ${isDragging ? 'cursor-grabbing' : ''}
     ${isSaving ? 'opacity-70' : ''}
+    ${isApproving ? 'animate-fade-out animate-scale-out' : ''}
   `;
   if (isCompact) {
     return <div ref={setNodeRef} style={style} className={cardClass} {...attributes}>
