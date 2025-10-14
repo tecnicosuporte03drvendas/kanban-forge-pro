@@ -136,7 +136,7 @@ export function AppSidebar() {
       className={`${collapsed ? "w-14" : "w-64"} transition-all duration-300 border-r border-sidebar-border bg-sidebar`} 
       collapsible="icon"
     >
-      <SidebarHeader className={`border-b border-sidebar-border ${collapsed ? 'p-3' : 'p-4'}`}>
+      <SidebarHeader className={`border-b border-sidebar-border ${collapsed ? 'p-2' : 'p-4'}`}>
         <div className={`flex ${collapsed ? 'flex-col gap-2' : 'items-center justify-between'}`}>
           <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-sidebar-primary-foreground font-bold text-sm shadow-sm">
@@ -177,11 +177,11 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className={`border-t border-sidebar-border ${collapsed ? 'p-4' : 'p-3'}`}>
-        <div className={`flex items-center ${collapsed ? 'flex-col gap-2' : 'gap-2'}`}>
+      <SidebarFooter className={`border-t border-sidebar-border ${collapsed ? 'p-2' : 'p-3'}`}>
+        <div className={`flex items-center ${collapsed ? 'flex-col gap-1.5' : 'gap-2'}`}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-10 h-10 p-0 hover:bg-sidebar-accent rounded-lg">
+              <Button variant="ghost" size="sm" className={`${collapsed ? 'w-8 h-8' : 'w-10 h-10'} p-0 hover:bg-sidebar-accent rounded-lg`}>
                 {theme === "light" ? <Sun className="w-4 h-4 text-sidebar-foreground" /> : theme === "dark" ? <Moon className="w-4 h-4 text-sidebar-foreground" /> : <Monitor className="w-4 h-4 text-sidebar-foreground" />}
               </Button>
             </DropdownMenuTrigger>
@@ -239,8 +239,8 @@ export function AppSidebar() {
           
           {collapsed && <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-10 h-10 p-0 rounded-full hover:bg-sidebar-accent">
-                  <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center">
+                <Button variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-full hover:bg-sidebar-accent">
+                  <div className="w-7 h-7 bg-sidebar-accent rounded-full flex items-center justify-center">
                     <span className="text-xs font-medium text-sidebar-accent-foreground">
                       {perfilUsuario?.iniciais || 'U'}
                     </span>
