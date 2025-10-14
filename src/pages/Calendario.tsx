@@ -82,7 +82,13 @@ const Calendario = () => {
       const endOfWeek = new Date(startOfWeek)
       endOfWeek.setDate(endOfWeek.getDate() + 6)
       
-      return `${startOfWeek.toLocaleDateString("pt-BR", { day: "numeric", month: "short" })} - ${endOfWeek.toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}`
+      const startDay = startOfWeek.getDate()
+      const startMonth = startOfWeek.toLocaleDateString("pt-BR", { month: "short" })
+      const endDay = endOfWeek.getDate()
+      const endMonth = endOfWeek.toLocaleDateString("pt-BR", { month: "short" })
+      const endYear = endOfWeek.getFullYear()
+      
+      return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${endYear}`
     } else {
       return currentViewDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
     }
