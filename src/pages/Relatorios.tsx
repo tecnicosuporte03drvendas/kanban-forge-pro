@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
-import { RefreshCw, Download } from "lucide-react"
+import { RefreshCw, Download, User, Users } from "lucide-react"
 import { TaskStats } from "@/components/reports/TaskStats"
 import { StatusDistribution } from "@/components/reports/StatusDistribution"
 import { RecentTasks } from "@/components/reports/RecentTasks"
@@ -18,6 +18,8 @@ import { useEffectiveUser } from "@/hooks/use-effective-user"
 import { supabase } from "@/integrations/supabase/client"
 import { DateRange } from "react-day-picker"
 
+type ViewMode = 'geral' | 'individual' | 'equipe'
+
 const Relatorios = () => {
   const { usuario } = useEffectiveUser()
   const isCollaborator = usuario?.tipo_usuario === 'colaborador'
@@ -26,6 +28,8 @@ const Relatorios = () => {
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(() => getWeekRange())
   const [isLoading, setIsLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [viewMode, setViewMode] = useState<ViewMode>('geral')
+  const [hasTeam, setHasTeam] = useState(false)
 
   function getWeekRange() {
     const today = new Date()
@@ -84,6 +88,19 @@ const Relatorios = () => {
   useEffect(() => {
     if (!usuario?.empresa_id) return
 
+    // Verificar se usuário faz parte de uma equipe
+    const checkTeamMembership = async () => {
+      const { data } = await supabase
+        .from('usuarios_equipes')
+        .select('id')
+        .eq('usuario_id', usuario.id)
+        .limit(1)
+      
+      setHasTeam(!!data && data.length > 0)
+    }
+
+    checkTeamMembership()
+
     const channel = supabase
       .channel('relatorios-changes')
       .on(
@@ -116,7 +133,7 @@ const Relatorios = () => {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [usuario?.empresa_id])
+  }, [usuario?.empresa_id, usuario?.id])
   
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1)
@@ -151,12 +168,45 @@ const Relatorios = () => {
 
       <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
+
+          <div className="flex gap-2 flex-wrap items-center">
             <DateRangeFilter
               selectedType={filterType}
               dateRange={customRange}
               onFilterChange={handleFilterChange}
             />
+            
+            {isCollaborator ? (
+              <>
+                <Button
+                  variant={viewMode === 'individual' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode(viewMode === 'individual' ? 'geral' : 'individual')}
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Minhas Tarefas
+                </Button>
+                {hasTeam && (
+                  <Button
+                    variant={viewMode === 'equipe' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode(viewMode === 'equipe' ? 'geral' : 'equipe')}
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Equipe
+                  </Button>
+                )}
+              </>
+            ) : (
+              <Button
+                variant={viewMode === 'individual' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode(viewMode === 'individual' ? 'geral' : 'individual')}
+              >
+                <User className="w-4 h-4 mr-2" />
+                Meu Desempenho
+              </Button>
+            )}
           </div>
 
           {isLoading ? (
@@ -173,57 +223,71 @@ const Relatorios = () => {
             <>
               <TaskStats key={`stats-${refreshKey}`} dateRange={dateRange} />
 
-              <StatusDistribution key={`status-${refreshKey}`} dateRange={dateRange} />
+              {viewMode === 'geral' && !isCollaborator && (
+                <>
+                  <StatusDistribution key={`status-${refreshKey}`} dateRange={dateRange} />
+                  <ProductivityRanking key={`ranking-${refreshKey}`} dateRange={dateRange} />
+                </>
+              )}
 
-              <ProductivityRanking key={`ranking-${refreshKey}`} dateRange={dateRange} />
+              {(viewMode === 'individual' || isCollaborator) && (
+                <StatusDistribution key={`status-${refreshKey}`} dateRange={dateRange} />
+              )}
 
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <div className="xl:col-span-2 space-y-6">
-                  <Tabs defaultValue="performance" className="space-y-4">
-                    <TabsList className={`grid w-full ${isCollaborator ? 'grid-cols-2' : 'grid-cols-4'} bg-card`}>
-                      <TabsTrigger value="performance">
-                        {isCollaborator ? 'Minha Performance' : 'Performance Individual'}
-                      </TabsTrigger>
-                      {!isCollaborator && <TabsTrigger value="equipe">Equipe</TabsTrigger>}
-                      {!isCollaborator && <TabsTrigger value="empresa">Empresa</TabsTrigger>}
-                      <TabsTrigger value="metas">Metas</TabsTrigger>
-                    </TabsList>
+                  {viewMode === 'individual' ? (
+                    <WeeklyChart 
+                      key={`chart-${refreshKey}`} 
+                      userId={usuario?.id} 
+                      dateRange={dateRange} 
+                    />
+                  ) : viewMode === 'geral' && !isCollaborator ? (
+                    <Tabs defaultValue="performance" className="space-y-4">
+                      <TabsList className="grid w-full grid-cols-4 bg-card">
+                        <TabsTrigger value="performance">Performance Individual</TabsTrigger>
+                        <TabsTrigger value="equipe">Equipe</TabsTrigger>
+                        <TabsTrigger value="empresa">Empresa</TabsTrigger>
+                        <TabsTrigger value="metas">Metas</TabsTrigger>
+                      </TabsList>
 
-                    <TabsContent value="performance">
-                      <WeeklyChart 
-                        key={`chart-${refreshKey}`} 
-                        userId={isCollaborator ? usuario?.id : undefined} 
-                        dateRange={dateRange} 
-                      />
-                    </TabsContent>
+                      <TabsContent value="performance">
+                        <WeeklyChart 
+                          key={`chart-${refreshKey}`} 
+                          dateRange={dateRange} 
+                        />
+                      </TabsContent>
 
-                    {!isCollaborator && (
                       <TabsContent value="equipe">
                         <TeamStats key={`team-${refreshKey}`} dateRange={dateRange} />
                       </TabsContent>
-                    )}
 
-                    {!isCollaborator && (
                       <TabsContent value="empresa">
                         <CompanyStats key={`company-${refreshKey}`} dateRange={dateRange} />
                       </TabsContent>
-                    )}
 
-                    <TabsContent value="metas">
-                      <Card className="border-border bg-card">
-                        <CardHeader>
-                          <CardTitle>Metas e Objetivos</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-muted-foreground">Defina e acompanhe suas metas pessoais.</p>
-                        </CardContent>
-                      </Card>
-                    </TabsContent>
-                  </Tabs>
+                      <TabsContent value="metas">
+                        <Card className="border-border bg-card">
+                          <CardHeader>
+                            <CardTitle>Metas e Objetivos</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-muted-foreground">Defina e acompanhe suas metas pessoais.</p>
+                          </CardContent>
+                        </Card>
+                      </TabsContent>
+                    </Tabs>
+                  ) : (
+                    <WeeklyChart 
+                      key={`chart-${refreshKey}`} 
+                      userId={usuario?.id} 
+                      dateRange={dateRange} 
+                    />
+                  )}
                 </div>
 
                 <div className="space-y-6">
-                  {isCollaborator ? (
+                  {(isCollaborator || viewMode === 'individual') ? (
                     <RecentTasks 
                       key={`tasks-${refreshKey}`} 
                       dateRange={dateRange} 
@@ -237,7 +301,7 @@ const Relatorios = () => {
                 </div>
               </div>
 
-              {!isCollaborator && (
+              {!isCollaborator && viewMode === 'geral' && (
                 <RecentTasks key={`tasks-${refreshKey}`} dateRange={dateRange} />
               )}
             </>
