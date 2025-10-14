@@ -42,12 +42,11 @@ const getMenuItems = (tipoUsuario: string, isStealthMode: boolean, empresaId?: s
     icon: Shield
   }];
 
-  // Filter out Empresa, Tarefas and Relatórios for colaborador users
+  // Filter out Empresa and Tarefas for colaborador users
   if (tipoUsuario === 'colaborador') {
     return allItems.filter(item => 
       item.title !== "Empresa" && 
-      item.title !== "Tarefas" && 
-      item.title !== "Relatórios"
+      item.title !== "Tarefas"
     );
   }
   return allItems;
