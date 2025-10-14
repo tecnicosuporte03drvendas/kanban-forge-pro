@@ -128,27 +128,27 @@ export function AppSidebar() {
   };
   return <Sidebar 
       style={{ '--sidebar-width-icon': '56px' } as React.CSSProperties}
-      className={`${collapsed ? "w-14" : "w-64"} transition-all duration-300 border-r border-sidebar-border bg-sidebar`} 
+      className={`${collapsed ? "w-14" : "w-64"} transition-all duration-500 ease-in-out border-r border-sidebar-border bg-sidebar`} 
       collapsible="icon"
     >
-      <SidebarHeader className={`border-b border-sidebar-border ${collapsed ? 'p-2' : 'p-4'}`}>
-        <div className={`flex ${collapsed ? 'flex-col gap-2' : 'items-center justify-between'}`}>
-          <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-sidebar-primary-foreground font-bold text-sm shadow-sm">
+      <SidebarHeader className={`border-b border-sidebar-border transition-all duration-500 ${collapsed ? 'p-2' : 'p-4'}`}>
+        <div className={`flex transition-all duration-500 ${collapsed ? 'flex-col gap-2' : 'items-center justify-between'}`}>
+          <div className={`flex items-center transition-all duration-500 ${collapsed ? 'justify-center' : 'gap-3'}`}>
+            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-sidebar-primary-foreground font-bold text-sm shadow-sm transition-all duration-500">
               T
             </div>
-            {!collapsed && <div>
+            {!collapsed && <div className="animate-in fade-in slide-in-from-left-2 duration-500">
                 <h2 className="text-lg font-bold text-sidebar-foreground">Tezeus Agenda</h2>
                 <p className="text-xs text-sidebar-foreground/60">Gestão Empresarial</p>
               </div>}
           </div>
-          <SidebarTrigger className={collapsed ? 'self-center' : ''} />
+          <SidebarTrigger className={`transition-all duration-300 ${collapsed ? 'self-center' : ''}`} />
         </div>
       </SidebarHeader>
 
-      <SidebarContent className={collapsed ? 'px-2 py-4' : 'px-3 py-4'}>
+      <SidebarContent className={`transition-all duration-500 ${collapsed ? 'px-2 py-4' : 'px-3 py-4'}`}>
         <SidebarGroup>
-          {!collapsed && <SidebarGroupLabel className="text-sidebar-foreground/60 text-xs font-medium mb-2 px-3">
+          {!collapsed && <SidebarGroupLabel className="text-sidebar-foreground/60 text-xs font-medium mb-2 px-3 animate-in fade-in slide-in-from-left-2 duration-500">
               MENU PRINCIPAL
             </SidebarGroupLabel>}
           <SidebarGroupContent>
@@ -160,9 +160,9 @@ export function AppSidebar() {
               }
               return <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <NavLink to={item.url} end className={getNavClasses(item.url)}>
-                        <item.icon className="w-4 h-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                      <NavLink to={item.url} end className={`${getNavClasses(item.url)} transition-all duration-300`}>
+                        <item.icon className="w-4 h-4 transition-transform duration-300" />
+                        {!collapsed && <span className="animate-in fade-in slide-in-from-left-1 duration-500">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>;
@@ -172,12 +172,12 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className={`border-t border-sidebar-border ${collapsed ? 'p-2' : 'p-3'}`}>
-        <div className={`flex items-center ${collapsed ? 'flex-col gap-1.5' : 'gap-2'}`}>
+      <SidebarFooter className={`border-t border-sidebar-border transition-all duration-500 ${collapsed ? 'p-2' : 'p-3'}`}>
+        <div className={`flex items-center transition-all duration-500 ${collapsed ? 'flex-col gap-1.5' : 'gap-2'}`}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className={`${collapsed ? 'w-8 h-8' : 'w-10 h-10'} p-0 hover:bg-sidebar-accent rounded-lg`}>
-                {theme === "light" ? <Sun className="w-4 h-4 text-sidebar-foreground" /> : theme === "dark" ? <Moon className="w-4 h-4 text-sidebar-foreground" /> : <Monitor className="w-4 h-4 text-sidebar-foreground" />}
+              <Button variant="ghost" size="sm" className={`${collapsed ? 'w-8 h-8' : 'w-10 h-10'} p-0 hover:bg-sidebar-accent rounded-lg transition-all duration-300`}>
+                {theme === "light" ? <Sun className="w-4 h-4 text-sidebar-foreground transition-transform duration-300" /> : theme === "dark" ? <Moon className="w-4 h-4 text-sidebar-foreground transition-transform duration-300" /> : <Monitor className="w-4 h-4 text-sidebar-foreground transition-transform duration-300" />}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -201,8 +201,8 @@ export function AppSidebar() {
           
           {!collapsed && <DropdownMenu>
               <DropdownMenuTrigger className="flex-1 text-left">
-                <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-                  <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-sidebar-accent/50 transition-all duration-300 animate-in fade-in slide-in-from-left-2 duration-500">
+                  <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300">
                     <span className="text-xs font-medium text-sidebar-accent-foreground">
                       {perfilUsuario?.iniciais || 'U'}
                     </span>
@@ -234,8 +234,8 @@ export function AppSidebar() {
           
           {collapsed && <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-full hover:bg-sidebar-accent">
-                  <div className="w-7 h-7 bg-sidebar-accent rounded-full flex items-center justify-center">
+                <Button variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-full hover:bg-sidebar-accent transition-all duration-300">
+                  <div className="w-7 h-7 bg-sidebar-accent rounded-full flex items-center justify-center transition-all duration-300">
                     <span className="text-xs font-medium text-sidebar-accent-foreground">
                       {perfilUsuario?.iniciais || 'U'}
                     </span>
