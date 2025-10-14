@@ -164,13 +164,13 @@ const Index = () => {
   };
   return <div className="flex flex-col min-h-screen">
       <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center justify-between h-full px-6 pt-5">
-          <div className="flex items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
+        <div className="flex items-center justify-between h-full px-6">
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold text-foreground truncate">
                 Bem-vindo à empresa {empresa?.nome_fantasia || '...'}! 👋
               </h1>
-              <p className="text-muted-foreground">Olá, {usuario?.nome}</p>
+              <p className="text-muted-foreground truncate">Olá, {usuario?.nome}</p>
             </div>
           </div>
           
