@@ -30,6 +30,11 @@ export function StatusDistribution({ dateRange }: StatusDistributionProps) {
   const [statusData, setStatusData] = useState<StatusData[]>([])
   const [loading, setLoading] = useState(false)
 
+  // Colaboradores não devem ver este componente
+  if (usuario?.tipo_usuario === 'colaborador') {
+    return null
+  }
+
   useEffect(() => {
     if (usuario?.empresa_id) {
       loadStatusData()
