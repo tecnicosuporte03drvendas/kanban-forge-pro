@@ -132,8 +132,8 @@ export function AppSidebar() {
     return "";
   };
   return <Sidebar 
-      style={{ '--sidebar-width-icon': '160px' } as React.CSSProperties}
-      className={`${collapsed ? "w-40" : "w-64"} transition-all duration-300 border-r border-sidebar-border bg-sidebar`} 
+      style={{ '--sidebar-width-icon': '56px' } as React.CSSProperties}
+      className={`${collapsed ? "w-14" : "w-64"} transition-all duration-300 border-r border-sidebar-border bg-sidebar`} 
       collapsible="icon"
     >
       <SidebarHeader className={`border-b border-sidebar-border ${collapsed ? 'p-3' : 'p-4'}`}>
