@@ -16,8 +16,8 @@ import { RecentActivities } from "@/components/performance/RecentActivities"
 import { DateRangeFilter, DateFilterType } from "@/components/reports/DateRangeFilter"
 import { useEffectiveUser } from "@/hooks/use-effective-user"
 import { supabase } from "@/integrations/supabase/client"
-import { IndividualRanking } from "@/components/reports/IndividualRanking"
-import { TeamRanking } from "@/components/reports/TeamRanking"
+import { CompanyUsersRanking } from "@/components/reports/CompanyUsersRanking"
+import { CompanyTeamsRanking } from "@/components/reports/CompanyTeamsRanking"
 import { DateRange } from "react-day-picker"
 
 type ViewMode = 'geral' | 'individual' | 'equipe'
@@ -217,38 +217,24 @@ const Relatorios = () => {
                 <>
                   {/* Seção Pessoal */}
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <User className="w-5 h-5 text-primary" />
-                        <h2 className="text-xl font-semibold text-foreground">Pessoal</h2>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <User className="w-5 h-5 text-primary" />
+                      <h2 className="text-xl font-semibold text-foreground">Pessoal</h2>
                     </div>
                     
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                      <div className="lg:col-span-3 space-y-4">
-                        <TaskStats 
-                          key={`stats-personal-${refreshKey}`} 
-                          dateRange={dateRange} 
-                          viewMode="individual"
-                          userId={usuario?.id}
-                        />
+                    <TaskStats 
+                      key={`stats-personal-${refreshKey}`} 
+                      dateRange={dateRange} 
+                      viewMode="individual"
+                      userId={usuario?.id}
+                    />
 
-                        <StatusDistribution 
-                          key={`status-personal-${refreshKey}`} 
-                          dateRange={dateRange}
-                          viewMode="individual"
-                          userId={usuario?.id}
-                        />
-                      </div>
-
-                      <div>
-                        <IndividualRanking 
-                          key={`ranking-personal-${refreshKey}`}
-                          dateRange={dateRange}
-                          userId={usuario?.id}
-                        />
-                      </div>
-                    </div>
+                    <StatusDistribution 
+                      key={`status-personal-${refreshKey}`} 
+                      dateRange={dateRange}
+                      viewMode="individual"
+                      userId={usuario?.id}
+                    />
 
                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                       <div className="xl:col-span-2">
@@ -261,51 +247,43 @@ const Relatorios = () => {
                         />
                       </div>
                       <div>
-                        <RecentTasks 
-                          key={`tasks-personal-${refreshKey}`} 
+                        <CompanyUsersRanking 
+                          key={`ranking-personal-${refreshKey}`}
                           dateRange={dateRange}
-                          viewMode="individual"
                           userId={usuario?.id}
                         />
                       </div>
                     </div>
+
+                    <RecentTasks 
+                      key={`tasks-personal-${refreshKey}`} 
+                      dateRange={dateRange}
+                      viewMode="individual"
+                      userId={usuario?.id}
+                    />
                   </div>
 
                   {/* Seção Equipe */}
                   {hasTeam && (
                     <div className="space-y-4 pt-8 border-t border-border">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Users className="w-5 h-5 text-primary" />
-                          <h2 className="text-xl font-semibold text-foreground">Equipe</h2>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-primary" />
+                        <h2 className="text-xl font-semibold text-foreground">Equipe</h2>
                       </div>
                       
-                      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                        <div className="lg:col-span-3 space-y-4">
-                          <TaskStats 
-                            key={`stats-team-${refreshKey}`} 
-                            dateRange={dateRange} 
-                            viewMode="equipe"
-                            userId={usuario?.id}
-                          />
+                      <TaskStats 
+                        key={`stats-team-${refreshKey}`} 
+                        dateRange={dateRange} 
+                        viewMode="equipe"
+                        userId={usuario?.id}
+                      />
 
-                          <StatusDistribution 
-                            key={`status-team-${refreshKey}`} 
-                            dateRange={dateRange}
-                            viewMode="equipe"
-                            userId={usuario?.id}
-                          />
-                        </div>
-
-                        <div>
-                          <TeamRanking 
-                            key={`ranking-team-${refreshKey}`}
-                            dateRange={dateRange}
-                            userId={usuario?.id}
-                          />
-                        </div>
-                      </div>
+                      <StatusDistribution 
+                        key={`status-team-${refreshKey}`} 
+                        dateRange={dateRange}
+                        viewMode="equipe"
+                        userId={usuario?.id}
+                      />
 
                       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                         <div className="xl:col-span-2">
@@ -318,14 +296,19 @@ const Relatorios = () => {
                           />
                         </div>
                         <div>
-                          <RecentTasks 
-                            key={`tasks-team-${refreshKey}`} 
+                          <CompanyTeamsRanking 
+                            key={`ranking-team-${refreshKey}`}
                             dateRange={dateRange}
-                            viewMode="equipe"
-                            userId={usuario?.id}
                           />
                         </div>
                       </div>
+
+                      <RecentTasks 
+                        key={`tasks-team-${refreshKey}`} 
+                        dateRange={dateRange}
+                        viewMode="equipe"
+                        userId={usuario?.id}
+                      />
                     </div>
                   )}
                 </>
@@ -353,25 +336,45 @@ const Relatorios = () => {
                       )}
 
                       {viewMode === 'individual' && (
-                        <StatusDistribution 
-                          key={`status-${refreshKey}`} 
-                          dateRange={dateRange}
-                          viewMode={viewMode}
-                          userId={usuario?.id}
-                        />
+                        <>
+                          <StatusDistribution 
+                            key={`status-${refreshKey}`} 
+                            dateRange={dateRange}
+                            viewMode={viewMode}
+                            userId={usuario?.id}
+                          />
+
+                          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                            <div className="xl:col-span-2">
+                              <WeeklyChart 
+                                key={`chart-${refreshKey}`} 
+                                userId={usuario?.id} 
+                                dateRange={dateRange}
+                                viewMode={viewMode}
+                                filterType={filterType}
+                              />
+                            </div>
+                            <div>
+                              <CompanyUsersRanking 
+                                key={`ranking-personal-${refreshKey}`}
+                                dateRange={dateRange}
+                                userId={usuario?.id}
+                              />
+                            </div>
+                          </div>
+
+                          <RecentTasks 
+                            key={`tasks-${refreshKey}`} 
+                            dateRange={dateRange}
+                            viewMode={viewMode}
+                            userId={usuario?.id}
+                          />
+                        </>
                       )}
 
-                      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                        <div className="xl:col-span-2 space-y-6">
-                      {viewMode === 'individual' ? (
-                        <WeeklyChart 
-                          key={`chart-${refreshKey}`} 
-                          userId={usuario?.id} 
-                          dateRange={dateRange}
-                          viewMode={viewMode}
-                          filterType={filterType}
-                        />
-                          ) : (
+                      {viewMode === 'geral' && (
+                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                          <div className="xl:col-span-2 space-y-6">
                             <Tabs defaultValue="performance" className="space-y-4">
                               <TabsList className="grid w-full grid-cols-4 bg-card">
                                 <TabsTrigger value="performance">Performance Individual</TabsTrigger>
@@ -407,25 +410,16 @@ const Relatorios = () => {
                                 </Card>
                               </TabsContent>
                             </Tabs>
-                          )}
-                        </div>
+                          </div>
 
-                        <div className="space-y-6">
-                          {viewMode === 'individual' ? (
-                            <RecentTasks 
-                              key={`tasks-${refreshKey}`} 
-                              dateRange={dateRange}
-                              viewMode={viewMode}
-                              userId={usuario?.id}
-                            />
-                          ) : (
+                          <div className="space-y-6">
                             <RecentActivities 
                               key={`activities-${refreshKey}`} 
                               dateRange={dateRange}
                             />
-                          )}
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                       {viewMode === 'geral' && (
                         <RecentTasks 
@@ -457,19 +451,24 @@ const Relatorios = () => {
                         userId={usuario?.id}
                       />
 
-                      <ProductivityRanking key={`ranking-company-${refreshKey}`} dateRange={dateRange} />
-
                       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                         <div className="xl:col-span-2">
                           <CompanyStats key={`company-stats-${refreshKey}`} dateRange={dateRange} />
                         </div>
                         <div>
-                          <RecentActivities 
-                            key={`activities-company-${refreshKey}`} 
+                          <CompanyTeamsRanking 
+                            key={`ranking-company-${refreshKey}`}
                             dateRange={dateRange}
                           />
                         </div>
                       </div>
+
+                      <ProductivityRanking key={`ranking-company-users-${refreshKey}`} dateRange={dateRange} />
+
+                      <RecentActivities 
+                        key={`activities-company-${refreshKey}`} 
+                        dateRange={dateRange}
+                      />
 
                       <RecentTasks 
                         key={`tasks-company-${refreshKey}`} 
