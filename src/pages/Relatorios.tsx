@@ -269,7 +269,7 @@ const Relatorios = () => {
                     />
                   </div>
 
-                  {/* Seção Equipe */}
+                  {/* Seção Equipe - Colaboradores veem apenas se fazem parte de uma equipe */}
                   {hasTeam && (
                     <div className="space-y-4 pt-8 border-t border-border">
                       <div className="flex items-center gap-2">
@@ -372,13 +372,12 @@ const Relatorios = () => {
                         />
                       </div>
 
-                      {/* Seção Equipe */}
-                      {hasTeam && (
-                        <div className="space-y-4 pt-8 border-t border-border">
-                          <div className="flex items-center gap-2">
-                            <Users className="w-5 h-5 text-primary" />
-                            <h2 className="text-xl font-semibold text-foreground">Equipe</h2>
-                          </div>
+                      {/* Seção Equipe - Gestores/Proprietários veem todas as equipes da empresa */}
+                      <div className="space-y-4 pt-8 border-t border-border">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-5 h-5 text-primary" />
+                          <h2 className="text-xl font-semibold text-foreground">Equipes</h2>
+                        </div>
                           
                           <TaskStats 
                             key={`stats-team-${refreshKey}`} 
@@ -413,14 +412,13 @@ const Relatorios = () => {
                             </div>
                           </div>
 
-                          <RecentTasks 
-                            key={`tasks-team-${refreshKey}`} 
-                            dateRange={showAllHistory ? undefined : dateRange}
-                            viewMode="equipe"
-                            userId={usuario?.id}
-                          />
-                        </div>
-                      )}
+                        <RecentTasks 
+                          key={`tasks-team-${refreshKey}`} 
+                          dateRange={showAllHistory ? undefined : dateRange}
+                          viewMode="equipe"
+                          userId={usuario?.id}
+                        />
+                      </div>
                     </>
                   ) : (
                     <div className="space-y-4">
