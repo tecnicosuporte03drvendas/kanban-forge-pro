@@ -770,6 +770,29 @@ export function ViewTaskModal({
                     descricao: changes.join(', ')
                   });
                 }
+
+                // Enviar notificações de responsáveis adicionados
+                if (added.length > 0) {
+                  try {
+                    await supabase.functions.invoke('notify-task-responsible-added', {
+                      body: { taskId: tarefa.id, addedResponsibles: added },
+                    });
+                  } catch (notifError) {
+                    console.error('Erro ao enviar notificação de responsáveis adicionados:', notifError);
+                  }
+                }
+
+                // Enviar notificações de responsáveis removidos
+                if (removed.length > 0) {
+                  try {
+                    await supabase.functions.invoke('notify-task-responsible-removed', {
+                      body: { taskId: tarefa.id, removedResponsibles: removed },
+                    });
+                  } catch (notifError) {
+                    console.error('Erro ao enviar notificação de responsáveis removidos:', notifError);
+                  }
+                }
+
                 loadTask();
                 onTaskUpdated?.();
               } catch (error) {

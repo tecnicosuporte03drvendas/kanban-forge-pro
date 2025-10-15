@@ -382,6 +382,10 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
         horario_conclusao: tarefa.horario_conclusao,
         responsaveis: tarefa.responsaveis.map((r) => r.usuario_id || r.equipe_id || "").filter(Boolean),
       };
+      // Detectar responsáveis adicionados e removidos
+      const addedResponsibles = values.responsaveis.filter(id => !oldValues.responsaveis.includes(id));
+      const removedResponsibles = oldValues.responsaveis.filter(id => !values.responsaveis.includes(id));
+
       const { error: tarefaError } = await supabase
         .from("tarefas")
         .update({
@@ -423,6 +427,28 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
           });
         }
       }
+      // Enviar notificações de responsáveis adicionados
+      if (addedResponsibles.length > 0) {
+        try {
+          await supabase.functions.invoke('notify-task-responsible-added', {
+            body: { taskId: tarefa.id, addedResponsibles },
+          });
+        } catch (notifError) {
+          console.error('Erro ao enviar notificação de responsáveis adicionados:', notifError);
+        }
+      }
+
+      // Enviar notificações de responsáveis removidos
+      if (removedResponsibles.length > 0) {
+        try {
+          await supabase.functions.invoke('notify-task-responsible-removed', {
+            body: { taskId: tarefa.id, removedResponsibles },
+          });
+        } catch (notifError) {
+          console.error('Erro ao enviar notificação de responsáveis removidos:', notifError);
+        }
+      }
+
       setHasUnsavedChanges(false);
       loadTask();
       onTaskUpdated?.();
