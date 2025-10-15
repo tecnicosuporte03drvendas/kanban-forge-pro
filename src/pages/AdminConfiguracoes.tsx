@@ -851,19 +851,19 @@ export const AdminConfiguracoes: React.FC = () => {
     }
   };
 
-  const testarNotificacao = async (action: string) => {
+  const testarNotificacao = async (action: string, testType: 'normal' | 'equipe' | 'mesclado' | 'remocao' = 'normal') => {
     try {
       setLoading(true);
       
       const { error } = await supabase.functions.invoke('test-notification', {
-        body: { action }
+        body: { action, testType }
       });
 
       if (error) throw error;
 
       toast({
         title: "Teste enviado",
-        description: "Verifique seu WhatsApp para a mensagem de teste"
+        description: `Teste ${testType} enviado para o WhatsApp`
       });
     } catch (error: any) {
       console.error('Erro ao enviar teste:', error);
@@ -1258,15 +1258,33 @@ export const AdminConfiguracoes: React.FC = () => {
                     onCheckedChange={(checked) => toggleNotification('notif_tarefa_criada_ativa', checked, setNotifTarefaCriada)}
                   />
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => testarNotificacao('task_created')}
-                  disabled={!notifTarefaCriada || loading}
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Enviar Teste
-                </Button>
+                <div className="flex gap-2 flex-wrap">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_created', 'normal')}
+                    disabled={!notifTarefaCriada || loading}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Normal
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_created', 'equipe')}
+                    disabled={!notifTarefaCriada || loading}
+                  >
+                    Equipe
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_created', 'mesclado')}
+                    disabled={!notifTarefaCriada || loading}
+                  >
+                    Mesclado
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -1293,15 +1311,33 @@ export const AdminConfiguracoes: React.FC = () => {
                     onCheckedChange={(checked) => toggleNotification('notif_lembrete_1dia_ativa', checked, setNotifLembrete1Dia)}
                   />
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => testarNotificacao('task_reminder_1day')}
-                  disabled={!notifLembrete1Dia || loading}
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Enviar Teste
-                </Button>
+                <div className="flex gap-2 flex-wrap">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_reminder_1day', 'normal')}
+                    disabled={!notifLembrete1Dia || loading}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Normal
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_reminder_1day', 'equipe')}
+                    disabled={!notifLembrete1Dia || loading}
+                  >
+                    Equipe
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_reminder_1day', 'mesclado')}
+                    disabled={!notifLembrete1Dia || loading}
+                  >
+                    Mesclado
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -1328,15 +1364,33 @@ export const AdminConfiguracoes: React.FC = () => {
                     onCheckedChange={(checked) => toggleNotification('notif_lembrete_dia_ativa', checked, setNotifLembreteDia)}
                   />
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => testarNotificacao('task_reminder_today')}
-                  disabled={!notifLembreteDia || loading}
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Enviar Teste
-                </Button>
+                <div className="flex gap-2 flex-wrap">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_reminder_today', 'normal')}
+                    disabled={!notifLembreteDia || loading}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Normal
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_reminder_today', 'equipe')}
+                    disabled={!notifLembreteDia || loading}
+                  >
+                    Equipe
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_reminder_today', 'mesclado')}
+                    disabled={!notifLembreteDia || loading}
+                  >
+                    Mesclado
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -1363,15 +1417,33 @@ export const AdminConfiguracoes: React.FC = () => {
                     onCheckedChange={(checked) => toggleNotification('notif_atraso_1dia_ativa', checked, setNotifAtraso1Dia)}
                   />
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => testarNotificacao('task_overdue_1day')}
-                  disabled={!notifAtraso1Dia || loading}
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Enviar Teste
-                </Button>
+                <div className="flex gap-2 flex-wrap">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_overdue_1day', 'normal')}
+                    disabled={!notifAtraso1Dia || loading}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Normal
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_overdue_1day', 'equipe')}
+                    disabled={!notifAtraso1Dia || loading}
+                  >
+                    Equipe
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_overdue_1day', 'mesclado')}
+                    disabled={!notifAtraso1Dia || loading}
+                  >
+                    Mesclado
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -1398,14 +1470,60 @@ export const AdminConfiguracoes: React.FC = () => {
                     onCheckedChange={(checked) => toggleNotification('notif_atraso_5dias_ativa', checked, setNotifAtraso5Dias)}
                   />
                 </div>
+                <div className="flex gap-2 flex-wrap">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_overdue_5days', 'normal')}
+                    disabled={!notifAtraso5Dias || loading}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Normal
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_overdue_5days', 'equipe')}
+                    disabled={!notifAtraso5Dias || loading}
+                  >
+                    Equipe
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => testarNotificacao('task_overdue_5days', 'mesclado')}
+                    disabled={!notifAtraso5Dias || loading}
+                  >
+                    Mesclado
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Responsável Removido da Tarefa</CardTitle>
+                    <CardDescription>
+                      Notifica quando um responsável é removido de uma tarefa
+                    </CardDescription>
+                  </div>
+                  <Badge variant="secondary">Teste</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Este é um teste específico para simular a remoção de um responsável de uma tarefa.
+                </p>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => testarNotificacao('task_overdue_5days')}
-                  disabled={!notifAtraso5Dias || loading}
+                  onClick={() => testarNotificacao('task_created', 'remocao')}
+                  disabled={loading}
                 >
                   <Send className="h-4 w-4 mr-2" />
-                  Enviar Teste
+                  Testar Remoção
                 </Button>
               </CardContent>
             </Card>

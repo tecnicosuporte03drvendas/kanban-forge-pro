@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { action } = await req.json();
+    const { action, testType = 'normal' } = await req.json();
     
     console.log('test-notification triggered for action:', action);
 
@@ -37,28 +37,114 @@ Deno.serve(async (req) => {
       .limit(1)
       .single();
 
-    // Dados de teste
+    // Dados de teste baseados no tipo
+    let responsibles = [];
+    
+    if (testType === 'normal') {
+      // 2 usuários individuais
+      responsibles = [
+        {
+          id: 'test-user-1',
+          nome: 'João Silva',
+          email: 'joao@teste.com',
+          celular: '5521999999991',
+          tipo: 'usuario',
+          em_equipe: false,
+          nome_equipe: null,
+        },
+        {
+          id: 'test-user-2',
+          nome: 'Maria Santos',
+          email: 'maria@teste.com',
+          celular: '5521999999992',
+          tipo: 'usuario',
+          em_equipe: false,
+          nome_equipe: null,
+        },
+      ];
+    } else if (testType === 'equipe') {
+      // Membros de uma equipe
+      responsibles = [
+        {
+          id: 'test-user-3',
+          nome: 'Pedro Costa',
+          email: 'pedro@teste.com',
+          celular: '5521999999993',
+          tipo: 'usuario',
+          em_equipe: true,
+          nome_equipe: 'Equipe Desenvolvimento',
+        },
+        {
+          id: 'test-user-4',
+          nome: 'Ana Paula',
+          email: 'ana@teste.com',
+          celular: '5521999999994',
+          tipo: 'usuario',
+          em_equipe: true,
+          nome_equipe: 'Equipe Desenvolvimento',
+        },
+      ];
+    } else if (testType === 'mesclado') {
+      // Mix de usuários individuais e de equipe
+      responsibles = [
+        {
+          id: 'test-user-5',
+          nome: 'Carlos Mendes',
+          email: 'carlos@teste.com',
+          celular: '5521999999995',
+          tipo: 'usuario',
+          em_equipe: false,
+          nome_equipe: null,
+        },
+        {
+          id: 'test-user-6',
+          nome: 'Juliana Alves',
+          email: 'juliana@teste.com',
+          celular: '5521999999996',
+          tipo: 'usuario',
+          em_equipe: true,
+          nome_equipe: 'Equipe Marketing',
+        },
+        {
+          id: 'test-user-7',
+          nome: 'Roberto Lima',
+          email: 'roberto@teste.com',
+          celular: '5521999999997',
+          tipo: 'usuario',
+          em_equipe: true,
+          nome_equipe: 'Equipe Marketing',
+        },
+      ];
+    } else if (testType === 'remocao') {
+      // Teste de remoção
+      responsibles = [
+        {
+          id: 'test-user-8',
+          nome: 'Fernanda Souza',
+          email: 'fernanda@teste.com',
+          celular: '5521999999998',
+          tipo: 'usuario',
+          em_equipe: false,
+          nome_equipe: null,
+          removido: true, // Marcação especial para remoção
+        },
+      ];
+    }
+
     const testData = {
-      action: `${action}_test`,
+      action: testType === 'remocao' ? `${action}_removed_test` : `${action}_test`,
+      testType,
       timestamp: new Date().toISOString(),
       task: {
         id: 'test-task-id',
-        titulo: 'Tarefa de Teste',
-        descricao: 'Esta é uma tarefa de teste para validar o sistema de notificações',
+        titulo: `Tarefa de Teste - ${testType.charAt(0).toUpperCase() + testType.slice(1)}`,
+        descricao: `Esta é uma tarefa de teste para validar notificações do tipo ${testType}`,
         prioridade: 'media',
         data_conclusao: new Date().toISOString().split('T')[0],
         horario_conclusao: '18:00:00',
         ...(action.includes('overdue') && { dias_atraso: action.includes('5days') ? 5 : 1 }),
       },
-      responsibles: [
-        {
-          id: 'test-user-id',
-          nome: 'Responsável Teste',
-          email: 'teste@teste.com',
-          celular: '5521999999999',
-          tipo: 'usuario',
-        },
-      ],
+      responsibles,
       ...(action.includes('created') && {
         created_by: {
           id: 'test-creator-id',
@@ -117,9 +203,9 @@ Deno.serve(async (req) => {
 
     // Log da operação
     await supabase.from('instancias_whatsapp_logs').insert({
-      acao: `teste_${action}`,
+      acao: `teste_${action}_${testType}`,
       sucesso: true,
-      dados_entrada: { action },
+      dados_entrada: { action, testType },
       dados_retorno: result,
     });
 
