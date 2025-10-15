@@ -124,6 +124,13 @@ Deno.serve(async (req) => {
         .eq('id', tarefa.empresa_id)
         .single();
 
+      // Buscar instância Evolution
+      const { data: evolutionInstance } = await supabase
+        .from('instancias_whatsapp')
+        .select('*')
+        .limit(1)
+        .single();
+
       // Montar payload
       const payload = {
         action: 'task_reminder_1day',
@@ -138,6 +145,12 @@ Deno.serve(async (req) => {
         },
         responsibles: responsibles,
         company: empresa,
+        evolution_instance: evolutionInstance ? {
+          nome: evolutionInstance.nome,
+          telefone: evolutionInstance.telefone,
+          status: evolutionInstance.status,
+          webhook_url: evolutionInstance.webhook_url,
+        } : null,
       };
 
       console.log('Enviando lembrete 1 dia para tarefa:', tarefa.id);

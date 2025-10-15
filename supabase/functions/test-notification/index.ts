@@ -30,6 +30,13 @@ Deno.serve(async (req) => {
       throw new Error('Webhook URL não configurado');
     }
 
+    // Buscar instância Evolution
+    const { data: evolutionInstance } = await supabase
+      .from('instancias_whatsapp')
+      .select('*')
+      .limit(1)
+      .single();
+
     // Dados de teste
     const testData = {
       action: `${action}_test`,
@@ -83,6 +90,12 @@ Deno.serve(async (req) => {
         nome_fantasia: 'Empresa Teste',
         razao_social: 'Empresa Teste LTDA',
       },
+      evolution_instance: evolutionInstance ? {
+        nome: evolutionInstance.nome,
+        telefone: evolutionInstance.telefone,
+        status: evolutionInstance.status,
+        webhook_url: evolutionInstance.webhook_url,
+      } : null,
     };
 
     console.log('Enviando dados de teste para n8n:', testData);
