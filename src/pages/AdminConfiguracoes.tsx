@@ -9,8 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Plus, Wifi, WifiOff, QrCode, X, Trash2, RotateCcw, User, ArrowLeft } from 'lucide-react';
+import { Settings, Plus, Wifi, WifiOff, QrCode, X, Trash2, RotateCcw, User, ArrowLeft, Bell, Send } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { CardDescription } from '@/components/ui/card';
 
 interface Configuracao {
   id: string;
@@ -56,6 +59,13 @@ export const AdminConfiguracoes: React.FC = () => {
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
 
+  // Estados para notificações
+  const [notifTarefaCriada, setNotifTarefaCriada] = useState(true);
+  const [notifLembrete1Dia, setNotifLembrete1Dia] = useState(true);
+  const [notifLembreteDia, setNotifLembreteDia] = useState(true);
+  const [notifAtraso1Dia, setNotifAtraso1Dia] = useState(true);
+  const [notifAtraso5Dias, setNotifAtraso5Dias] = useState(true);
+
   // Verificar se usuário é master
   if (!usuario || usuario.tipo_usuario !== 'master') {
     return <Navigate to="/admin" replace />;
@@ -64,6 +74,7 @@ export const AdminConfiguracoes: React.FC = () => {
   useEffect(() => {
     carregarConfiguracoes();
     carregarInstancias();
+    carregarConfiguracoesNotificacoes();
     if (usuario) {
       setNome(usuario.nome || '');
     }
@@ -98,6 +109,34 @@ export const AdminConfiguracoes: React.FC = () => {
         description: "Falha ao carregar configurações",
         variant: "destructive",
       });
+    }
+  };
+
+  const carregarConfiguracoesNotificacoes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('configuracoes_sistema')
+        .select('*')
+        .in('chave', [
+          'notif_tarefa_criada_ativa',
+          'notif_lembrete_1dia_ativa',
+          'notif_lembrete_dia_ativa',
+          'notif_atraso_1dia_ativa',
+          'notif_atraso_5dias_ativa'
+        ]);
+
+      if (error) throw error;
+
+      data?.forEach((config: Configuracao) => {
+        const ativo = config.valor === 'true';
+        if (config.chave === 'notif_tarefa_criada_ativa') setNotifTarefaCriada(ativo);
+        else if (config.chave === 'notif_lembrete_1dia_ativa') setNotifLembrete1Dia(ativo);
+        else if (config.chave === 'notif_lembrete_dia_ativa') setNotifLembreteDia(ativo);
+        else if (config.chave === 'notif_atraso_1dia_ativa') setNotifAtraso1Dia(ativo);
+        else if (config.chave === 'notif_atraso_5dias_ativa') setNotifAtraso5Dias(ativo);
+      });
+    } catch (error: any) {
+      console.error('Erro ao carregar configurações de notificações:', error);
     }
   };
 
@@ -783,6 +822,61 @@ export const AdminConfiguracoes: React.FC = () => {
     }
   };
 
+  const toggleNotification = async (chave: string, ativo: boolean, setState: React.Dispatch<React.SetStateAction<boolean>>) => {
+    try {
+      setLoading(true);
+      
+      const { error } = await supabase
+        .from('configuracoes_sistema')
+        .update({ valor: ativo.toString() })
+        .eq('chave', chave);
+
+      if (error) throw error;
+
+      setState(ativo);
+
+      toast({
+        title: ativo ? "Notificação ativada" : "Notificação desativada",
+        description: "Configuração salva com sucesso"
+      });
+    } catch (error: any) {
+      console.error('Erro ao atualizar notificação:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar configuração",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const testarNotificacao = async (action: string) => {
+    try {
+      setLoading(true);
+      
+      const { error } = await supabase.functions.invoke('test-notification', {
+        body: { action }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Teste enviado",
+        description: "Verifique seu WhatsApp para a mensagem de teste"
+      });
+    } catch (error: any) {
+      console.error('Erro ao enviar teste:', error);
+      toast({
+        title: "Erro ao enviar teste",
+        description: error.message || "Falha ao enviar notificação de teste",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
@@ -800,7 +894,7 @@ export const AdminConfiguracoes: React.FC = () => {
         </div>
 
         <Tabs defaultValue="usuario" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="usuario">
               <User className="h-4 w-4 mr-2" />
               Dados do Usuário
@@ -808,6 +902,10 @@ export const AdminConfiguracoes: React.FC = () => {
             <TabsTrigger value="whatsapp">
               <Settings className="h-4 w-4 mr-2" />
               WhatsApp
+            </TabsTrigger>
+            <TabsTrigger value="notificacoes">
+              <Bell className="h-4 w-4 mr-2" />
+              Notificações
             </TabsTrigger>
           </TabsList>
 
@@ -1133,6 +1231,184 @@ export const AdminConfiguracoes: React.FC = () => {
            )}
           </CardContent>
         </Card>
+          </TabsContent>
+
+          {/* Aba Notificações */}
+          <TabsContent value="notificacoes" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Nova Tarefa Criada</CardTitle>
+                    <CardDescription>
+                      Notifica responsável(is) quando uma nova tarefa é criada
+                    </CardDescription>
+                  </div>
+                  <Badge variant={notifTarefaCriada ? "default" : "secondary"}>
+                    {notifTarefaCriada ? "Ativa" : "Inativa"}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="notif-tarefa-criada">Ativar notificação</Label>
+                  <Switch
+                    id="notif-tarefa-criada"
+                    checked={notifTarefaCriada}
+                    onCheckedChange={(checked) => toggleNotification('notif_tarefa_criada_ativa', checked, setNotifTarefaCriada)}
+                  />
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => testarNotificacao('task_created')}
+                  disabled={!notifTarefaCriada || loading}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Enviar Teste
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Lembrete 1 Dia Antes do Vencimento</CardTitle>
+                    <CardDescription>
+                      Envia lembrete às 9h (Brasília) um dia antes da tarefa vencer
+                    </CardDescription>
+                  </div>
+                  <Badge variant={notifLembrete1Dia ? "default" : "secondary"}>
+                    {notifLembrete1Dia ? "Ativa" : "Inativa"}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="notif-lembrete-1dia">Ativar notificação</Label>
+                  <Switch
+                    id="notif-lembrete-1dia"
+                    checked={notifLembrete1Dia}
+                    onCheckedChange={(checked) => toggleNotification('notif_lembrete_1dia_ativa', checked, setNotifLembrete1Dia)}
+                  />
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => testarNotificacao('task_reminder_1day')}
+                  disabled={!notifLembrete1Dia || loading}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Enviar Teste
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Lembrete no Dia do Vencimento</CardTitle>
+                    <CardDescription>
+                      Envia lembrete às 9h (Brasília) no dia que a tarefa vence
+                    </CardDescription>
+                  </div>
+                  <Badge variant={notifLembreteDia ? "default" : "secondary"}>
+                    {notifLembreteDia ? "Ativa" : "Inativa"}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="notif-lembrete-dia">Ativar notificação</Label>
+                  <Switch
+                    id="notif-lembrete-dia"
+                    checked={notifLembreteDia}
+                    onCheckedChange={(checked) => toggleNotification('notif_lembrete_dia_ativa', checked, setNotifLembreteDia)}
+                  />
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => testarNotificacao('task_reminder_today')}
+                  disabled={!notifLembreteDia || loading}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Enviar Teste
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Tarefa Atrasada - 1 Dia</CardTitle>
+                    <CardDescription>
+                      Notifica responsável(is) e gestores quando tarefa tem 1 dia de atraso
+                    </CardDescription>
+                  </div>
+                  <Badge variant={notifAtraso1Dia ? "default" : "secondary"}>
+                    {notifAtraso1Dia ? "Ativa" : "Inativa"}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="notif-atraso-1dia">Ativar notificação</Label>
+                  <Switch
+                    id="notif-atraso-1dia"
+                    checked={notifAtraso1Dia}
+                    onCheckedChange={(checked) => toggleNotification('notif_atraso_1dia_ativa', checked, setNotifAtraso1Dia)}
+                  />
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => testarNotificacao('task_overdue_1day')}
+                  disabled={!notifAtraso1Dia || loading}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Enviar Teste
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Tarefa Atrasada - 5 Dias</CardTitle>
+                    <CardDescription>
+                      Notifica responsável(is), gestores e proprietário quando tarefa tem 5 dias de atraso
+                    </CardDescription>
+                  </div>
+                  <Badge variant={notifAtraso5Dias ? "default" : "secondary"}>
+                    {notifAtraso5Dias ? "Ativa" : "Inativa"}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="notif-atraso-5dias">Ativar notificação</Label>
+                  <Switch
+                    id="notif-atraso-5dias"
+                    checked={notifAtraso5Dias}
+                    onCheckedChange={(checked) => toggleNotification('notif_atraso_5dias_ativa', checked, setNotifAtraso5Dias)}
+                  />
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => testarNotificacao('task_overdue_5days')}
+                  disabled={!notifAtraso5Dias || loading}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Enviar Teste
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

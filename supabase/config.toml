@@ -32,3 +32,24 @@ verify_jwt = false
 
 [functions.whatsapp-logs]
 verify_jwt = false
+
+[functions.notify-task-created]
+verify_jwt = false
+
+[functions.notify-task-reminder-1day]
+verify_jwt = false
+
+[functions.notify-task-reminder-today]
+verify_jwt = false
+
+[functions.notify-task-overdue-1day]
+verify_jwt = false
+
+[functions.notify-task-overdue-5days]
+verify_jwt = false
+
+[functions.test-notification]
+verify_jwt = false
+
+[functions.n8n-proxy]
+verify_jwt = false

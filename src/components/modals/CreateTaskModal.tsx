@@ -269,6 +269,19 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
         })
       }
 
+      // Trigger task created notification
+      try {
+        await supabase.functions.invoke('notify-task-created', {
+          body: {
+            taskId: tarefa.id,
+            createdBy: usuario.id
+          }
+        });
+      } catch (notifError) {
+        console.error('Erro ao enviar notificação de tarefa criada:', notifError);
+        // Não interromper o fluxo se a notificação falhar
+      }
+
       toast({ 
         title: 'Sucesso', 
         description: recurringConfig.isRecurring 
