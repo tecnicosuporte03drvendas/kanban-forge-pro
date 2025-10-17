@@ -85,16 +85,6 @@ Retorna todas as tarefas onde o usuário é responsável (diretamente ou via equ
           "created_at": "2025-01-16T14:00:00Z"
         }
       ],
-      "anexos": [
-        {
-          "id": "uuid-anexo",
-          "nome": "documento.pdf",
-          "url": "https://...",
-          "tipo": "application/pdf",
-          "tamanho": 1024000,
-          "created_at": "2025-01-15T11:00:00Z"
-        }
-      ],
       "atividades": [
         {
           "id": "uuid-atividade",
@@ -222,18 +212,6 @@ Retorna uma tarefa específica pelo título, verificando se o usuário é respon
         "usuario_id": "uuid-gerente",
         "usuario_nome": "Carlos Gerente",
         "created_at": "2025-01-16T14:00:00Z"
-      }
-    ],
-    "anexos": [
-      {
-        "id": "uuid-anexo",
-        "nome": "especificacao.pdf",
-        "url": "https://storage.supabase.co/...",
-        "tipo": "application/pdf",
-        "tamanho": 1024000,
-        "usuario_id": "uuid-criador",
-        "usuario_nome": "Maria Santos",
-        "created_at": "2025-01-15T11:00:00Z"
       }
     ],
     "atividades": [
