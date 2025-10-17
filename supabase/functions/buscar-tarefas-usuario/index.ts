@@ -12,13 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    const { email } = await req.json();
+    const { celular } = await req.json();
 
-    console.log('📧 Buscando tarefas para email:', email);
+    console.log('📱 Buscando tarefas para celular:', celular);
 
-    if (!email) {
+    if (!celular) {
       return new Response(
-        JSON.stringify({ error: 'Email é obrigatório' }),
+        JSON.stringify({ error: 'Celular é obrigatório' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -28,15 +28,14 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 1. Buscar usuário pelo email
-    const { data: usuario, error: usuarioError } = await supabase
+    // 1. Buscar todos os usuários ativos com esse celular
+    const { data: usuarios, error: usuarioError } = await supabase
       .from('usuarios')
-      .select('id, nome, email')
-      .eq('email', email)
-      .eq('ativo', true)
-      .single();
+      .select('id, nome, email, celular')
+      .eq('celular', celular)
+      .eq('ativo', true);
 
-    if (usuarioError || !usuario) {
+    if (usuarioError || !usuarios || usuarios.length === 0) {
       console.log('❌ Usuário não encontrado:', usuarioError);
       return new Response(
         JSON.stringify({ error: 'Usuário não encontrado', tarefas: [] }),
@@ -44,7 +43,10 @@ serve(async (req) => {
       );
     }
 
-    console.log('✅ Usuário encontrado:', usuario.nome);
+    console.log(`✅ ${usuarios.length} usuário(s) encontrado(s) com esse celular`);
+    
+    // Usar o primeiro usuário ativo encontrado
+    const usuario = usuarios[0];
 
     // 2. Buscar equipes do usuário
     const { data: equipes, error: equipesError } = await supabase
@@ -71,7 +73,11 @@ serve(async (req) => {
     if (tarefasIds.length === 0) {
       return new Response(
         JSON.stringify({ 
-          usuario: { nome: usuario.nome, email: usuario.email },
+          usuario: { 
+            nome: usuario.nome, 
+            email: usuario.email,
+            celular: usuario.celular
+          },
           tarefas: [] 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -124,7 +130,8 @@ serve(async (req) => {
       JSON.stringify({
         usuario: {
           nome: usuario.nome,
-          email: usuario.email
+          email: usuario.email,
+          celular: usuario.celular
         },
         total: tarefas?.length || 0,
         tarefas: tarefas || []

@@ -31,7 +31,7 @@ Retorna todas as tarefas onde o usuário é responsável (diretamente ou via equ
     "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbG5rcXlnZGtjbmdtZnRwc2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMDc3MTksImV4cCI6MjA3MTg4MzcxOX0.rCi6bLl3-XaRUmSwUwvxF8GItTvJlhZyo8pLbPNcbMw"
   },
   "body": {
-    "email": "usuario@exemplo.com"
+    "celular": "5521982534276"
   }
 }
 ```
@@ -42,7 +42,8 @@ Retorna todas as tarefas onde o usuário é responsável (diretamente ou via equ
 {
   "usuario": {
     "nome": "João Silva",
-    "email": "usuario@exemplo.com"
+    "email": "usuario@exemplo.com",
+    "celular": "5521982534276"
   },
   "total": 5,
   "tarefas": [
@@ -105,7 +106,8 @@ Retorna todas as tarefas onde o usuário é responsável (diretamente ou via equ
 {
   "usuario": {
     "nome": "João Silva",
-    "email": "usuario@exemplo.com"
+    "email": "usuario@exemplo.com",
+    "celular": "5521982534276"
   },
   "tarefas": []
 }
@@ -278,7 +280,7 @@ Retorna uma tarefa específica pelo título, verificando se o usuário é respon
 
 ```json
 {
-  "error": "Email é obrigatório"
+  "error": "Celular é obrigatório"
 }
 ```
 
@@ -312,7 +314,7 @@ Acesse os logs das funções em:
 
 ## Observações Importantes
 
-1. **Identificação por Celular**: A função `buscar-tarefa-especifica` usa o número de celular no formato `55XXXXXXXXXXX` (13 dígitos com código do país).
+1. **Identificação por Celular**: Ambas as funções (`buscar-tarefas-usuario` e `buscar-tarefa-especifica`) usam o número de celular no formato `55XXXXXXXXXXX` (13 dígitos com código do país) para identificar o usuário.
 
 2. **Busca por título**: A função `buscar-tarefa-especifica` usa busca case-insensitive com ILIKE, então funciona com títulos parciais.
 
