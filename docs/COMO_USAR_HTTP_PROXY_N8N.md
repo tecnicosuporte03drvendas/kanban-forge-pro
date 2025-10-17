@@ -1,6 +1,6 @@
 # Como Usar HTTP Proxy no n8n
 
-Este documento explica como usar o edge function `http-proxy` para fazer requisições HTTP genéricas no n8n, incluindo chamadas para buscar dados de usuários.
+Este documento explica como usar o edge function `n8n-proxy` para fazer requisições HTTP genéricas no n8n, incluindo chamadas para buscar dados de usuários.
 
 ## Configuração no n8n
 
@@ -10,7 +10,7 @@ No n8n, adicione um nó **HTTP Request** e configure:
 
 **Configurações básicas:**
 - **Method**: `POST`
-- **URL**: `https://emlnkqygdkcngmftpsft.supabase.co/functions/v1/http-proxy`
+- **URL**: `https://emlnkqygdkcngmftpsft.supabase.co/functions/v1/n8n-proxy`
 
 **Headers:**
 ```json
@@ -156,4 +156,4 @@ Todos os logs são registrados no Supabase Edge Function logs para debug:
 - Status da resposta
 - Erros (se houver)
 
-Acesse os logs em: https://supabase.com/dashboard/project/emlnkqygdkcngmftpsft/functions/http-proxy/logs
+Acesse os logs em: https://supabase.com/dashboard/project/emlnkqygdkcngmftpsft/functions/n8n-proxy/logs
