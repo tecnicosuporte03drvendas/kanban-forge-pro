@@ -812,6 +812,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      buscar_tarefa_por_responsavel: {
+        Args: { p_titulo: string; p_usuario_id: string }
+        Returns: {
+          arquivada: boolean
+          created_at: string
+          criado_por: string
+          data_conclusao: string
+          descricao: string
+          empresa_id: string
+          horario_conclusao: string
+          id: string
+          posicao_coluna: number
+          prioridade: Database["public"]["Enums"]["prioridade_tarefa"]
+          status: Database["public"]["Enums"]["status_tarefa"]
+          tarefa_recorrente_id: string
+          tempo_fim: string
+          tempo_gasto_minutos: number
+          tempo_inicio: string
+          titulo: string
+          updated_at: string
+        }[]
+      }
       calcular_proxima_execucao: {
         Args: {
           p_data_fim: string
