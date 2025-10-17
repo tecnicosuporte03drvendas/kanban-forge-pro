@@ -83,15 +83,6 @@ serve(async (req) => {
           usuario_id,
           created_at
         ),
-        anexos:tarefas_anexos(
-          id,
-          nome,
-          url,
-          tipo,
-          tamanho,
-          usuario_id,
-          created_at
-        ),
         atividades:tarefas_atividades(
           id,
           acao,
@@ -165,10 +156,6 @@ serve(async (req) => {
       if (a.usuario_id) usuariosIds.add(a.usuario_id);
     });
 
-    tarefaEncontrada.anexos?.forEach((a: any) => {
-      if (a.usuario_id) usuariosIds.add(a.usuario_id);
-    });
-
     if (tarefaEncontrada.criado_por) {
       usuariosIds.add(tarefaEncontrada.criado_por);
     }
@@ -195,10 +182,6 @@ serve(async (req) => {
         usuario_nome: usuariosMap[c.usuario_id] || 'Desconhecido'
       })),
       atividades: tarefaEncontrada.atividades?.map((a: any) => ({
-        ...a,
-        usuario_nome: usuariosMap[a.usuario_id] || 'Desconhecido'
-      })),
-      anexos: tarefaEncontrada.anexos?.map((a: any) => ({
         ...a,
         usuario_nome: usuariosMap[a.usuario_id] || 'Desconhecido'
       }))
