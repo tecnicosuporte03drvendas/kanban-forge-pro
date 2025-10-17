@@ -127,7 +127,7 @@ Retorna todas as tarefas onde o usuário é responsável (diretamente ou via equ
 
 ### Função: `buscar-tarefa-especifica`
 
-Retorna uma tarefa específica pelo título, verificando se o usuário é responsável.
+Retorna uma tarefa específica pelo título, verificando se o usuário é responsável. Usa o número de celular como identificador.
 
 ### Configuração no n8n
 
@@ -152,7 +152,7 @@ Retorna uma tarefa específica pelo título, verificando se o usuário é respon
     "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbG5rcXlnZGtjbmdtZnRwc2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMDc3MTksImV4cCI6MjA3MTg4MzcxOX0.rCi6bLl3-XaRUmSwUwvxF8GItTvJlhZyo8pLbPNcbMw"
   },
   "body": {
-    "email": "usuario@exemplo.com",
+    "celular": "5521999887766",
     "titulo": "Implementar nova funcionalidade"
   }
 }
@@ -164,7 +164,8 @@ Retorna uma tarefa específica pelo título, verificando se o usuário é respon
 {
   "usuario": {
     "nome": "João Silva",
-    "email": "usuario@exemplo.com"
+    "email": "usuario@exemplo.com",
+    "celular": "5521999887766"
   },
   "tarefa": {
     "id": "uuid-da-tarefa",
@@ -307,7 +308,7 @@ ou
 
 ```json
 {
-  "error": "Email e título da tarefa são obrigatórios"
+  "error": "Celular e título da tarefa são obrigatórios"
 }
 ```
 
@@ -333,12 +334,14 @@ Acesse os logs das funções em:
 
 ## Observações Importantes
 
-1. **Busca por título**: A função `buscar-tarefa-especifica` usa busca case-insensitive com ILIKE, então funciona com títulos parciais.
+1. **Identificação por Celular**: A função `buscar-tarefa-especifica` usa o número de celular no formato `55XXXXXXXXXXX` (13 dígitos com código do país).
 
-2. **Permissões**: As funções verificam se o usuário é responsável pela tarefa (diretamente ou via equipe) antes de retornar os dados.
+2. **Busca por título**: A função `buscar-tarefa-especifica` usa busca case-insensitive com ILIKE, então funciona com títulos parciais.
 
-3. **Tarefas arquivadas**: As funções retornam apenas tarefas não arquivadas (`arquivada = false`).
+3. **Permissões**: As funções verificam se o usuário é responsável pela tarefa (diretamente ou via equipe) antes de retornar os dados.
 
-4. **Dados completos**: A função `buscar-tarefa-especifica` retorna todos os dados relacionados à tarefa (checklists, comentários, anexos, atividades e sessões de tempo).
+4. **Tarefas arquivadas**: As funções retornam apenas tarefas não arquivadas (`arquivada = false`).
 
-5. **Nomes de usuários**: A função `buscar-tarefa-especifica` enriquece os dados com os nomes dos usuários em comentários, atividades e anexos.
+5. **Dados completos**: A função `buscar-tarefa-especifica` retorna todos os dados relacionados à tarefa (checklists, comentários, atividades e sessões de tempo).
+
+6. **Nomes de usuários**: A função `buscar-tarefa-especifica` enriquece os dados com os nomes dos usuários em comentários e atividades.

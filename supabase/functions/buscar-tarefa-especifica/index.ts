@@ -12,13 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    const { email, titulo } = await req.json();
+    const { celular, titulo } = await req.json();
 
-    console.log('🔍 Buscando tarefa:', { email, titulo });
+    console.log('🔍 Buscando tarefa:', { celular, titulo });
 
-    if (!email || !titulo) {
+    if (!celular || !titulo) {
       return new Response(
-        JSON.stringify({ error: 'Email e título da tarefa são obrigatórios' }),
+        JSON.stringify({ error: 'Celular e título da tarefa são obrigatórios' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -28,11 +28,11 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 1. Buscar usuário pelo email
+    // 1. Buscar usuário pelo celular
     const { data: usuario, error: usuarioError } = await supabase
       .from('usuarios')
-      .select('id, nome, email')
-      .eq('email', email)
+      .select('id, nome, email, celular')
+      .eq('celular', celular)
       .eq('ativo', true)
       .single();
 
@@ -191,7 +191,8 @@ serve(async (req) => {
       JSON.stringify({
         usuario: {
           nome: usuario.nome,
-          email: usuario.email
+          email: usuario.email,
+          celular: usuario.celular
         },
         tarefa: tarefaCompleta
       }),
