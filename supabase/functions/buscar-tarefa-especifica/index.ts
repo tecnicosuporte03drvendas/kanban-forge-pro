@@ -28,14 +28,12 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 1. Buscar usuário pelo celular (pega o primeiro ativo encontrado)
+    // 1. Buscar todos os usuários ativos com esse celular
     const { data: usuarios, error: usuarioError } = await supabase
       .from('usuarios')
       .select('id, nome, email, celular')
       .eq('celular', celular)
-      .eq('ativo', true)
-      .order('created_at', { ascending: false })
-      .limit(1);
+      .eq('ativo', true);
 
     if (usuarioError || !usuarios || usuarios.length === 0) {
       console.log('❌ Usuário não encontrado:', usuarioError);
@@ -45,20 +43,9 @@ serve(async (req) => {
       );
     }
 
-    const usuario = usuarios[0];
+    console.log(`✅ ${usuarios.length} usuário(s) encontrado(s) com esse celular`);
 
-    console.log('✅ Usuário encontrado:', usuario.nome);
-
-    // 2. Buscar equipes do usuário
-    const { data: equipes } = await supabase
-      .from('usuarios_equipes')
-      .select('equipe_id')
-      .eq('usuario_id', usuario.id);
-
-    const equipesIds = equipes?.map(e => e.equipe_id) || [];
-    console.log('👥 Equipes do usuário:', equipesIds.length);
-
-    // 3. Buscar tarefa pelo título (case insensitive)
+    // 2. Buscar tarefa pelo título (case insensitive)
     const { data: tarefasCandidatas, error: tarefasError } = await supabase
       .from('tarefas')
       .select(`
@@ -121,25 +108,48 @@ serve(async (req) => {
       );
     }
 
-    // 4. Filtrar tarefas onde o usuário é responsável
-    const tarefaEncontrada = tarefasCandidatas.find(tarefa => {
-      const responsaveis = tarefa.responsaveis || [];
-      
-      // Verificar se usuário é responsável direto
-      const isResponsavelDireto = responsaveis.some(
-        (r: any) => r.usuario_id === usuario.id
-      );
-      
-      // Verificar se alguma equipe do usuário é responsável
-      const isResponsavelEquipe = responsaveis.some(
-        (r: any) => r.equipe_id && equipesIds.includes(r.equipe_id)
-      );
-      
-      return isResponsavelDireto || isResponsavelEquipe;
-    });
+    console.log(`🔍 ${tarefasCandidatas.length} tarefa(s) encontrada(s) com esse título`);
 
-    if (!tarefaEncontrada) {
-      console.log('❌ Usuário não é responsável por nenhuma tarefa com esse título');
+    // 3. Para cada usuário, verificar se é responsável por alguma tarefa
+    let usuarioEncontrado = null;
+    let tarefaEncontrada = null;
+
+    for (const usuario of usuarios) {
+      // Buscar equipes do usuário
+      const { data: equipes } = await supabase
+        .from('usuarios_equipes')
+        .select('equipe_id')
+        .eq('usuario_id', usuario.id);
+
+      const equipesIds = equipes?.map(e => e.equipe_id) || [];
+      
+      // Verificar se este usuário é responsável por alguma tarefa
+      const tarefaDoUsuario = tarefasCandidatas.find(tarefa => {
+        const responsaveis = tarefa.responsaveis || [];
+        
+        // Verificar se usuário é responsável direto
+        const isResponsavelDireto = responsaveis.some(
+          (r: any) => r.usuario_id === usuario.id
+        );
+        
+        // Verificar se alguma equipe do usuário é responsável
+        const isResponsavelEquipe = responsaveis.some(
+          (r: any) => r.equipe_id && equipesIds.includes(r.equipe_id)
+        );
+        
+        return isResponsavelDireto || isResponsavelEquipe;
+      });
+
+      if (tarefaDoUsuario) {
+        usuarioEncontrado = usuario;
+        tarefaEncontrada = tarefaDoUsuario;
+        console.log(`✅ Tarefa encontrada para usuário: ${usuario.nome}`);
+        break;
+      }
+    }
+
+    if (!tarefaEncontrada || !usuarioEncontrado) {
+      console.log('❌ Nenhum dos usuários com esse celular é responsável pela tarefa');
       return new Response(
         JSON.stringify({ error: 'Tarefa não encontrada ou você não é responsável por ela' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -193,9 +203,9 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         usuario: {
-          nome: usuario.nome,
-          email: usuario.email,
-          celular: usuario.celular
+          nome: usuarioEncontrado.nome,
+          email: usuarioEncontrado.email,
+          celular: usuarioEncontrado.celular
         },
         tarefa: tarefaCompleta
       }),
