@@ -98,14 +98,6 @@ serve(async (req) => {
           usuario_id,
           created_at
         ),
-        anexos:tarefas_anexos(
-          id,
-          nome,
-          url,
-          tipo,
-          tamanho,
-          created_at
-        ),
         atividades:tarefas_atividades(
           id,
           acao,
