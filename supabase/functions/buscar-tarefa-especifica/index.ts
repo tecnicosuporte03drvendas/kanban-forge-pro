@@ -28,21 +28,24 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 1. Buscar usuário pelo celular
-    const { data: usuario, error: usuarioError } = await supabase
+    // 1. Buscar usuário pelo celular (pega o primeiro ativo encontrado)
+    const { data: usuarios, error: usuarioError } = await supabase
       .from('usuarios')
       .select('id, nome, email, celular')
       .eq('celular', celular)
       .eq('ativo', true)
-      .single();
+      .order('created_at', { ascending: false })
+      .limit(1);
 
-    if (usuarioError || !usuario) {
+    if (usuarioError || !usuarios || usuarios.length === 0) {
       console.log('❌ Usuário não encontrado:', usuarioError);
       return new Response(
         JSON.stringify({ error: 'Usuário não encontrado' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const usuario = usuarios[0];
 
     console.log('✅ Usuário encontrado:', usuario.nome);
 
