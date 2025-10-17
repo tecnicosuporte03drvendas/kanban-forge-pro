@@ -62,3 +62,9 @@ verify_jwt = false
 
 [functions.http-proxy]
 verify_jwt = false
+
+[functions.buscar-tarefas-usuario]
+verify_jwt = false
+
+[functions.buscar-tarefa-especifica]
+verify_jwt = false
