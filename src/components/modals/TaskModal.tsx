@@ -252,6 +252,7 @@ export function TaskModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskMod
 
       const tarefaCompleta: TarefaCompleta = {
         ...tarefaData,
+        tipo_tarefa: tarefaData.tipo_tarefa as 'pessoal' | 'profissional',
         responsaveis: responsaveisData || [],
         checklists:
           checklistsData?.map((cl) => ({

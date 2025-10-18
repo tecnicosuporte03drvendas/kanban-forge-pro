@@ -297,6 +297,7 @@ export type Database = {
           tempo_fim: string | null
           tempo_gasto_minutos: number | null
           tempo_inicio: string | null
+          tipo_tarefa: string
           titulo: string
           updated_at: string
         }
@@ -316,6 +317,7 @@ export type Database = {
           tempo_fim?: string | null
           tempo_gasto_minutos?: number | null
           tempo_inicio?: string | null
+          tipo_tarefa?: string
           titulo: string
           updated_at?: string
         }
@@ -335,6 +337,7 @@ export type Database = {
           tempo_fim?: string | null
           tempo_gasto_minutos?: number | null
           tempo_inicio?: string | null
+          tipo_tarefa?: string
           titulo?: string
           updated_at?: string
         }

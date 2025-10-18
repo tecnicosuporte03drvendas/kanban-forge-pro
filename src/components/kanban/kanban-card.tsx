@@ -141,6 +141,12 @@ export function KanbanCard({
               {task.isCurrentUserAssigned && <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-1" title="Você está nesta tarefa" />}
             </div>
             <div className="flex items-center gap-1 flex-wrap">
+              {task.tipo_tarefa === 'pessoal' && (
+                <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-600 border-purple-500 px-2 py-0.5">
+                  <User className="w-3 h-3 mr-1" />
+                  Pessoal
+                </Badge>
+              )}
               {task.team && <Badge variant="secondary" className={`text-xs ${task.teamColor} text-white border-0 px-2 py-1`}>
                   {task.team}
                 </Badge>}

@@ -87,6 +87,16 @@ Você tem 2 tarefas concluídas ✅:
 No momento, essa função não está habilitada. Posso ajudá-lo apenas com consultas sobre suas tarefas.
 ```
 
+## Tipos de Tarefa
+
+Tarefas podem ser:
+- **Profissional**: Tarefas da empresa (emoji: 💼)
+- **Pessoal**: Tarefas particulares do usuário (emoji: 👤)
+
+Ao listar tarefas, use emojis para diferenciar:
+- "💼 Revisar relatório - Profissional"
+- "👤 Agendar consulta médica - Pessoal"
+
 ## Status Disponíveis
 
 - `criada` - Tarefa criada 📋

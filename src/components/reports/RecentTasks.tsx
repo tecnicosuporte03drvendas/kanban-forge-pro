@@ -70,6 +70,7 @@ export function RecentTasks({ dateRange, viewMode = 'geral', userId }: RecentTas
         `)
         .eq('empresa_id', usuario.empresa_id)
         .eq('arquivada', false)
+        .eq('tipo_tarefa', 'profissional')
         .order('updated_at', { ascending: false })
         .limit(5)
 
@@ -93,7 +94,7 @@ export function RecentTasks({ dateRange, viewMode = 'geral', userId }: RecentTas
 
       if (error) throw error
 
-      setRecentTasks(tarefas || [])
+      setRecentTasks((tarefas || []).map(t => ({ ...t, tipo_tarefa: t.tipo_tarefa as 'pessoal' | 'profissional' })))
 
     } catch (error) {
       console.error('Error loading recent tasks:', error)

@@ -45,6 +45,7 @@ export interface Task {
   posicao_coluna?: number
   responsaveis_ids: string[] // IDs de todos os usuários responsáveis
   equipes_ids: string[] // IDs de todas as equipes responsáveis
+  tipo_tarefa: "pessoal" | "profissional"
 }
 
 interface KanbanBoardProps {
@@ -79,7 +80,8 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
     team: 'all',
     dateFrom: '',
     dateTo: '',
-    showOverdueOnly: false
+    showOverdueOnly: false,
+    tipoTarefa: 'all'
   })
 
   useEffect(() => {
@@ -192,6 +194,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
         posicao_coluna: tarefa.posicao_coluna || 0,
         responsaveis_ids,
         equipes_ids,
+        tipo_tarefa: (tarefa.tipo_tarefa as 'pessoal' | 'profissional') || 'profissional',
       }
 
       // Update or add task
@@ -336,6 +339,7 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
           posicao_coluna: tarefa.posicao_coluna || 0,
           responsaveis_ids,
           equipes_ids,
+          tipo_tarefa: (tarefa.tipo_tarefa as 'pessoal' | 'profissional') || 'profissional',
         }
       }) || []
 
@@ -682,6 +686,13 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
       // Overdue filter
       if (filters.showOverdueOnly && !isOverdue(task.dueDate)) {
         return false
+      }
+
+      // Tipo de tarefa filter
+      if (filters.tipoTarefa && filters.tipoTarefa !== 'all') {
+        if (task.tipo_tarefa !== filters.tipoTarefa) {
+          return false
+        }
       }
 
       return true

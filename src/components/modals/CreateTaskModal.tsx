@@ -51,6 +51,7 @@ const taskSchema = z.object({
   }),
   horario_conclusao: z.string().default('18:00'),
   responsaveis: z.array(z.string()).default([]),
+  tipo_tarefa: z.enum(['pessoal', 'profissional']).default('profissional'),
 })
 
 interface CreateTaskModalProps {
@@ -87,6 +88,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
       prioridade: 'media',
       horario_conclusao: '18:00',
       responsaveis: [],
+      tipo_tarefa: usuario?.tipo_usuario === 'colaborador' ? 'pessoal' : 'profissional',
     },
   })
 
@@ -208,6 +210,7 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
           horario_conclusao: values.horario_conclusao,
           empresa_id: usuario.empresa_id,
           criado_por: usuario.id,
+          tipo_tarefa: values.tipo_tarefa,
         })
         .select()
         .single()
@@ -395,6 +398,41 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
                 </FormItem>
               )}
             />
+
+            {/* Tipo de Tarefa - Apenas para Gestores/Proprietários/Master */}
+            {usuario?.tipo_usuario !== 'colaborador' && (
+              <FormField
+                control={form.control}
+                name="tipo_tarefa"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Tarefa</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="profissional">
+                          <div className="flex items-center gap-2">
+                            <span>💼</span>
+                            <span>Profissional</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="pessoal">
+                          <div className="flex items-center gap-2">
+                            <span>👤</span>
+                            <span>Pessoal</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <FormField

@@ -87,11 +87,11 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated,
         )
         .eq("empresa_id", usuario.empresa_id)
         .eq("arquivada", showArchived)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false});
 
       if (error) throw error;
 
-      setTasks(tarefas || []);
+      setTasks((tarefas || []).map(t => ({ ...t, tipo_tarefa: t.tipo_tarefa as 'pessoal' | 'profissional' })));
     } catch (error) {
       console.error("Error loading tasks:", error);
     } finally {
@@ -630,6 +630,7 @@ export function TarefasList({ onCreateTask, showArchived = false, onTaskUpdated,
           updated_at: "",
           tempo_gasto_minutos: 0,
           arquivada: false,
+          tipo_tarefa: "profissional"
         }}
       />
 

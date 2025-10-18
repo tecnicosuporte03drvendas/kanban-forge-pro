@@ -20,6 +20,7 @@ export interface FilterState {
   dateFrom: string
   dateTo: string
   showOverdueOnly: boolean
+  tipoTarefa: string
 }
 
 export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
@@ -29,7 +30,8 @@ export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
     team: 'all',
     dateFrom: '',
     dateTo: '',
-    showOverdueOnly: false
+    showOverdueOnly: false,
+    tipoTarefa: 'all'
   })
   const { usuario } = useEffectiveUser()
   const [users, setUsers] = useState<Array<{id: string, nome: string}>>([])
@@ -76,7 +78,8 @@ export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
       team: 'all',
       dateFrom: '',
       dateTo: '',
-      showOverdueOnly: false
+      showOverdueOnly: false,
+      tipoTarefa: 'all'
     }
     setFilters(clearedFilters)
     onFiltersChange(clearedFilters)
@@ -106,6 +109,17 @@ export function KanbanFilters({ onFiltersChange }: KanbanFiltersProps) {
           </div>
           
           <div className="flex flex-wrap gap-2">
+            <Select value={filters.tipoTarefa} onValueChange={(value) => updateFilters({ tipoTarefa: value })}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="profissional">💼 Profissionais</SelectItem>
+                <SelectItem value="pessoal">👤 Pessoais</SelectItem>
+              </SelectContent>
+            </Select>
+
             <Select value={filters.assignee} onValueChange={(value) => updateFilters({ assignee: value })}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Responsável" />

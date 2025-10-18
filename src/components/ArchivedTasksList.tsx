@@ -51,7 +51,7 @@ export function ArchivedTasksList() {
 
       if (error) throw error
 
-      setTasks(tarefas || [])
+      setTasks((tarefas || []).map(t => ({ ...t, tipo_tarefa: t.tipo_tarefa as 'pessoal' | 'profissional' })))
     } catch (error) {
       console.error('Error loading archived tasks:', error)
       toast({

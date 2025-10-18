@@ -1,5 +1,6 @@
 export type PrioridadeTarefa = 'baixa' | 'media' | 'alta' | 'urgente';
 export type StatusTarefa = 'criada' | 'aceita' | 'executando' | 'concluida' | 'aprovada';
+export type TipoTarefa = 'pessoal' | 'profissional';
 
 export type FrequenciaRecorrencia = 'diaria' | 'semanal' | 'mensal' | 'anual';
 
@@ -39,6 +40,7 @@ export interface Tarefa {
   arquivada: boolean;
   posicao_coluna?: number;
   tarefa_recorrente_id?: string | null;
+  tipo_tarefa: TipoTarefa;
 }
 
 export interface TarefaResponsavel {

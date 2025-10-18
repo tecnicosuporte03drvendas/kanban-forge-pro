@@ -171,6 +171,7 @@ export function ViewTaskModal({
       });
       const tarefaCompleta: TarefaCompleta = {
         ...tarefaData,
+        tipo_tarefa: tarefaData.tipo_tarefa as 'pessoal' | 'profissional',
         responsaveis: responsaveisData || [],
         checklists: checklistsData?.map(cl => ({
           ...cl,
