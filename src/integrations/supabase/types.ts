@@ -807,6 +807,133 @@ export type Database = {
           },
         ]
       }
+      whatsapp_conversas: {
+        Row: {
+          ativa: boolean
+          contexto_atual: Json | null
+          created_at: string
+          id: string
+          instancia_id: string | null
+          numero_usuario: string
+          push_name: string | null
+          sessao_encerrada_em: string | null
+          sessao_iniciada_em: string
+          total_mensagens: number
+          ultima_mensagem_em: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativa?: boolean
+          contexto_atual?: Json | null
+          created_at?: string
+          id?: string
+          instancia_id?: string | null
+          numero_usuario: string
+          push_name?: string | null
+          sessao_encerrada_em?: string | null
+          sessao_iniciada_em?: string
+          total_mensagens?: number
+          ultima_mensagem_em?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativa?: boolean
+          contexto_atual?: Json | null
+          created_at?: string
+          id?: string
+          instancia_id?: string | null
+          numero_usuario?: string
+          push_name?: string | null
+          sessao_encerrada_em?: string | null
+          sessao_iniciada_em?: string
+          total_mensagens?: number
+          ultima_mensagem_em?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversas_instancia_id_fkey"
+            columns: ["instancia_id"]
+            isOneToOne: false
+            referencedRelation: "instancias_whatsapp"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_mensagens: {
+        Row: {
+          conteudo_mensagem: string
+          contexto_mensagem: Json | null
+          conversa_id: string
+          created_at: string
+          dados_completos: Json | null
+          de_mim: boolean
+          destinatario: string
+          ferramenta_usada: string | null
+          horario: string
+          id: string
+          intencao_detectada: string | null
+          message_id: string | null
+          numero_usuario: string
+          push_name: string | null
+          remetente: string
+          respondida_por_ia: boolean
+          sender_lid: string | null
+          status: string | null
+          tipo_mensagem: string
+        }
+        Insert: {
+          conteudo_mensagem: string
+          contexto_mensagem?: Json | null
+          conversa_id: string
+          created_at?: string
+          dados_completos?: Json | null
+          de_mim?: boolean
+          destinatario: string
+          ferramenta_usada?: string | null
+          horario?: string
+          id?: string
+          intencao_detectada?: string | null
+          message_id?: string | null
+          numero_usuario: string
+          push_name?: string | null
+          remetente: string
+          respondida_por_ia?: boolean
+          sender_lid?: string | null
+          status?: string | null
+          tipo_mensagem?: string
+        }
+        Update: {
+          conteudo_mensagem?: string
+          contexto_mensagem?: Json | null
+          conversa_id?: string
+          created_at?: string
+          dados_completos?: Json | null
+          de_mim?: boolean
+          destinatario?: string
+          ferramenta_usada?: string | null
+          horario?: string
+          id?: string
+          intencao_detectada?: string | null
+          message_id?: string | null
+          numero_usuario?: string
+          push_name?: string | null
+          remetente?: string
+          respondida_por_ia?: boolean
+          sender_lid?: string | null
+          status?: string | null
+          tipo_mensagem?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_mensagens_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -845,6 +972,10 @@ export type Database = {
           p_ultima_execucao: string
         }
         Returns: string
+      }
+      encerrar_conversas_inativas: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
     }
     Enums: {

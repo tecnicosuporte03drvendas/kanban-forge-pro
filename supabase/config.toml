@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.buscar-tarefa-especifica]
 verify_jwt = false
+
+[functions.gerenciar-conversa-whatsapp]
+verify_jwt = false
