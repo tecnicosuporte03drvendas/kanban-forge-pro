@@ -13,6 +13,18 @@ Deno.serve(async (req) => {
   try {
     console.log('notify-task-reminder-today triggered');
 
+    // Verificar se é dia útil (segunda a sexta)
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      console.log('Hoje é fim de semana. Notificações não serão enviadas.');
+      return new Response(
+        JSON.stringify({ message: 'Weekend - notifications skipped' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -44,13 +56,22 @@ Deno.serve(async (req) => {
     }
 
     // Data de hoje
-    const today = new Date().toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Função para formatar data e hora
+    const formatDateTime = (dateStr: string, timeStr: string) => {
+      const date = new Date(dateStr + 'T00:00:00');
+      const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+      const diaSemana = diasSemana[date.getDay()];
+      const dataFormatada = date.toLocaleDateString('pt-BR');
+      return { diaSemana, dataFormatada, horaFormatada: timeStr };
+    };
 
     // Buscar tarefas que vencem hoje
     const { data: tarefas } = await supabase
       .from('tarefas')
       .select('*')
-      .eq('data_conclusao', today)
+      .eq('data_conclusao', todayStr)
       .in('status', ['criada', 'aceita', 'executando'])
       .eq('arquivada', false);
 
@@ -129,6 +150,9 @@ Deno.serve(async (req) => {
         .limit(1)
         .single();
 
+      // Formatar data e hora
+      const dateTime = formatDateTime(tarefa.data_conclusao, tarefa.horario_conclusao);
+
       // Montar payload
       const payload = {
         action: 'task_reminder_today',
@@ -140,6 +164,9 @@ Deno.serve(async (req) => {
           prioridade: tarefa.prioridade,
           data_conclusao: tarefa.data_conclusao,
           horario_conclusao: tarefa.horario_conclusao,
+          dia_semana: dateTime.diaSemana,
+          data_formatada: dateTime.dataFormatada,
+          hora_formatada: dateTime.horaFormatada,
         },
         responsibles: responsibles,
         company: empresa,

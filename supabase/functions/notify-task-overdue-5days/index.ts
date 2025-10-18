@@ -13,6 +13,18 @@ Deno.serve(async (req) => {
   try {
     console.log('notify-task-overdue-5days triggered');
 
+    // Verificar se é dia útil (segunda a sexta)
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      console.log('Hoje é fim de semana. Notificações não serão enviadas.');
+      return new Response(
+        JSON.stringify({ message: 'Weekend - notifications skipped' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -47,6 +59,15 @@ Deno.serve(async (req) => {
     const fiveDaysAgo = new Date();
     fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
     const fiveDaysAgoStr = fiveDaysAgo.toISOString().split('T')[0];
+    
+    // Função para formatar data e hora
+    const formatDateTime = (dateStr: string, timeStr: string) => {
+      const date = new Date(dateStr + 'T00:00:00');
+      const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+      const diaSemana = diasSemana[date.getDay()];
+      const dataFormatada = date.toLocaleDateString('pt-BR');
+      return { diaSemana, dataFormatada, horaFormatada: timeStr };
+    };
 
     // Buscar tarefas com 5 dias de atraso
     const { data: tarefas } = await supabase
@@ -146,6 +167,9 @@ Deno.serve(async (req) => {
         .limit(1)
         .single();
 
+      // Formatar data e hora
+      const dateTime = formatDateTime(tarefa.data_conclusao, tarefa.horario_conclusao);
+
       // Montar payload
       const payload = {
         action: 'task_overdue_5days',
@@ -157,6 +181,9 @@ Deno.serve(async (req) => {
           prioridade: tarefa.prioridade,
           data_conclusao: tarefa.data_conclusao,
           horario_conclusao: tarefa.horario_conclusao,
+          dia_semana: dateTime.diaSemana,
+          data_formatada: dateTime.dataFormatada,
+          hora_formatada: dateTime.horaFormatada,
           dias_atraso: 5,
         },
         responsibles: responsibles,
