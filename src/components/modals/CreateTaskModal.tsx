@@ -92,6 +92,9 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
     },
   })
 
+  // Watch tipo_tarefa to react to changes
+  const tipoTarefa = form.watch('tipo_tarefa')
+
   // Load users and teams when modal opens
   useEffect(() => {
     if (open) {
@@ -217,8 +220,16 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
 
       if (tarefaError) throw tarefaError
 
-      // Add responsibles if selected
-      if (values.responsaveis && values.responsaveis.length > 0) {
+      // Add responsibles
+      // For personal tasks, always add the user as responsible
+      // For professional tasks, add selected responsibles
+      if (values.tipo_tarefa === 'pessoal') {
+        await supabase.from('tarefas_responsaveis').insert({
+          tarefa_id: tarefa.id,
+          usuario_id: usuario.id,
+          equipe_id: null,
+        })
+      } else if (values.responsaveis && values.responsaveis.length > 0) {
         const responsibleInserts = values.responsaveis.map(responsibleId => {
           const responsible = responsibleOptions.find(r => r.id === responsibleId)
           if (responsible) {
@@ -434,7 +445,9 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
               />
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* Responsáveis - Ocultar para tarefas pessoais */}
+            {tipoTarefa === 'profissional' && (
+              <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="responsaveis"
@@ -578,7 +591,8 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
                   )
                 }}
               />
-            </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
