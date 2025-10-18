@@ -101,6 +101,9 @@ export function KanbanCard({
       <div className="space-y-2" {...listeners}>
         <div className="flex items-center gap-2">
           <div className={`h-6 w-1.5 rounded-full ${getPriorityColor(task.priority)}`} title={task.priority} />
+          <span className="text-xs" title={task.tipo_tarefa === 'pessoal' ? 'Tarefa Pessoal' : 'Tarefa Profissional'}>
+            {task.tipo_tarefa === 'pessoal' ? '👤' : '💼'}
+          </span>
           <h4 className="font-medium text-card-foreground text-xs flex-1 min-w-0 break-words overflow-wrap-anywhere">
             {task.title}
           </h4>
