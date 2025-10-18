@@ -1,327 +1,441 @@
-# Edge Functions para Buscar Tarefas
+# Edge Function Unificada: Buscar Tarefas
 
-Este documento explica como usar as edge functions para buscar tarefas de usuários via n8n.
+## Visão Geral
 
-## 1. Buscar Todas as Tarefas de um Usuário
+A função `buscar-tarefas` é uma edge function unificada que retorna **TODAS** as tarefas de um usuário com dados completos para processamento pela IA no N8N.
 
-### Função: `buscar-tarefas-usuario`
+### O que ela faz?
 
-Retorna todas as tarefas onde o usuário é responsável (diretamente ou via equipe).
+✅ Busca tarefas com base no tipo de usuário (colaborador, gestor, proprietário, master)  
+✅ Retorna dados completos: checklists, comentários, tempo gasto, sessões  
+✅ Respeita permissões: tarefas pessoais são privadas  
+✅ Para Gestores+: retorna também dados de empresa, equipes e usuários  
+✅ Suporta filtros opcionais: título, status, tipo, prioridade  
 
-### Configuração no n8n
+❌ **NÃO** retorna: atividades (histórico), anexos
 
-**Nó HTTP Request:**
-- **Method**: `POST`
-- **URL**: `https://emlnkqygdkcngmftpsft.supabase.co/functions/v1/n8n-proxy`
+---
 
-**Headers:**
+## Endpoint
+
+**URL Base**: `https://emlnkqygdkcngmftpsft.supabase.co/functions/v1/buscar-tarefas`
+
+**Método**: `POST`
+
+---
+
+## Parâmetros
+
+### Obrigatórios:
+
+| Parâmetro | Tipo | Descrição | Exemplo |
+|-----------|------|-----------|---------|
+| `usuario_id` | UUID | ID do usuário que está consultando | `"550e8400-e29b-41d4-a716-446655440000"` |
+| `tipo_usuario` | Enum | Tipo do usuário | `"colaborador"` \| `"gestor"` \| `"proprietario"` \| `"master"` |
+
+### Opcionais (Filtros):
+
+| Parâmetro | Tipo | Descrição | Exemplo |
+|-----------|------|-----------|---------|
+| `titulo` | String | Filtrar por título (busca parcial) | `"dashboard"` |
+| `status` | Enum | Filtrar por status | `"executando"` \| `"criada"` \| `"aceita"` \| `"concluida"` \| `"aprovada"` |
+| `tipo_tarefa` | Enum | Filtrar por tipo | `"pessoal"` \| `"profissional"` |
+| `prioridade` | Enum | Filtrar por prioridade | `"baixa"` \| `"media"` \| `"alta"` \| `"urgente"` |
+| `data_conclusao` | Date | Filtrar por data | `"2025-01-25"` |
+
+---
+
+## Regras de Permissão
+
+### Colaborador
+- ✅ Vê tarefas **profissionais** onde é responsável (direto ou via equipe)
+- ✅ Vê suas próprias tarefas **pessoais**
+- ❌ **NÃO** vê tarefas pessoais de outros
+- ❌ **NÃO** recebe dados de empresa/equipes/usuários
+
+### Gestor / Proprietário / Master
+- ✅ Vê **TODAS** as tarefas profissionais da empresa
+- ✅ Vê suas próprias tarefas pessoais
+- ❌ **NÃO** vê tarefas pessoais de outros
+- ✅ **RECEBE** dados extras: empresa, equipes, usuários da empresa
+
+---
+
+## Configuração no N8N
+
+### HTTP Request Direto
+
 ```json
 {
-  "Content-Type": "application/json",
-  "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbG5rcXlnZGtjbmdtZnRwc2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMDc3MTksImV4cCI6MjA3MTg4MzcxOX0.rCi6bLl3-XaRUmSwUwvxF8GItTvJlhZyo8pLbPNcbMw"
+  "method": "POST",
+  "url": "https://emlnkqygdkcngmftpsft.supabase.co/functions/v1/buscar-tarefas",
+  "headers": {
+    "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbG5rcXlnZGtjbmdtZnRwc2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMDc3MTksImV4cCI6MjA3MTg4MzcxOX0.rCi6bLl3-XaRUmSwUwvxF8GItTvJlhZyo8pLbPNcbMw",
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "usuario_id": "550e8400-e29b-41d4-a716-446655440000",
+    "tipo_usuario": "gestor"
+  }
 }
 ```
 
-**Body:**
+### Usando o Proxy N8N
+
 ```json
 {
-  "url": "https://emlnkqygdkcngmftpsft.supabase.co/functions/v1/buscar-tarefas-usuario",
+  "url": "https://emlnkqygdkcngmftpsft.supabase.co/functions/v1/buscar-tarefas",
   "method": "POST",
   "headers": {
     "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbG5rcXlnZGtjbmdtZnRwc2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMDc3MTksImV4cCI6MjA3MTg4MzcxOX0.rCi6bLl3-XaRUmSwUwvxF8GItTvJlhZyo8pLbPNcbMw"
   },
   "body": {
-    "celular": "5521982534276"
+    "usuario_id": "550e8400-e29b-41d4-a716-446655440000",
+    "tipo_usuario": "gestor"
   }
 }
 ```
 
-### Resposta de Sucesso
+---
+
+## Exemplos de Uso
+
+### 1. Buscar TODAS as tarefas (sem filtros)
+
+**Request:**
+```json
+{
+  "usuario_id": "550e8400-e29b-41d4-a716-446655440000",
+  "tipo_usuario": "colaborador"
+}
+```
+
+**Response:**
+Todas as tarefas profissionais onde é responsável + suas tarefas pessoais
+
+---
+
+### 2. Buscar tarefas por título
+
+**Request:**
+```json
+{
+  "usuario_id": "550e8400-e29b-41d4-a716-446655440000",
+  "tipo_usuario": "colaborador",
+  "titulo": "dashboard"
+}
+```
+
+**Response:**
+Tarefas que contenham "dashboard" no título
+
+---
+
+### 3. Buscar apenas tarefas pessoais
+
+**Request:**
+```json
+{
+  "usuario_id": "550e8400-e29b-41d4-a716-446655440000",
+  "tipo_usuario": "gestor",
+  "tipo_tarefa": "pessoal"
+}
+```
+
+**Response:**
+Apenas tarefas pessoais do usuário
+
+---
+
+### 4. Buscar tarefas em andamento de alta prioridade
+
+**Request:**
+```json
+{
+  "usuario_id": "550e8400-e29b-41d4-a716-446655440000",
+  "tipo_usuario": "gestor",
+  "status": "executando",
+  "prioridade": "alta"
+}
+```
+
+**Response:**
+Tarefas filtradas por status E prioridade
+
+---
+
+### 5. Gestor buscando tarefas profissionais da empresa
+
+**Request:**
+```json
+{
+  "usuario_id": "550e8400-e29b-41d4-a716-446655440000",
+  "tipo_usuario": "gestor",
+  "tipo_tarefa": "profissional"
+}
+```
+
+**Response:**
+TODAS as tarefas profissionais da empresa + dados de empresa, equipes e usuários
+
+---
+
+## Estrutura de Resposta
+
+### Para Colaborador:
 
 ```json
 {
   "usuario": {
+    "id": "uuid",
     "nome": "João Silva",
     "email": "usuario@exemplo.com",
-    "celular": "5521982534276"
+    "celular": "5521982534276",
+    "tipo_usuario": "colaborador",
+    "empresa_id": "uuid-empresa"
   },
-  "total": 5,
+  "permissoes": {
+    "pode_ver_todas_profissionais": false,
+    "pode_acessar_dados_empresa": false
+  },
+  "total_tarefas": 5,
   "tarefas": [
     {
-      "id": "uuid-da-tarefa",
-      "titulo": "Implementar nova funcionalidade",
-      "descricao": "Descrição detalhada...",
+      "id": "uuid",
+      "titulo": "Implementar feature X",
+      "descricao": "...",
+      "tipo_tarefa": "profissional",
       "prioridade": "alta",
       "status": "executando",
-      "data_conclusao": "2025-01-20",
+      "data_conclusao": "2025-01-25",
       "horario_conclusao": "18:00:00",
-      "criado_por": "uuid-criador",
+      "tempo_inicio": "2025-01-20T09:00:00Z",
+      "tempo_fim": null,
+      "tempo_gasto_minutos": 240,
+      "criado_por": "uuid",
+      "criado_por_nome": "Maria Santos",
       "empresa_id": "uuid-empresa",
-      "created_at": "2025-01-15T10:00:00Z",
-      "tempo_gasto_minutos": 120,
-      "responsaveis": [
-        {
-          "usuario_id": "uuid-usuario",
-          "equipe_id": null
-        }
-      ],
-      "checklists": [
-        {
-          "id": "uuid-checklist",
-          "titulo": "Tarefas de Implementação",
-          "itens": [
-            {
-              "id": "uuid-item",
-              "item": "Criar componente",
-              "concluido": true
-            }
-          ]
-        }
-      ],
-      "comentarios": [
-        {
-          "id": "uuid-comentario",
-          "comentario": "Progresso está bom!",
-          "usuario_id": "uuid-usuario",
-          "created_at": "2025-01-16T14:00:00Z"
-        }
-      ],
-      "atividades": [
-        {
-          "id": "uuid-atividade",
-          "acao": "status_alterado",
-          "descricao": "Status alterado de 'criada' para 'executando'",
-          "usuario_id": "uuid-usuario",
-          "created_at": "2025-01-15T12:00:00Z"
-        }
-      ]
+      "created_at": "...",
+      "updated_at": "...",
+      "arquivada": false,
+      "posicao_coluna": 0,
+      "responsaveis": [...],
+      "checklists": [...],
+      "comentarios": [...],
+      "tempo_sessoes": [...]
     }
   ]
 }
 ```
 
-### Resposta quando não há tarefas
+### Para Gestor/Proprietário/Master:
 
 ```json
 {
-  "usuario": {
-    "nome": "João Silva",
-    "email": "usuario@exemplo.com",
-    "celular": "5521982534276"
+  "usuario": {...},
+  "permissoes": {
+    "pode_ver_todas_profissionais": true,
+    "pode_acessar_dados_empresa": true
   },
-  "tarefas": []
+  "total_tarefas": 25,
+  "tarefas": [...],
+  
+  "empresa": {
+    "id": "uuid",
+    "razao_social": "Empresa LTDA",
+    "nome_fantasia": "Empresa",
+    "cnpj": "12345678000199",
+    "ativa": true
+  },
+  "equipes": [
+    {
+      "id": "uuid",
+      "nome": "Desenvolvimento",
+      "descricao": "Equipe de desenvolvimento",
+      "criado_por": "uuid",
+      "created_at": "..."
+    }
+  ],
+  "usuarios_empresa": [
+    {
+      "id": "uuid",
+      "nome": "Carlos Silva",
+      "email": "carlos@empresa.com",
+      "celular": "5521999887766",
+      "funcao_empresa": "Desenvolvedor",
+      "tipo_usuario": "colaborador",
+      "ativo": true
+    }
+  ]
 }
 ```
 
 ---
 
-## 2. Buscar Tarefa Específica por Título
+## Detalhamento dos Dados de Tarefa
 
-### Função: `buscar-tarefa-especifica`
+### Campos Principais:
 
-Retorna uma tarefa específica pelo título, verificando se o usuário é responsável. Usa o número de celular como identificador.
+- `id`, `titulo`, `descricao` - Identificação básica
+- `tipo_tarefa` - `"pessoal"` ou `"profissional"`
+- `prioridade` - `"baixa"`, `"media"`, `"alta"`, `"urgente"`
+- `status` - `"criada"`, `"aceita"`, `"executando"`, `"concluida"`, `"aprovada"`
+- `data_conclusao`, `horario_conclusao` - Prazo
+- `tempo_inicio`, `tempo_fim`, `tempo_gasto_minutos` - Tracking de tempo
+- `criado_por`, `criado_por_nome` - Quem criou
+- `empresa_id` - Empresa dona da tarefa
+- `created_at`, `updated_at` - Timestamps
+- `arquivada` - Status de arquivamento
+- `posicao_coluna` - Posição no Kanban
 
-### Configuração no n8n
+### Responsáveis:
 
-**Nó HTTP Request:**
-- **Method**: `POST`
-- **URL**: `https://emlnkqygdkcngmftpsft.supabase.co/functions/v1/n8n-proxy`
-
-**Headers:**
 ```json
-{
-  "Content-Type": "application/json",
-  "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbG5rcXlnZGtjbmdtZnRwc2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMDc3MTksImV4cCI6MjA3MTg4MzcxOX0.rCi6bLl3-XaRUmSwUwvxF8GItTvJlhZyo8pLbPNcbMw"
-}
-```
-
-**Body:**
-```json
-{
-  "url": "https://emlnkqygdkcngmftpsft.supabase.co/functions/v1/buscar-tarefa-especifica",
-  "method": "POST",
-  "headers": {
-    "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbG5rcXlnZGtjbmdtZnRwc2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMDc3MTksImV4cCI6MjA3MTg4MzcxOX0.rCi6bLl3-XaRUmSwUwvxF8GItTvJlhZyo8pLbPNcbMw"
-  },
-  "body": {
-    "celular": "5521999887766",
-    "titulo": "Implementar nova funcionalidade"
+"responsaveis": [
+  {
+    "id": "uuid",
+    "usuario_id": "uuid-usuario",
+    "equipe_id": "uuid-equipe"
   }
-}
+]
 ```
 
-### Resposta de Sucesso
+### Checklists:
 
 ```json
-{
-  "usuario": {
-    "nome": "João Silva",
-    "email": "usuario@exemplo.com",
-    "celular": "5521999887766"
-  },
-  "tarefa": {
-    "id": "uuid-da-tarefa",
-    "titulo": "Implementar nova funcionalidade",
-    "descricao": "Descrição detalhada da tarefa...",
-    "prioridade": "alta",
-    "status": "executando",
-    "data_conclusao": "2025-01-20",
-    "horario_conclusao": "18:00:00",
-    "criado_por": "uuid-criador",
-    "criado_por_nome": "Maria Santos",
-    "empresa_id": "uuid-empresa",
-    "created_at": "2025-01-15T10:00:00Z",
-    "updated_at": "2025-01-16T14:00:00Z",
-    "tempo_inicio": "2025-01-15T12:00:00Z",
-    "tempo_fim": null,
-    "tempo_gasto_minutos": 120,
-    "arquivada": false,
-    "posicao_coluna": 0,
-    "responsaveis": [
+"checklists": [
+  {
+    "id": "uuid",
+    "titulo": "Backend Tasks",
+    "created_at": "...",
+    "updated_at": "...",
+    "itens": [
       {
-        "usuario_id": "uuid-usuario",
-        "equipe_id": null
-      }
-    ],
-    "checklists": [
-      {
-        "id": "uuid-checklist",
-        "titulo": "Tarefas de Implementação",
-        "created_at": "2025-01-15T10:05:00Z",
-        "updated_at": "2025-01-15T10:05:00Z",
-        "itens": [
-          {
-            "id": "uuid-item-1",
-            "item": "Criar componente React",
-            "concluido": true,
-            "created_at": "2025-01-15T10:05:00Z",
-            "updated_at": "2025-01-15T12:00:00Z"
-          },
-          {
-            "id": "uuid-item-2",
-            "item": "Escrever testes unitários",
-            "concluido": false,
-            "created_at": "2025-01-15T10:05:00Z",
-            "updated_at": "2025-01-15T10:05:00Z"
-          }
-        ]
-      }
-    ],
-    "comentarios": [
-      {
-        "id": "uuid-comentario",
-        "comentario": "O progresso está muito bom! Continue assim.",
-        "usuario_id": "uuid-gerente",
-        "usuario_nome": "Carlos Gerente",
-        "created_at": "2025-01-16T14:00:00Z"
-      }
-    ],
-    "atividades": [
-      {
-        "id": "uuid-atividade-1",
-        "acao": "tarefa_criada",
-        "descricao": "Tarefa criada",
-        "usuario_id": "uuid-criador",
-        "usuario_nome": "Maria Santos",
-        "created_at": "2025-01-15T10:00:00Z"
-      },
-      {
-        "id": "uuid-atividade-2",
-        "acao": "status_alterado",
-        "descricao": "Status alterado de 'criada' para 'executando'",
-        "usuario_id": "uuid-usuario",
-        "usuario_nome": "João Silva",
-        "created_at": "2025-01-15T12:00:00Z"
-      }
-    ],
-    "tempo_sessoes": [
-      {
-        "id": "uuid-sessao-1",
-        "inicio": "2025-01-15T12:00:00Z",
-        "fim": "2025-01-15T14:00:00Z",
-        "minutos_trabalhados": 120,
-        "usuario_id": "uuid-usuario",
-        "created_at": "2025-01-15T12:00:00Z"
+        "id": "uuid",
+        "item": "Criar API endpoint",
+        "concluido": true,
+        "created_at": "...",
+        "updated_at": "..."
       }
     ]
   }
+]
+```
+
+### Comentários (enriquecidos com nomes):
+
+```json
+"comentarios": [
+  {
+    "id": "uuid",
+    "comentario": "Bom progresso!",
+    "usuario_id": "uuid",
+    "usuario_nome": "Carlos Silva",
+    "usuario_email": "carlos@empresa.com",
+    "created_at": "2025-01-20T11:00:00Z"
+  }
+]
+```
+
+### Sessões de Tempo (produtividade):
+
+```json
+"tempo_sessoes": [
+  {
+    "id": "uuid",
+    "inicio": "2025-01-20T09:00:00Z",
+    "fim": "2025-01-20T13:00:00Z",
+    "minutos_trabalhados": 240,
+    "usuario_id": "uuid",
+    "usuario_nome": "João Silva",
+    "created_at": "2025-01-20T09:00:00Z"
+  }
+]
+```
+
+---
+
+## Erros Comuns
+
+### 400 - Parâmetros Faltando
+
+```json
+{
+  "error": "usuario_id e tipo_usuario são obrigatórios",
+  "code": "MISSING_PARAMS"
+}
+```
+
+### 400 - Tipo de Usuário Inválido
+
+```json
+{
+  "error": "tipo_usuario deve ser: colaborador, gestor, proprietario ou master",
+  "code": "INVALID_TIPO_USUARIO"
+}
+```
+
+### 404 - Usuário Não Encontrado
+
+```json
+{
+  "error": "Usuário não encontrado ou inativo",
+  "code": "USER_NOT_FOUND"
+}
+```
+
+### 500 - Erro Interno
+
+```json
+{
+  "error": "Erro ao buscar tarefas",
+  "details": {...},
+  "code": "INTERNAL_ERROR"
 }
 ```
 
 ---
 
-## Tratamento de Erros
+## Cenários de Uso pela IA
 
-### Usuário não encontrado (404)
+### 1. "Quais são minhas tarefas?"
+**Parâmetros**: apenas `usuario_id` e `tipo_usuario`  
+**Retorno**: TODAS as tarefas que o usuário pode ver
 
-```json
-{
-  "error": "Usuário não encontrado"
-}
-```
+### 2. "Me fala sobre a tarefa de dashboard"
+**Parâmetros**: + `titulo: "dashboard"`  
+**Retorno**: Tarefas com "dashboard" no título
 
-### Tarefa não encontrada (404)
+### 3. "Minhas tarefas pessoais"
+**Parâmetros**: + `tipo_tarefa: "pessoal"`  
+**Retorno**: Apenas tarefas pessoais
 
-```json
-{
-  "error": "Tarefa não encontrada com esse título"
-}
-```
+### 4. "Tarefas urgentes em andamento"
+**Parâmetros**: + `status: "executando"`, `prioridade: "alta"`  
+**Retorno**: Tarefas filtradas
 
-### Usuário não é responsável (404)
-
-```json
-{
-  "error": "Tarefa não encontrada ou você não é responsável por ela"
-}
-```
-
-### Parâmetros inválidos (400)
-
-```json
-{
-  "error": "Celular é obrigatório"
-}
-```
-
-ou
-
-```json
-{
-  "error": "Celular e título da tarefa são obrigatórios"
-}
-```
-
-### Erro interno (500)
-
-```json
-{
-  "error": "Mensagem de erro detalhada",
-  "type": "function_error"
-}
-```
+### 5. "Quem está na minha equipe?" (Gestor+)
+**Parâmetros**: apenas `usuario_id` e `tipo_usuario: "gestor"`  
+**Retorno**: Inclui `usuarios_empresa` e `equipes`
 
 ---
 
 ## Logs
 
-Acesse os logs das funções em:
-
-- **buscar-tarefas-usuario**: https://supabase.com/dashboard/project/emlnkqygdkcngmftpsft/functions/buscar-tarefas-usuario/logs
-- **buscar-tarefa-especifica**: https://supabase.com/dashboard/project/emlnkqygdkcngmftpsft/functions/buscar-tarefa-especifica/logs
+Acesse os logs da função em:
+https://supabase.com/dashboard/project/emlnkqygdkcngmftpsft/functions/buscar-tarefas/logs
 
 ---
 
 ## Observações Importantes
 
-1. **Identificação por Celular**: Ambas as funções (`buscar-tarefas-usuario` e `buscar-tarefa-especifica`) usam o número de celular no formato `55XXXXXXXXXXX` (13 dígitos com código do país) para identificar o usuário.
-
-2. **Busca por título**: A função `buscar-tarefa-especifica` usa busca case-insensitive com ILIKE, então funciona com títulos parciais.
-
-3. **Permissões**: As funções verificam se o usuário é responsável pela tarefa (diretamente ou via equipe) antes de retornar os dados.
-
-4. **Tarefas arquivadas**: As funções retornam apenas tarefas não arquivadas (`arquivada = false`).
-
-5. **Dados completos**: A função `buscar-tarefa-especifica` retorna todos os dados relacionados à tarefa (checklists, comentários, atividades e sessões de tempo).
-
-6. **Nomes de usuários**: A função `buscar-tarefa-especifica` enriquece os dados com os nomes dos usuários em comentários e atividades.
+1. **Identificação**: Usa `usuario_id` (UUID) diretamente, não mais celular
+2. **Tipo de usuário**: Obrigatório para aplicar permissões corretas
+3. **Tarefas pessoais**: São PRIVADAS - apenas o criador vê
+4. **Tarefas profissionais**: Visibilidade depende do tipo de usuário
+5. **Dados extras**: Apenas Gestor+ recebe empresa/equipes/usuários
+6. **Atividades**: NÃO são retornadas (histórico muito verboso)
+7. **Anexos**: NÃO são retornados (arquivos grandes)
+8. **Performance**: Filtros opcionais melhoram performance
+9. **IA decide**: A IA processa o JSON e decide o que mostrar ao usuário
+10. **Arquivadas**: Tarefas arquivadas são EXCLUÍDAS dos resultados

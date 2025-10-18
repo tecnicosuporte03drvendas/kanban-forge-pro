@@ -33,6 +33,9 @@ verify_jwt = false
 [functions.whatsapp-logs]
 verify_jwt = false
 
+[functions.buscar-tarefas]
+verify_jwt = false
+
 [functions.notify-task-created]
 verify_jwt = false
 
