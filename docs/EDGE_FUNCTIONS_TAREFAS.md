@@ -43,6 +43,16 @@ A função `buscar-tarefas` é uma edge function unificada que retorna **TODAS**
 | `prioridade` | Enum | Filtrar por prioridade | `"baixa"` \| `"media"` \| `"alta"` \| `"urgente"` |
 | `data_conclusao` | Date | Filtrar por data | `"2025-01-25"` |
 
+### Opcionais (Dados Extras - apenas Gestor/Proprietário/Master):
+
+| Parâmetro | Tipo | Descrição | Padrão |
+|-----------|------|-----------|--------|
+| `incluir_empresa` | Boolean | Incluir dados da empresa na resposta | `false` |
+| `incluir_equipes` | Boolean | Incluir lista de equipes da empresa | `false` |
+| `incluir_usuarios` | Boolean | Incluir lista de usuários da empresa | `false` |
+
+> 💡 **Otimização**: Por padrão, a função retorna apenas as tarefas. Use esses parâmetros apenas quando precisar dos dados extras para evitar requisições desnecessárias.
+
 ---
 
 ## Regras de Permissão
@@ -57,7 +67,7 @@ A função `buscar-tarefas` é uma edge function unificada que retorna **TODAS**
 - ✅ Vê **TODAS** as tarefas profissionais da empresa
 - ✅ Vê suas próprias tarefas pessoais
 - ❌ **NÃO** vê tarefas pessoais de outros
-- ✅ **RECEBE** dados extras: empresa, equipes, usuários da empresa
+- ✅ **PODE** receber dados extras (empresa, equipes, usuários) se solicitado via parâmetros
 
 ---
 
@@ -164,19 +174,68 @@ Tarefas filtradas por status E prioridade
 
 ---
 
-### 5. Gestor buscando tarefas profissionais da empresa
+### 5. Gestor buscando tarefas (sem dados extras)
+
+**Request:**
+```json
+{
+  "usuario_id": "550e8400-e29b-41d4-a716-446655440000",
+  "tipo_usuario": "gestor"
+}
+```
+
+**Response:**
+Tarefas profissionais da empresa + tarefas pessoais do gestor (sem incluir dados de empresa, equipes ou usuários)
+
+---
+
+### 6. Buscar tarefas + dados da empresa
 
 **Request:**
 ```json
 {
   "usuario_id": "550e8400-e29b-41d4-a716-446655440000",
   "tipo_usuario": "gestor",
-  "tipo_tarefa": "profissional"
+  "incluir_empresa": true
 }
 ```
 
 **Response:**
-TODAS as tarefas profissionais da empresa + dados de empresa, equipes e usuários
+Tarefas + dados completos da empresa
+
+---
+
+### 7. Buscar tarefas + equipes
+
+**Request:**
+```json
+{
+  "usuario_id": "550e8400-e29b-41d4-a716-446655440000",
+  "tipo_usuario": "gestor",
+  "incluir_equipes": true
+}
+```
+
+**Response:**
+Tarefas + lista de todas as equipes da empresa
+
+---
+
+### 8. Buscar tudo (tarefas + empresa + equipes + usuários)
+
+**Request:**
+```json
+{
+  "usuario_id": "550e8400-e29b-41d4-a716-446655440000",
+  "tipo_usuario": "proprietario",
+  "incluir_empresa": true,
+  "incluir_equipes": true,
+  "incluir_usuarios": true
+}
+```
+
+**Response:**
+Todas as tarefas + dados completos de empresa, equipes e usuários
 
 ---
 
@@ -228,7 +287,21 @@ TODAS as tarefas profissionais da empresa + dados de empresa, equipes e usuário
 }
 ```
 
-### Para Gestor/Proprietário/Master:
+### Para Gestor/Proprietário/Master (sem dados extras):
+
+```json
+{
+  "usuario": {...},
+  "permissoes": {
+    "pode_ver_todas_profissionais": true,
+    "pode_acessar_dados_empresa": true
+  },
+  "total_tarefas": 25,
+  "tarefas": [...]
+}
+```
+
+### Para Gestor/Proprietário/Master (com dados extras solicitados):
 
 ```json
 {
@@ -269,6 +342,8 @@ TODAS as tarefas profissionais da empresa + dados de empresa, equipes e usuário
   ]
 }
 ```
+
+> **Nota**: `empresa`, `equipes` e `usuarios_empresa` só aparecem se os parâmetros `incluir_empresa`, `incluir_equipes` ou `incluir_usuarios` forem `true`.
 
 ---
 
@@ -415,8 +490,8 @@ TODAS as tarefas profissionais da empresa + dados de empresa, equipes e usuário
 **Retorno**: Tarefas filtradas
 
 ### 5. "Quem está na minha equipe?" (Gestor+)
-**Parâmetros**: apenas `usuario_id` e `tipo_usuario: "gestor"`  
-**Retorno**: Inclui `usuarios_empresa` e `equipes`
+**Parâmetros**: `usuario_id`, `tipo_usuario: "gestor"`, `incluir_equipes: true`, `incluir_usuarios: true`  
+**Retorno**: Tarefas + lista de equipes e usuários da empresa
 
 ---
 
@@ -433,9 +508,10 @@ https://supabase.com/dashboard/project/emlnkqygdkcngmftpsft/functions/buscar-tar
 2. **Tipo de usuário**: Obrigatório para aplicar permissões corretas
 3. **Tarefas pessoais**: São PRIVADAS - apenas o criador vê
 4. **Tarefas profissionais**: Visibilidade depende do tipo de usuário
-5. **Dados extras**: Apenas Gestor+ recebe empresa/equipes/usuários
-6. **Atividades**: NÃO são retornadas (histórico muito verboso)
-7. **Anexos**: NÃO são retornados (arquivos grandes)
-8. **Performance**: Filtros opcionais melhoram performance
-9. **IA decide**: A IA processa o JSON e decide o que mostrar ao usuário
-10. **Arquivadas**: Tarefas arquivadas são EXCLUÍDAS dos resultados
+5. **Dados extras**: Apenas Gestor+ PODE receber empresa/equipes/usuários (via parâmetros opcionais)
+6. **Otimização**: Por padrão, apenas tarefas são retornadas para melhorar performance
+7. **Atividades**: NÃO são retornadas (histórico muito verboso)
+8. **Anexos**: NÃO são retornados (arquivos grandes)
+9. **Performance**: Filtros opcionais melhoram performance
+10. **IA decide**: A IA processa o JSON e decide o que mostrar ao usuário
+11. **Arquivadas**: Tarefas arquivadas são EXCLUÍDAS dos resultados

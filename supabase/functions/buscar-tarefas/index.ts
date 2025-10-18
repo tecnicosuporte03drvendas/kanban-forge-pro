@@ -17,9 +17,31 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const requestBody = await req.json();
-    const { usuario_id, tipo_usuario, titulo, status, tipo_tarefa, prioridade, data_conclusao } = requestBody;
+    const { 
+      usuario_id, 
+      tipo_usuario, 
+      titulo, 
+      status, 
+      tipo_tarefa, 
+      prioridade, 
+      data_conclusao,
+      incluir_empresa = false,
+      incluir_equipes = false,
+      incluir_usuarios = false
+    } = requestBody;
 
-    console.log('📋 Buscar Tarefas - Parâmetros:', { usuario_id, tipo_usuario, titulo, status, tipo_tarefa, prioridade, data_conclusao });
+    console.log('📋 Buscar Tarefas - Parâmetros:', { 
+      usuario_id, 
+      tipo_usuario, 
+      titulo, 
+      status, 
+      tipo_tarefa, 
+      prioridade, 
+      data_conclusao,
+      incluir_empresa,
+      incluir_equipes,
+      incluir_usuarios
+    });
 
     // Validar parâmetros obrigatórios
     if (!usuario_id || !tipo_usuario) {
@@ -221,39 +243,45 @@ serve(async (req) => {
       tarefas: tarefasEnriquecidas || []
     };
 
-    // Para GESTOR/PROPRIETÁRIO/MASTER: adicionar dados da empresa
+    // Para GESTOR/PROPRIETÁRIO/MASTER: adicionar dados da empresa (sob demanda)
     if (tipo_usuario !== 'colaborador') {
-      console.log('👔 Buscando dados extras para gestor+...');
+      const dadosExtras: string[] = [];
 
-      // Buscar dados da empresa
-      const { data: empresa } = await supabase
-        .from('empresas')
-        .select('id, razao_social, nome_fantasia, cnpj, ativa')
-        .eq('id', usuario.empresa_id)
-        .single();
+      // Buscar dados da empresa (apenas se solicitado)
+      if (incluir_empresa) {
+        const { data: empresa } = await supabase
+          .from('empresas')
+          .select('id, razao_social, nome_fantasia, cnpj, ativa')
+          .eq('id', usuario.empresa_id)
+          .single();
+        response.empresa = empresa;
+        dadosExtras.push('empresa');
+      }
 
-      // Buscar equipes da empresa
-      const { data: equipes } = await supabase
-        .from('equipes')
-        .select('id, nome, descricao, criado_por, created_at')
-        .eq('empresa_id', usuario.empresa_id);
+      // Buscar equipes da empresa (apenas se solicitado)
+      if (incluir_equipes) {
+        const { data: equipes } = await supabase
+          .from('equipes')
+          .select('id, nome, descricao, criado_por, created_at')
+          .eq('empresa_id', usuario.empresa_id);
+        response.equipes = equipes || [];
+        dadosExtras.push(`${equipes?.length || 0} equipes`);
+      }
 
-      // Buscar todos os usuários da empresa
-      const { data: todosUsuarios } = await supabase
-        .from('usuarios')
-        .select('id, nome, email, celular, funcao_empresa, tipo_usuario, ativo')
-        .eq('empresa_id', usuario.empresa_id)
-        .eq('ativo', true);
+      // Buscar todos os usuários da empresa (apenas se solicitado)
+      if (incluir_usuarios) {
+        const { data: todosUsuarios } = await supabase
+          .from('usuarios')
+          .select('id, nome, email, celular, funcao_empresa, tipo_usuario, ativo')
+          .eq('empresa_id', usuario.empresa_id)
+          .eq('ativo', true);
+        response.usuarios_empresa = todosUsuarios || [];
+        dadosExtras.push(`${todosUsuarios?.length || 0} usuários`);
+      }
 
-      response.empresa = empresa;
-      response.equipes = equipes || [];
-      response.usuarios_empresa = todosUsuarios || [];
-
-      console.log('✅ Dados extras incluídos:', {
-        empresa: !!empresa,
-        equipes: equipes?.length || 0,
-        usuarios: todosUsuarios?.length || 0
-      });
+      if (dadosExtras.length > 0) {
+        console.log('✅ Dados extras incluídos:', dadosExtras.join(', '));
+      }
     }
 
     console.log('✅ Resposta montada com sucesso');
