@@ -541,10 +541,19 @@ export function KanbanBoard({ onTaskClick, onCreateTask, allCardsCompact, onTogg
         updateFields.tempo_inicio = now
       }
       
-      // Concluindo tarefa - registrar tempo_fim
+      // Concluindo tarefa - registrar tempo_fim e calcular tempo gasto
       if (newStatus === 'concluida') {
         console.log('🏁 Setting tempo_fim:', now)
         updateFields.tempo_fim = now
+        
+        // Calcular tempo gasto manualmente como backup
+        if (oldTask.tempo_inicio) {
+          const tempoInicioDate = new Date(oldTask.tempo_inicio)
+          const tempoFimDate = new Date(now)
+          const minutosGastos = Math.round((tempoFimDate.getTime() - tempoInicioDate.getTime()) / 60000)
+          updateFields.tempo_gasto_minutos = minutosGastos
+          console.log('⏱️ Calculated tempo_gasto_minutos:', minutosGastos)
+        }
       }
 
       // Voltando para "criada" - o trigger do banco resetará os tempos automaticamente
