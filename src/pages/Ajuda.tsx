@@ -233,27 +233,26 @@ const Ajuda = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Botão de instalação */}
-                  {isInstallable && (
-                    <div className="flex justify-center">
+                  <div className="flex flex-col items-center gap-4">
+                    {isInstallable ? (
                       <Button 
                         onClick={handleInstallClick}
                         size="lg"
-                        className="gap-2"
+                        className="gap-2 w-full max-w-md"
                       >
                         <Download className="w-5 h-5" />
-                        Instalar Agora
+                        Instalar Aplicativo Agora
                       </Button>
-                    </div>
-                  )}
-
-                  {!isInstallable && (
-                    <div className="bg-muted p-4 rounded-lg text-center">
-                      <p className="text-sm text-muted-foreground">
-                        O aplicativo já está instalado ou a instalação não está disponível neste navegador. 
-                        Siga as instruções abaixo para instalar manualmente.
-                      </p>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="bg-primary/10 border border-primary/20 p-6 rounded-lg text-center w-full">
+                        <Download className="w-12 h-12 text-primary mx-auto mb-3" />
+                        <h4 className="font-semibold text-lg mb-2">Instalação Disponível</h4>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Para instalar o aplicativo, siga as instruções abaixo de acordo com seu dispositivo
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Android/Chrome */}
                   <div className="space-y-3">
