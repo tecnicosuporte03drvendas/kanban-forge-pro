@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Search, FileText, HelpCircle, MessageSquare, Clock, ExternalLink, Smartphone, Monitor, Download } from "lucide-react"
 import { CreateSupportTicketModal } from "@/components/modals/CreateSupportTicketModal"
+import { useState, useEffect } from "react"
+import { toast } from "sonner"
 
 const quickGuides = [
   {
@@ -100,6 +102,40 @@ const faqs = [
 
 
 const Ajuda = () => {
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [isInstallable, setIsInstallable] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+      setIsInstallable(true)
+    }
+
+    window.addEventListener('beforeinstallprompt', handler)
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler)
+    }
+  }, [])
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      toast.error('A instalação não está disponível neste momento')
+      return
+    }
+
+    deferredPrompt.prompt()
+    const { outcome } = await deferredPrompt.userChoice
+    
+    if (outcome === 'accepted') {
+      toast.success('Aplicativo instalado com sucesso!')
+    }
+    
+    setDeferredPrompt(null)
+    setIsInstallable(false)
+  }
+
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {
       "Iniciante": "bg-kanban-completed text-white",
@@ -196,6 +232,29 @@ const Ajuda = () => {
                   </p>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Botão de instalação */}
+                  {isInstallable && (
+                    <div className="flex justify-center">
+                      <Button 
+                        onClick={handleInstallClick}
+                        size="lg"
+                        className="gap-2"
+                      >
+                        <Download className="w-5 h-5" />
+                        Instalar Agora
+                      </Button>
+                    </div>
+                  )}
+
+                  {!isInstallable && (
+                    <div className="bg-muted p-4 rounded-lg text-center">
+                      <p className="text-sm text-muted-foreground">
+                        O aplicativo já está instalado ou a instalação não está disponível neste navegador. 
+                        Siga as instruções abaixo para instalar manualmente.
+                      </p>
+                    </div>
+                  )}
+
                   {/* Android/Chrome */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
