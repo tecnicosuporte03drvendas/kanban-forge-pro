@@ -22,8 +22,7 @@ export function DateRangeFilter({ onFilterChange, selectedType, dateRange }: Dat
   const filterButtons: { type: DateFilterType; label: string }[] = [
     { type: 'dia', label: 'Hoje' },
     { type: 'semana', label: 'Semana' },
-    { type: 'mes', label: 'Mês' },
-    { type: 'customizado', label: 'Período' }
+    { type: 'mes', label: 'Mês' }
   ]
 
   return (
@@ -33,63 +32,11 @@ export function DateRangeFilter({ onFilterChange, selectedType, dateRange }: Dat
           key={btn.type}
           variant={selectedType === btn.type ? "default" : "outline"}
           size="sm"
-          onClick={() => {
-            if (btn.type === 'customizado') {
-              setOpen(true)
-            } else {
-              onFilterChange(btn.type)
-            }
-          }}
+          onClick={() => onFilterChange(btn.type)}
         >
           {btn.label}
         </Button>
       ))}
-      
-      {selectedType === 'customizado' && (
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn(
-                "justify-start text-left font-normal",
-                !dateRange && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {dateRange?.from ? (
-                dateRange.to ? (
-                  <>
-                    {format(dateRange.from, "dd/MM/yy", { locale: ptBR })} -{" "}
-                    {format(dateRange.to, "dd/MM/yy", { locale: ptBR })}
-                  </>
-                ) : (
-                  format(dateRange.from, "dd/MM/yy", { locale: ptBR })
-                )
-              ) : (
-                <span>Selecionar período</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              initialFocus
-              mode="range"
-              defaultMonth={dateRange?.from}
-              selected={dateRange}
-              onSelect={(range) => {
-                if (range?.from && range?.to) {
-                  onFilterChange('customizado', range)
-                  setOpen(false)
-                }
-              }}
-              numberOfMonths={2}
-              locale={ptBR}
-              className="pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
-      )}
     </div>
   )
 }
