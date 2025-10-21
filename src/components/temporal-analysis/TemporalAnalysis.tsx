@@ -21,7 +21,6 @@ interface TemporalMetrics {
   };
   statusDistribution: {
     concluida: number;
-    aprovada: number;
     executando: number;
     aceita: number;
     criada: number;
@@ -38,7 +37,7 @@ export const TemporalAnalysis = () => {
     averageCompletionTime: 0,
     averageProductivity: 0,
     priorityDistribution: { alta: 0, media: 0, baixa: 0, urgente: 0 },
-    statusDistribution: { concluida: 0, aprovada: 0, executando: 0, aceita: 0, criada: 0 }
+    statusDistribution: { concluida: 0, executando: 0, aceita: 0, criada: 0 }
   });
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<TimePeriod>('esta-semana');
@@ -52,11 +51,12 @@ export const TemporalAnalysis = () => {
       setLoading(true);
       const { start, end } = getDateRange(period);
 
-      // Buscar todas as tarefas da empresa no período
+      // Buscar apenas tarefas profissionais da empresa no período
       const { data: tarefas, error } = await supabase
         .from('tarefas')
         .select('*')
         .eq('empresa_id', usuario.empresa_id)
+        .eq('tipo_tarefa', 'profissional')
         .gte('created_at', start)
         .lte('created_at', end)
         .eq('arquivada', false);
@@ -99,10 +99,9 @@ export const TemporalAnalysis = () => {
           urgente: tarefas.filter(t => t.prioridade === 'urgente').length,
         };
 
-        // Distribuição de status
+        // Distribuição de status (aprovadas e concluídas unificadas)
         const statusDistribution = {
-          concluida: tarefas.filter(t => t.status === 'concluida').length,
-          aprovada: tarefas.filter(t => t.status === 'aprovada').length,
+          concluida: tarefas.filter(t => t.status === 'concluida' || t.status === 'aprovada').length,
           executando: tarefas.filter(t => t.status === 'executando').length,
           aceita: tarefas.filter(t => t.status === 'aceita').length,
           criada: tarefas.filter(t => t.status === 'criada').length,
@@ -341,8 +340,7 @@ export const TemporalAnalysis = () => {
             {Object.entries(metrics.statusDistribution).map(([status, count]) => {
               const percentage = metrics.totalTasks > 0 ? (count / metrics.totalTasks) * 100 : 0;
               const statusLabels: Record<string, string> = {
-                concluida: 'Concluídas',
-                validada: 'Validadas',
+                concluida: 'Concluídas/Aprovadas',
                 executando: 'Em Execução',
                 aceita: 'Aceitas',
                 criada: 'Criadas'
