@@ -308,27 +308,29 @@ export const TemporalAnalysis = () => {
             <CardTitle>Distribuição de Prioridades</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {Object.entries(metrics.priorityDistribution).map(([priority, count]) => {
-              const percentage = metrics.totalTasks > 0 ? Math.round((count / metrics.totalTasks) * 100) : 0;
-              return (
-                <div key={priority} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${getPriorityColor(priority)}`}></div>
-                    <span className="text-sm text-foreground capitalize">
-                      {priority === 'urgente' ? 'Urgente' : 
-                       priority === 'alta' ? 'Alta Prioridade' :
-                       priority === 'media' ? 'Média Prioridade' : 'Baixa Prioridade'}
-                    </span>
+            {Object.entries(metrics.priorityDistribution)
+              .sort(([, countA], [, countB]) => countB - countA)
+              .map(([priority, count]) => {
+                const percentage = metrics.totalTasks > 0 ? Math.round((count / metrics.totalTasks) * 100) : 0;
+                return (
+                  <div key={priority} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${getPriorityColor(priority)}`}></div>
+                      <span className="text-sm text-foreground capitalize">
+                        {priority === 'urgente' ? 'Urgente' : 
+                         priority === 'alta' ? 'Alta Prioridade' :
+                         priority === 'media' ? 'Média Prioridade' : 'Baixa Prioridade'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-foreground">{count}</span>
+                      <span className={`text-xs text-primary-foreground px-2 py-1 rounded ${getPriorityColor(priority)}`}>
+                        {percentage}%
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-foreground">{count}</span>
-                    <span className={`text-xs text-primary-foreground px-2 py-1 rounded ${getPriorityColor(priority)}`}>
-                      {percentage}%
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </CardContent>
         </Card>
 
@@ -337,30 +339,32 @@ export const TemporalAnalysis = () => {
             <CardTitle>Visão Geral dos Status</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {Object.entries(metrics.statusDistribution).map(([status, count]) => {
-              const percentage = metrics.totalTasks > 0 ? (count / metrics.totalTasks) * 100 : 0;
-              const statusLabels: Record<string, string> = {
-                concluida: 'Concluídas/Aprovadas',
-                executando: 'Em Execução',
-                aceita: 'Aceitas',
-                criada: 'Criadas'
-              };
-              
-              return (
-                <div key={status} className="flex items-center justify-between">
-                  <span className="text-sm text-foreground">{statusLabels[status] || status}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-foreground">{count}</span>
-                    <div className="w-20 bg-muted rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${getStatusColor(status)}`} 
-                        style={{ width: `${percentage}%` }}
-                      ></div>
+            {Object.entries(metrics.statusDistribution)
+              .sort(([, countA], [, countB]) => countB - countA)
+              .map(([status, count]) => {
+                const percentage = metrics.totalTasks > 0 ? (count / metrics.totalTasks) * 100 : 0;
+                const statusLabels: Record<string, string> = {
+                  concluida: 'Concluídas/Aprovadas',
+                  executando: 'Em Execução',
+                  aceita: 'Aceitas',
+                  criada: 'Criadas'
+                };
+                
+                return (
+                  <div key={status} className="flex items-center justify-between">
+                    <span className="text-sm text-foreground">{statusLabels[status] || status}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-foreground">{count}</span>
+                      <div className="w-20 bg-muted rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-300 ${getStatusColor(status)}`} 
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </CardContent>
         </Card>
       </div>
