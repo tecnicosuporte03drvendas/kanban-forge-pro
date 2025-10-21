@@ -120,6 +120,7 @@ export function KanbanCard({
             <Calendar className="w-3 h-3" />
             <span>{formatDate(task.dueDate)}</span>
           </div>
+          <TaskTimeBadge tempoGastoMinutos={task.tempo_gasto_minutos} status={task.status} className="text-xs" />
         </div>
       </div>
       {showApproveButton && (
