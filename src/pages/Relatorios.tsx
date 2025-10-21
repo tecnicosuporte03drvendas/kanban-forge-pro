@@ -265,6 +265,7 @@ const Relatorios = () => {
                       dateRange={showAllHistory ? undefined : dateRange}
                       viewMode="individual"
                       userId={usuario?.id}
+                      showAllHistory={showAllHistory}
                     />
                   </div>
 
@@ -314,6 +315,7 @@ const Relatorios = () => {
                         dateRange={showAllHistory ? undefined : dateRange}
                         viewMode="equipe"
                         userId={usuario?.id}
+                        showAllHistory={showAllHistory}
                       />
                     </div>
                   )}
@@ -368,6 +370,7 @@ const Relatorios = () => {
                           dateRange={showAllHistory ? undefined : dateRange}
                           viewMode="individual"
                           userId={usuario?.id}
+                          showAllHistory={showAllHistory}
                         />
                       </div>
 
@@ -416,6 +419,7 @@ const Relatorios = () => {
                           dateRange={showAllHistory ? undefined : dateRange}
                           viewMode="equipe"
                           userId={usuario?.id}
+                          showAllHistory={showAllHistory}
                         />
                       </div>
                     </>
@@ -457,6 +461,7 @@ const Relatorios = () => {
                       <RecentActivities 
                         key={`activities-company-${refreshKey}`} 
                         dateRange={showAllHistory ? undefined : dateRange}
+                        showAllHistory={showAllHistory}
                       />
 
                       <RecentTasks 
@@ -464,6 +469,7 @@ const Relatorios = () => {
                         dateRange={showAllHistory ? undefined : dateRange}
                         viewMode="geral"
                         userId={usuario?.id}
+                        showAllHistory={showAllHistory}
                       />
                     </div>
                   )}

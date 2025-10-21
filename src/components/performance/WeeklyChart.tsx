@@ -29,6 +29,10 @@ export const WeeklyChart = ({ userId, dateRange, viewMode = 'geral', filterType 
 
   // Define título baseado no período
   const getChartTitle = () => {
+    if (showAllHistory) {
+      return 'Histórico Completo de Performance'
+    }
+    
     switch (filterType) {
       case 'dia':
         return 'Histórico de Performance do Dia'
@@ -44,6 +48,10 @@ export const WeeklyChart = ({ userId, dateRange, viewMode = 'geral', filterType 
   }
 
   const getChartSubtitle = () => {
+    if (showAllHistory) {
+      return 'Selecione um período para visualizar o histórico detalhado'
+    }
+    
     const target = userId ? 'Sua evolução' : 'Evolução da equipe'
     switch (filterType) {
       case 'dia':

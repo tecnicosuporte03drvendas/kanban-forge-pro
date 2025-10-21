@@ -23,10 +23,12 @@ interface RecentActivitiesProps {
     from: Date;
     to: Date;
   };
+  showAllHistory?: boolean;
 }
 export const RecentActivities = ({
   userId,
-  dateRange
+  dateRange,
+  showAllHistory = false
 }: RecentActivitiesProps) => {
   const {
     usuario
@@ -125,7 +127,10 @@ export const RecentActivities = ({
         <div>
           <CardTitle>Atividades Recentes</CardTitle>
           <p className="text-sm text-muted-foreground">
-            {userId ? 'Suas últimas ações no sistema' : 'Últimas ações da empresa'}
+            {showAllHistory 
+              ? 'Histórico completo de atividades'
+              : userId ? 'Suas últimas ações no sistema' : 'Últimas ações da empresa'
+            }
           </p>
         </div>
         {usuario?.tipo_usuario !== 'colaborador' && <Button variant="outline" size="sm" onClick={() => navigate('/atividades')}>

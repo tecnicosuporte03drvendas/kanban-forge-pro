@@ -11,9 +11,10 @@ interface RecentTasksProps {
   dateRange?: { from: Date; to: Date }
   viewMode?: 'geral' | 'individual' | 'equipe'
   userId?: string
+  showAllHistory?: boolean
 }
 
-export function RecentTasks({ dateRange, viewMode = 'geral', userId }: RecentTasksProps) {
+export function RecentTasks({ dateRange, viewMode = 'geral', userId, showAllHistory = false }: RecentTasksProps) {
   const { usuario } = useEffectiveUser()
   const [recentTasks, setRecentTasks] = useState<Tarefa[]>([])
   const [loading, setLoading] = useState(false)
@@ -146,7 +147,9 @@ export function RecentTasks({ dateRange, viewMode = 'geral', userId }: RecentTas
     <Card className="border-border bg-card">
       <CardHeader>
         <CardTitle>Tarefas Recentes</CardTitle>
-        <p className="text-sm text-muted-foreground">Últimas atividades da equipe</p>
+        <p className="text-sm text-muted-foreground">
+          {showAllHistory ? 'Histórico completo de tarefas' : 'Últimas atividades da equipe'}
+        </p>
       </CardHeader>
       <CardContent className="space-y-3">
         {recentTasks.length === 0 ? (
