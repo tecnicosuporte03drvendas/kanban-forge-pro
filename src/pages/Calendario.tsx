@@ -617,11 +617,12 @@ const Calendario = () => {
                         return (
                           <div
                             key={eventIndex}
-                            className={`text-xs p-1 rounded truncate flex items-center gap-1 ${eventStyle.background.replace('/10', '/20')} border-l-2 ${eventStyle.text} ${event.type === 'meeting' ? 'cursor-pointer hover:opacity-80' : ''}`}
+                            className={`text-xs p-1 rounded truncate flex items-center gap-1 ${eventStyle.background.replace('/10', '/20')} border-l-2 ${eventStyle.text} ${event.type === 'meeting' ? 'cursor-pointer hover:opacity-80' : event.type === 'task' ? 'cursor-pointer hover:opacity-80' : ''}`}
                             style={{ borderLeftColor: event.type === 'meeting' ? '#3b82f6' : undefined }}
                             onClick={(e) => {
                               e.stopPropagation()
                               if (event.type === 'meeting') handleMeetingClick(event.id)
+                              else if (event.type === 'task') handleTaskClick(event.id)
                             }}
                           >
                             {event.type === 'meeting' ? (
