@@ -13,87 +13,19 @@ import { WeeklyChart } from "@/components/performance/WeeklyChart"
 import { TeamStats } from "@/components/performance/TeamStats"
 import { CompanyStats } from "@/components/performance/CompanyStats"
 import { RecentActivities } from "@/components/performance/RecentActivities"
-import { DateRangeFilter, DateFilterType } from "@/components/reports/DateRangeFilter"
 import { useEffectiveUser } from "@/hooks/use-effective-user"
 import { supabase } from "@/integrations/supabase/client"
 import { CompanyUsersRanking } from "@/components/reports/CompanyUsersRanking"
 import { CompanyTeamsRanking } from "@/components/reports/CompanyTeamsRanking"
-import { DateRange } from "react-day-picker"
 
 const Relatorios = () => {
   const { usuario } = useEffectiveUser()
   const isCollaborator = usuario?.tipo_usuario === 'colaborador'
-  const [filterType, setFilterType] = useState<DateFilterType>('semana')
-  const [customRange, setCustomRange] = useState<DateRange | undefined>()
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(() => getWeekRange())
   const [isLoading, setIsLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
   const [hasTeam, setHasTeam] = useState(false)
   const [showCompanyStats, setShowCompanyStats] = useState(false)
-  const [showAllHistory, setShowAllHistory] = useState(false)
 
-  function getWeekRange() {
-    const today = new Date()
-    const dayOfWeek = today.getDay()
-    const monday = new Date(today)
-    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
-    monday.setHours(0, 0, 0, 0)
-    
-    const sunday = new Date(monday)
-    sunday.setDate(monday.getDate() + 6)
-    sunday.setHours(23, 59, 59, 999)
-    
-    return { from: monday, to: sunday }
-  }
-
-  function getDayRange() {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const endOfDay = new Date(today)
-    endOfDay.setHours(23, 59, 59, 999)
-    return { from: today, to: endOfDay }
-  }
-
-  function getMonthRange() {
-    const today = new Date()
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
-    firstDay.setHours(0, 0, 0, 0)
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-    lastDay.setHours(23, 59, 59, 999)
-    return { from: firstDay, to: lastDay }
-  }
-
-  const handleFilterChange = (type: DateFilterType, range?: DateRange) => {
-    setIsLoading(true)
-    setFilterType(type)
-    setShowAllHistory(false)
-    
-    if (type === 'customizado' && range?.from && range?.to) {
-      const from = new Date(range.from)
-      from.setHours(0, 0, 0, 0)
-      const to = new Date(range.to)
-      to.setHours(23, 59, 59, 999)
-      setCustomRange(range)
-      setDateRange({ from, to })
-    } else if (type === 'dia') {
-      setDateRange(getDayRange())
-    } else if (type === 'semana') {
-      setDateRange(getWeekRange())
-    } else if (type === 'mes') {
-      setDateRange(getMonthRange())
-    }
-    
-    setRefreshKey(prev => prev + 1)
-    setTimeout(() => setIsLoading(false), 500)
-  }
-
-  const handleShowAllHistory = () => {
-    setIsLoading(true)
-    setShowAllHistory(true)
-    setFilterType('semana') // Reset filter type
-    setRefreshKey(prev => prev + 1)
-    setTimeout(() => setIsLoading(false), 500)
-  }
 
   useEffect(() => {
     if (!usuario?.empresa_id) return
@@ -179,22 +111,8 @@ const Relatorios = () => {
       <div className="flex-1 overflow-auto p-6 bg-gradient-kanban">
         <div className="space-y-6">
 
-          <div className="flex gap-2 flex-wrap items-center">
-            <DateRangeFilter
-              selectedType={filterType}
-              dateRange={customRange}
-              onFilterChange={handleFilterChange}
-            />
-
-            <Button
-              variant={showAllHistory ? 'default' : 'outline'}
-              size="sm"
-              onClick={handleShowAllHistory}
-            >
-              Tudo
-            </Button>
-
-            {!isCollaborator && (
+          {!isCollaborator && (
+            <div className="flex gap-2 flex-wrap items-center">
               <Button
                 variant={showCompanyStats ? 'default' : 'outline'}
                 size="sm"
@@ -203,8 +121,8 @@ const Relatorios = () => {
                 <Users className="w-4 h-4 mr-2" />
                 Empresa
               </Button>
-            )}
-          </div>
+            </div>
+          )}
 
           {isLoading ? (
             <div className="space-y-6">
@@ -229,14 +147,14 @@ const Relatorios = () => {
                     
                     <TaskStats 
                       key={`stats-personal-${refreshKey}`} 
-                      dateRange={showAllHistory ? undefined : dateRange} 
+                      dateRange={undefined} 
                       viewMode="individual"
                       userId={usuario?.id}
                     />
 
                     <StatusDistribution 
                       key={`status-personal-${refreshKey}`} 
-                      dateRange={showAllHistory ? undefined : dateRange}
+                      dateRange={undefined}
                       viewMode="individual"
                       userId={usuario?.id}
                     />
@@ -246,16 +164,16 @@ const Relatorios = () => {
                         <WeeklyChart 
                           key={`chart-personal-${refreshKey}`} 
                           userId={usuario?.id} 
-                          dateRange={showAllHistory ? undefined : dateRange}
+                          dateRange={undefined}
                           viewMode="individual"
-                          filterType={filterType}
-                          showAllHistory={showAllHistory}
+                          filterType="semana"
+                          showAllHistory={true}
                         />
                       </div>
                       <div>
                         <CompanyUsersRanking 
                           key={`ranking-personal-${refreshKey}`}
-                          dateRange={showAllHistory ? undefined : dateRange}
+                          dateRange={undefined}
                           userId={usuario?.id}
                         />
                       </div>
@@ -263,7 +181,7 @@ const Relatorios = () => {
 
                     <RecentTasks 
                       key={`tasks-personal-${refreshKey}`} 
-                      dateRange={showAllHistory ? undefined : dateRange}
+                      dateRange={undefined}
                       viewMode="individual"
                       userId={usuario?.id}
                     />
@@ -279,14 +197,14 @@ const Relatorios = () => {
                       
                       <TaskStats 
                         key={`stats-team-${refreshKey}`} 
-                        dateRange={showAllHistory ? undefined : dateRange} 
+                        dateRange={undefined} 
                         viewMode="equipe"
                         userId={usuario?.id}
                       />
 
                       <StatusDistribution 
                         key={`status-team-${refreshKey}`} 
-                        dateRange={showAllHistory ? undefined : dateRange}
+                        dateRange={undefined}
                         viewMode="equipe"
                         userId={usuario?.id}
                       />
@@ -296,23 +214,23 @@ const Relatorios = () => {
                           <WeeklyChart 
                             key={`chart-team-${refreshKey}`} 
                             userId={usuario?.id} 
-                            dateRange={showAllHistory ? undefined : dateRange}
+                            dateRange={undefined}
                             viewMode="equipe"
-                            filterType={filterType}
-                            showAllHistory={showAllHistory}
+                            filterType="semana"
+                            showAllHistory={true}
                           />
                         </div>
                         <div>
                           <CompanyTeamsRanking 
                             key={`ranking-team-${refreshKey}`}
-                            dateRange={showAllHistory ? undefined : dateRange}
+                            dateRange={undefined}
                           />
                         </div>
                       </div>
 
                       <RecentTasks 
                         key={`tasks-team-${refreshKey}`} 
-                        dateRange={showAllHistory ? undefined : dateRange}
+                        dateRange={undefined}
                         viewMode="equipe"
                         userId={usuario?.id}
                       />
@@ -332,14 +250,14 @@ const Relatorios = () => {
                         
                         <TaskStats 
                           key={`stats-personal-${refreshKey}`} 
-                          dateRange={showAllHistory ? undefined : dateRange} 
+                          dateRange={undefined} 
                           viewMode="individual"
                           userId={usuario?.id}
                         />
 
                         <StatusDistribution 
                           key={`status-personal-${refreshKey}`} 
-                          dateRange={showAllHistory ? undefined : dateRange}
+                          dateRange={undefined}
                           viewMode="individual"
                           userId={usuario?.id}
                         />
@@ -349,16 +267,16 @@ const Relatorios = () => {
                             <WeeklyChart 
                               key={`chart-personal-${refreshKey}`} 
                               userId={usuario?.id} 
-                              dateRange={showAllHistory ? undefined : dateRange}
+                              dateRange={undefined}
                               viewMode="individual"
-                              filterType={filterType}
-                              showAllHistory={showAllHistory}
+                              filterType="semana"
+                              showAllHistory={true}
                             />
                           </div>
                           <div>
                             <CompanyUsersRanking 
                               key={`ranking-personal-${refreshKey}`}
-                              dateRange={showAllHistory ? undefined : dateRange}
+                              dateRange={undefined}
                               userId={usuario?.id}
                             />
                           </div>
@@ -366,7 +284,7 @@ const Relatorios = () => {
 
                         <RecentTasks 
                           key={`tasks-personal-${refreshKey}`} 
-                          dateRange={showAllHistory ? undefined : dateRange}
+                          dateRange={undefined}
                           viewMode="individual"
                           userId={usuario?.id}
                         />
@@ -381,14 +299,14 @@ const Relatorios = () => {
                           
                           <TaskStats 
                             key={`stats-team-${refreshKey}`} 
-                            dateRange={showAllHistory ? undefined : dateRange} 
+                            dateRange={undefined} 
                             viewMode="equipe"
                             userId={usuario?.id}
                           />
 
                           <StatusDistribution 
                             key={`status-team-${refreshKey}`} 
-                            dateRange={showAllHistory ? undefined : dateRange}
+                            dateRange={undefined}
                             viewMode="equipe"
                             userId={usuario?.id}
                           />
@@ -398,23 +316,23 @@ const Relatorios = () => {
                             <WeeklyChart 
                               key={`chart-team-${refreshKey}`} 
                               userId={usuario?.id} 
-                              dateRange={showAllHistory ? undefined : dateRange}
+                              dateRange={undefined}
                               viewMode="equipe"
-                              filterType={filterType}
-                              showAllHistory={showAllHistory}
+                              filterType="semana"
+                              showAllHistory={true}
                             />
                             </div>
                             <div>
                             <CompanyTeamsRanking 
                               key={`ranking-team-${refreshKey}`}
-                              dateRange={showAllHistory ? undefined : dateRange}
+                              dateRange={undefined}
                             />
                             </div>
                           </div>
 
                         <RecentTasks 
                           key={`tasks-team-${refreshKey}`} 
-                          dateRange={showAllHistory ? undefined : dateRange}
+                          dateRange={undefined}
                           viewMode="equipe"
                           userId={usuario?.id}
                         />
@@ -429,40 +347,40 @@ const Relatorios = () => {
                       
                       <TaskStats 
                         key={`stats-company-${refreshKey}`} 
-                        dateRange={showAllHistory ? undefined : dateRange} 
+                        dateRange={undefined} 
                         viewMode="geral"
                         userId={usuario?.id}
                       />
 
                       <StatusDistribution 
                         key={`status-company-${refreshKey}`} 
-                        dateRange={showAllHistory ? undefined : dateRange}
+                        dateRange={undefined}
                         viewMode="geral"
                         userId={usuario?.id}
                       />
 
-                      <TeamStats key={`team-performance-${refreshKey}`} dateRange={showAllHistory ? undefined : dateRange} />
+                      <TeamStats key={`team-performance-${refreshKey}`} dateRange={undefined} />
 
                       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                         <div className="xl:col-span-2">
-                          <CompanyStats key={`company-stats-${refreshKey}`} dateRange={showAllHistory ? undefined : dateRange} />
+                          <CompanyStats key={`company-stats-${refreshKey}`} dateRange={undefined} />
                         </div>
                         <div>
                           <CompanyTeamsRanking 
                             key={`ranking-company-${refreshKey}`}
-                            dateRange={showAllHistory ? undefined : dateRange}
+                            dateRange={undefined}
                           />
                         </div>
                       </div>
 
                       <RecentActivities 
                         key={`activities-company-${refreshKey}`} 
-                        dateRange={showAllHistory ? undefined : dateRange}
+                        dateRange={undefined}
                       />
 
                       <RecentTasks 
                         key={`tasks-company-${refreshKey}`} 
-                        dateRange={showAllHistory ? undefined : dateRange}
+                        dateRange={undefined}
                         viewMode="geral"
                         userId={usuario?.id}
                       />
