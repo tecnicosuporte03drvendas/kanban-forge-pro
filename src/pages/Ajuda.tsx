@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Search, FileText, HelpCircle, MessageSquare, Clock, ExternalLink } from "lucide-react"
+import { Search, FileText, HelpCircle, MessageSquare, Clock, ExternalLink, Smartphone, Monitor, Download } from "lucide-react"
 import { CreateSupportTicketModal } from "@/components/modals/CreateSupportTicketModal"
 
 const quickGuides = [
@@ -144,10 +144,14 @@ const Ajuda = () => {
           </Card>
 
           <Tabs defaultValue="faq" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 bg-card">
+            <TabsList className="grid w-full grid-cols-3 bg-card">
               <TabsTrigger value="faq" className="flex items-center gap-2">
                 <HelpCircle className="w-4 h-4" />
                 FAQ
+              </TabsTrigger>
+              <TabsTrigger value="pwa" className="flex items-center gap-2">
+                <Download className="w-4 h-4" />
+                Instalar App
               </TabsTrigger>
               <TabsTrigger value="tickets" className="flex items-center gap-2">
                 <MessageSquare className="w-4 h-4" />
@@ -178,6 +182,70 @@ const Ajuda = () => {
                   ))}
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="pwa" className="space-y-6">
+              <Card className="border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Smartphone className="w-5 h-5" />
+                    Instalar Aplicativo
+                  </CardTitle>
+                  <p className="text-muted-foreground">
+                    Instale nosso aplicativo no seu dispositivo para acesso rápido e experiência otimizada
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Android/Chrome */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="w-5 h-5 text-primary" />
+                      <h4 className="font-semibold text-card-foreground">Android / Chrome</h4>
+                    </div>
+                    <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground pl-2">
+                      <li>Abra o menu do navegador (três pontos no canto superior direito)</li>
+                      <li>Toque em "Instalar aplicativo" ou "Adicionar à tela inicial"</li>
+                      <li>Confirme a instalação</li>
+                      <li>O app aparecerá na sua tela inicial como um aplicativo normal</li>
+                    </ol>
+                  </div>
+
+                  {/* iOS/Safari */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="w-5 h-5 text-primary" />
+                      <h4 className="font-semibold text-card-foreground">iPhone / Safari</h4>
+                    </div>
+                    <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground pl-2">
+                      <li>Toque no botão de compartilhar (ícone de quadrado com seta para cima)</li>
+                      <li>Role para baixo e selecione "Adicionar à Tela de Início"</li>
+                      <li>Digite um nome (ou mantenha o padrão) e toque em "Adicionar"</li>
+                      <li>O ícone aparecerá na sua tela inicial</li>
+                    </ol>
+                  </div>
+
+                  {/* Desktop */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Monitor className="w-5 h-5 text-primary" />
+                      <h4 className="font-semibold text-card-foreground">Desktop (Chrome, Edge, Brave)</h4>
+                    </div>
+                    <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground pl-2">
+                      <li>Procure o ícone de instalação na barra de endereços (ao lado da URL)</li>
+                      <li>Clique em "Instalar" quando o pop-up aparecer</li>
+                      <li>O aplicativo será adicionado ao seu sistema como um app desktop</li>
+                      <li>Acesse através do menu iniciar ou atalho na área de trabalho</li>
+                    </ol>
+                  </div>
+
+                  <div className="bg-muted p-4 rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      <strong className="text-foreground">Vantagens:</strong> Acesso rápido, funciona offline, 
+                      notificações push, ocupa menos espaço que apps tradicionais e sempre atualizado.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="tickets" className="space-y-6">
