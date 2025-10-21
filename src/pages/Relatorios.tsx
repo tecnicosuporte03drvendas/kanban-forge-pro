@@ -90,7 +90,6 @@ const Relatorios = () => {
   const handleShowAllHistory = () => {
     setIsLoading(true)
     setShowAllHistory(true)
-    setFilterType('semana') // Reset filter type
     setRefreshKey(prev => prev + 1)
     setTimeout(() => setIsLoading(false), 500)
   }
@@ -181,7 +180,7 @@ const Relatorios = () => {
 
           <div className="flex gap-2 flex-wrap items-center">
             <DateRangeFilter
-              selectedType={filterType}
+              selectedType={showAllHistory ? undefined : filterType}
               dateRange={customRange}
               onFilterChange={handleFilterChange}
             />

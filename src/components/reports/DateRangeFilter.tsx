@@ -12,7 +12,7 @@ export type DateFilterType = 'dia' | 'semana' | 'mes' | 'customizado'
 
 interface DateRangeFilterProps {
   onFilterChange: (type: DateFilterType, dateRange?: DateRange) => void
-  selectedType: DateFilterType
+  selectedType?: DateFilterType
   dateRange?: DateRange
 }
 
