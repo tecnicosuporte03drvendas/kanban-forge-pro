@@ -97,12 +97,12 @@ export function AdminDashboard() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold">Painel Administrativo</h1>
-            <p className="text-muted-foreground">
+            <div className="text-muted-foreground">
               Bem-vindo, {usuario?.nome}
               <Badge variant="secondary" className="ml-2">
                 {usuario?.tipo_usuario.toUpperCase()}
               </Badge>
-            </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
